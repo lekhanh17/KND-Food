@@ -22,7 +22,7 @@ export default function Navbar() {
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  const [userRecipes, setUserRecipes] = useState(() => {
+  const [userRecipes] = useState(() => {
     const saved = localStorage.getItem("sharedRecipes");
     return saved ? JSON.parse(saved) : [];
   });
@@ -59,15 +59,23 @@ export default function Navbar() {
     { id: 3, name: "Tráng miệng" },
   ];
 
-  useEffect(() => {
-    const handleStorage = (e) => {
-      if (e.key === "user") setUser(JSON.parse(e.newValue));
-      if (e.key === "sharedRecipes")
-        setUserRecipes(JSON.parse(e.newValue || "[]"));
-    };
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
-  }, []);
+useEffect(() => {
+  const syncUser = () => {
+    const savedUser = localStorage.getItem('user');
+    setUser(savedUser ? JSON.parse(savedUser) : null);
+    console.log("Navbar đã nhận tín hiệu đổi tên!"); // Thêm dòng này để kiểm tra trong F12
+  };
+
+  // Đăng ký lắng nghe tín hiệu
+  window.addEventListener('user-changed', syncUser);
+  window.addEventListener('storage', syncUser);
+
+  return () => {
+    // Hủy lắng nghe khi component bị gỡ bỏ
+    window.removeEventListener('user-changed', syncUser);
+    window.removeEventListener('storage', syncUser);
+  };
+}, []);
 
   return (
     <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100 shadow-sm transition-all duration-300">
@@ -214,7 +222,7 @@ export default function Navbar() {
 
                 {/* Dropdown Menu - Tự động hiện khi cha được hover */}
                 {isUserMenuOpen && (
-                  <div className="absolute top-full right-0 w-56 bg-white shadow-2xl rounded-3xl p-3 border border-gray-50 mt-1 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute top-full right-0 w-56 bg-white shadow-2xl rounded-3xl p-3 border border-gray-50 mt-0.2 animate-in fade-in slide-in-from-top-2 duration-200">
                     <Link
                       to="/profile"
                       className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-500 rounded-2xl transition font-bold group"

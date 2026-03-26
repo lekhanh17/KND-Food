@@ -28,9 +28,11 @@ export default function UserPage() {
       return;
     }
 
-    const updatedUser = { FullName: trimmedName };
+    // 1. Cập nhật object user (giữ lại các thuộc tính cũ nếu có)
+    const updatedUser = { ...user, FullName: trimmedName };
     localStorage.setItem('user', JSON.stringify(updatedUser));
 
+    // 2. Cập nhật Database giả
     const registeredUser = localStorage.getItem('registeredUser');
     if (registeredUser) {
       const parsed = JSON.parse(registeredUser);
@@ -39,16 +41,19 @@ export default function UserPage() {
       localStorage.setItem('registeredUser', JSON.stringify(parsed));
     }
 
+    // 3. Cập nhật State tại chỗ
     setUser(updatedUser);
     setRegisteredEmail(trimmedEmail);
+
+    // 4. Báo cho navbar
+    window.dispatchEvent(new Event('user-changed'));
 
     toast.success('Cập nhật thông tin thành công!', {
       position: "top-right",
       autoClose: 1500,
     });
 
-    window.dispatchEvent(new Event('user-changed'));
-
+    // 5. Chuyển hướng về trang chủ
     setTimeout(() => {
       navigate('/');
     }, 2000);
