@@ -1,12 +1,13 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
-import { toast } from "react-toastify"; // Sử dụng toast thay cho Swal
+import { toast } from "react-toastify";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
 
-  const handleRegister = (e) => {
+  // Thêm 'async' để có thể gọi API
+  const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -23,21 +24,44 @@ export default function RegisterPage() {
       return;
     }
 
-    // 2. Lưu vào "Database giả"
-    if (fullName && email && password) {
-      const newUser = { fullName, email, password };
-      localStorage.setItem('registeredUser', JSON.stringify(newUser));
+    // 2. Gọi API để lưu vào Database thật (SQL Server)
+    try {
+      const userData = {
+        FullName: fullName,
+        Email: email,
+        Password: password
+      };
 
-      // 3. Thông báo thành công
-      toast.success("Đăng ký thành công! Đang chuyển hướng tới trang Đăng nhập...", {
-        position: "top-right",
-        autoClose: 1500,
+      // Gõ cửa anh bồi bàn Node.js
+      const response = await fetch('http://localhost:5000/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData)
       });
 
-      // 4. Chuyển sang trang Login sau 2 giây
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+      const data = await response.json();
+
+      if (response.ok) {
+        // 3. Thành công -> Báo xanh và chuyển trang
+        toast.success("🎉 Đăng ký thành công! Đang chuyển hướng...", {
+          position: "top-right",
+          autoClose: 1500,
+        });
+
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
+      } else {
+        // Lỗi từ backend (VD: Email đã tồn tại)
+        setError(data.message);
+        toast.error("❌ " + data.message);
+      }
+    } catch (err) {
+      console.error("Lỗi API:", err);
+      setError("Không thể kết nối đến Server!");
+      toast.error("❌ Lỗi mạng: Không thể kết nối Server!");
     }
   };
 

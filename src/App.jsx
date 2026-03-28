@@ -11,6 +11,11 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import UserPage from "./pages/UserPage";
+
+// --- IMPORT 2 FILE ADMIN VỪA TẠO ---
+import AdminRoute from "./components/AdminRoute"; 
+import AdminDashboard from "./pages/AdminDashboard"; 
+
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -83,17 +88,17 @@ function NotificationBanner() {
   );
 }
 
-// --- TẠO COMPONENT NÀY ĐỂ XỬ LÝ LOGIC ẨN NAVBAR ---
+// --- COMPONENT XỬ LÝ LOGIC ẨN NAVBAR ---
 function AppContent() {
   const location = useLocation();
 
-  // Danh sách các đường dẫn KHÔNG hiện Navbar
-  const hideNavbarPaths = ["/login", "/register"];
+  // Mình thêm "/admin" vào đây để trang Quản trị có không gian rộng rãi, không bị vướng Navbar chung
+  const hideNavbarPaths = ["/login", "/register", "/admin"];
   const shouldHideNavbar = hideNavbarPaths.includes(location.pathname);
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Chỉ hiện Navbar và Notification nếu không phải trang login/register */}
+      {/* Chỉ hiện Navbar và Notification nếu không phải trang login/register/admin */}
       {!shouldHideNavbar && <Navbar />}
       {!shouldHideNavbar && <NotificationBanner />}
 
@@ -103,6 +108,17 @@ function AppContent() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<UserPage />} />
+          
+          {/* --- ĐÂY LÀ TRANG DÀNH RIÊNG CHO ADMIN --- */}
+          <Route 
+            path="/admin" 
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            } 
+          />
+
           {/* Nếu không khớp cái nào thì về trang chủ hoặc hiện 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

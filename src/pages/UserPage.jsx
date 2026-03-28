@@ -4,21 +4,18 @@ import { toast } from 'react-toastify';
 
 export default function UserPage() {
   const navigate = useNavigate();
+
+  // 1. Chỉ dùng duy nhất một nguồn sự thật là 'loggedInUser'
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user');
+    const savedUser = localStorage.getItem('loggedInUser');
     return savedUser ? JSON.parse(savedUser) : null;
   });
-  
-  const [registeredEmail, setRegisteredEmail] = useState(() => {
-    const registeredUser = localStorage.getItem('registeredUser');
-    const parsed = registeredUser ? JSON.parse(registeredUser) : {};
-    return parsed.email || 'Chưa có';
-  });
 
+  // 2. Khởi tạo form dựa trực tiếp trên dữ liệu user hiện tại
   const [formFullName, setFormFullName] = useState(() => user?.FullName || '');
-  const [formEmail, setFormEmail] = useState(() => registeredEmail);
+  const [formEmail, setFormEmail] = useState(() => user?.Email || '');
 
-  const handleUpdateProfile = (e) => {
+  const handleUpdateProfile = async (e) => {
     e.preventDefault();
     const trimmedName = formFullName.trim();
     const trimmedEmail = formEmail.trim();
@@ -28,37 +25,44 @@ export default function UserPage() {
       return;
     }
 
-    // 1. Cập nhật object user (giữ lại các thuộc tính cũ nếu có)
-    const updatedUser = { ...user, FullName: trimmedName };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
+    try {
+      // 3. Gửi dữ liệu cập nhật xuống SQL Server qua Node.js
+      const response = await fetch('http://localhost:5000/api/users/update', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          UserID: user.UserID,
+          FullName: trimmedName,
+          Email: trimmedEmail
+        })
+      });
 
-    // 2. Cập nhật Database giả
-    const registeredUser = localStorage.getItem('registeredUser');
-    if (registeredUser) {
-      const parsed = JSON.parse(registeredUser);
-      parsed.fullName = trimmedName;
-      parsed.email = trimmedEmail;
-      localStorage.setItem('registeredUser', JSON.stringify(parsed));
+      if (response.ok) {
+        // 4. Cập nhật lại LocalStorage để đồng bộ toàn bộ hệ thống (Navbar, Dashboard...)
+        const updatedUser = { ...user, FullName: trimmedName, Email: trimmedEmail };
+        localStorage.setItem('loggedInUser', JSON.stringify(updatedUser));
+
+        // 5. Cập nhật State để giao diện trang này thay đổi ngay
+        setUser(updatedUser);
+        
+        // 6. Bắn tín hiệu cho Navbar biết để đổi tên hiển thị ngay lập tức
+        window.dispatchEvent(new Event('user-changed'));
+
+        toast.success('🎉 Cập nhật thông tin thành công!');
+        
+        // Về trang chủ sau 2s để người dùng thấy kết quả
+        setTimeout(() => navigate('/'), 2000);
+      } else {
+        const data = await response.json();
+        toast.error('❌ Lỗi: ' + data.message);
+      }
+    } catch (error) {
+      console.error("Lỗi cập nhật:", error);
+      toast.error('❌ Không thể kết nối đến Server!');
     }
-
-    // 3. Cập nhật State tại chỗ
-    setUser(updatedUser);
-    setRegisteredEmail(trimmedEmail);
-
-    // 4. Báo cho navbar
-    window.dispatchEvent(new Event('user-changed'));
-
-    toast.success('Cập nhật thông tin thành công!', {
-      position: "top-right",
-      autoClose: 1500,
-    });
-
-    // 5. Chuyển hướng về trang chủ
-    setTimeout(() => {
-      navigate('/');
-    }, 2000);
   };
 
+  // Nếu chưa đăng nhập thì hiện màn hình thông báo
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-[80vh] bg-gray-50 p-6">
@@ -100,10 +104,11 @@ export default function UserPage() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
               <div className="bg-orange-500 px-8 py-6">
                 <h1 className="text-2xl font-bold text-white">Thông tin tài khoản</h1>
-                <p className="text-orange-100 mt-1">Chào mừng {user.FullName.split(' ')[0]} quay trở lại!</p>
+                <p className="text-orange-100 mt-1">Chào mừng {user.FullName?.split(' ')[0]} quay trở lại!</p>
               </div>
 
               <div className="p-8">
+                {/* Hiển thị thông tin hiện tại */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="bg-gray-50 p-5 rounded-xl border border-gray-100">
                     <h3 className="text-sm font-medium text-gray-500 mb-1">Họ tên hiện tại</h3>
@@ -111,14 +116,15 @@ export default function UserPage() {
                   </div>
                   <div className="bg-gray-50 p-5 rounded-xl border border-gray-100">
                     <h3 className="text-sm font-medium text-gray-500 mb-1">Email đăng ký</h3>
-                    <p className="text-gray-800 font-semibold">{registeredEmail}</p>
+                    <p className="text-gray-800 font-semibold">{user.Email}</p>
                   </div>
                 </div>
 
+                {/* Form cập nhật */}
                 <form onSubmit={handleUpdateProfile} className="mt-8 space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1">
-                      <label className="text-sm font-medium text-gray-600 px-1">Cập nhật họ tên</label>
+                      <label className="text-sm font-medium text-gray-600 px-1">Cập nhật họ tên mới</label>
                       <input
                         value={formFullName}
                         onChange={(e) => setFormFullName(e.target.value)}
@@ -128,7 +134,7 @@ export default function UserPage() {
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-sm font-medium text-gray-600 px-1">Cập nhật email</label>
+                      <label className="text-sm font-medium text-gray-600 px-1">Cập nhật email mới</label>
                       <input
                         value={formEmail}
                         onChange={(e) => setFormEmail(e.target.value)}
@@ -140,9 +146,9 @@ export default function UserPage() {
 
                   <button
                     type="submit"
-                    className="px-6 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition shadow-md active:scale-95"
+                    className="px-8 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 transition shadow-lg shadow-green-100 active:scale-95"
                   >
-                    Lưu thay đổi
+                    Lưu tất cả thay đổi
                   </button>
                 </form>
               </div>
