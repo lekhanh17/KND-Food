@@ -131,17 +131,21 @@ function App() {
   return (
     <Router>
       <AppContent />
+      {/* Cấu hình ToastContainer mới - Hiện đại, sang trọng */}
       <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
+        position="top-center"       // Đưa ra giữa màn hình phía trên
+        autoClose={2000}            // Tắt nhanh sau 2 giây (mặc định là 5s hơi lâu)
+        hideProgressBar={true}      // Giấu cái thanh thời gian chạy lùi đi
+        newestOnTop={true}          
+        closeOnClick={true}
         rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
+        pauseOnFocusLoss={false}
+        draggable={true}
+        pauseOnHover={false}
+        theme="dark"                // Chuyển sang giao diện Dark Mode
+        toastClassName={() => 
+          "relative flex items-center justify-center p-4 mb-4 min-h-12 rounded-full justify-between overflow-hidden cursor-pointer bg-gray-900 text-white shadow-2xl font-bold text-sm text-center"
+        }
       />
     </Router>
   );

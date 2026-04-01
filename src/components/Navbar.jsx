@@ -201,18 +201,26 @@ export default function Navbar() {
 
               {/* User Dropdown */}
               <div
-                className="relative py-2"
-                onMouseEnter={() => setIsUserMenuOpen(true)}
-                onMouseLeave={() => setIsUserMenuOpen(false)}
-              >
-                <button className="flex items-center gap-3 p-1.5 pr-4 bg-gray-50 hover:bg-gray-100 rounded-full transition-all border border-gray-100 group">
-                  <div className="w-9 h-9 bg-orange-500 text-white rounded-full flex items-center justify-center font-black shadow-md shadow-orange-200 uppercase">
-                    {user.FullName ? user.FullName.charAt(0) : "U"}
-                  </div>
-                  <span className="text-sm font-bold text-gray-700">
-                    {user.FullName ? user.FullName.split(" ")[0] : "Bạn"}
-                  </span>
-                </button>
+  className="relative py-2"
+  onMouseEnter={() => setIsUserMenuOpen(true)}
+  onMouseLeave={() => setIsUserMenuOpen(false)}
+>
+  <button className="flex items-center gap-3 p-1.5 pr-4 bg-gray-50 hover:bg-gray-100 rounded-full transition-all border border-gray-100 group">
+    
+    {/* --- CHỈ SỬA KHÚC NÀY NÈ --- */}
+    <div className="w-9 h-9 bg-orange-500 text-white rounded-full flex items-center justify-center font-black shadow-md shadow-orange-200 uppercase overflow-hidden">
+      {user.Avatar ? (
+        <img src={user.Avatar} alt="nav-avt" className="w-full h-full object-cover" />
+      ) : (
+        user.FullName ? user.FullName.charAt(0) : "U"
+      )}
+    </div>
+    {/* --------------------------- */}
+
+    <span className="text-sm font-bold text-gray-700">
+      {user.FullName ? user.FullName.split(" ")[0] : "Bạn"}
+    </span>
+  </button>
 
                 {isUserMenuOpen && (
                   <div className="absolute top-full right-0 w-56 bg-white shadow-2xl rounded-3xl p-3 border border-gray-50 mt-0.2 animate-in fade-in slide-in-from-top-2 duration-200">
