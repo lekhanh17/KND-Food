@@ -11,6 +11,7 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import UserPage from "./pages/UserPage";
+import CreateRecipe from './pages/CreateRecipe';
 
 // --- IMPORT 2 FILE ADMIN VỪA TẠO ---
 import AdminRoute from "./components/AdminRoute"; 
@@ -108,6 +109,7 @@ function AppContent() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<UserPage />} />
+          <Route path="/create-recipe" element={<CreateRecipe />} />
           
           {/* --- ĐÂY LÀ TRANG DÀNH RIÊNG CHO ADMIN --- */}
           <Route 
