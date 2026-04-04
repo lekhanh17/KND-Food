@@ -27,6 +27,11 @@ export default function UserPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
+  // --- STATE LƯU TRỮ DANH SÁCH BÀI ĐĂNG ---
+  const [myRecipes, setMyRecipes] = useState([]);
+  const [isLoadingRecipes, setIsLoadingRecipes] = useState(true);
+
+  // Đóng menu cài đặt khi click ra ngoài
   useEffect(() => {
     function handleClickOutside(event) {
       if (settingsMenuRef.current && !settingsMenuRef.current.contains(event.target)) {
@@ -36,6 +41,32 @@ export default function UserPage() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // --- GỌI API LẤY DANH SÁCH BÀI ĐĂNG (Đã sửa lỗi ESLint) ---
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      setIsLoadingRecipes(true);
+      try {
+        const res = await fetch(`http://localhost:5000/api/recipes/user/${user.UserID}`);
+        const data = await res.json();
+        
+        if (Array.isArray(data)) {
+          setMyRecipes(data);
+        } else {
+          setMyRecipes([]);
+        }
+      } catch (err) {
+        console.error("Lỗi fetch recipes:", err);
+        setMyRecipes([]);
+      } finally {
+        setIsLoadingRecipes(false);
+      }
+    };
+
+    if (user) {
+      fetchRecipes();
+    }
+  }, [user]);
 
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
@@ -259,16 +290,84 @@ export default function UserPage() {
           ))}
         </div>
 
-        {/* NỘI DUNG TABS */}
+        {/* --- KHU VỰC NỘI DUNG TABS --- */}
         <div className="py-8">
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-in fade-in">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-20 h-20 mb-4 opacity-50">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-            </svg>
-            <h3 className="text-lg font-bold text-gray-800">Chưa có {activeTab.toLowerCase()} nào</h3>
-            {activeTab === 'Bài đăng của tôi' && <p className="text-sm mt-1">Các món ăn bạn chia sẻ sẽ xuất hiện tại đây.</p>}
-          </div>
+          {activeTab === 'Bài đăng của tôi' ? (
+            isLoadingRecipes ? (
+              // Đang tải dữ liệu
+              <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <h3 className="text-lg font-bold text-gray-800">Đang tải công thức...</h3>
+              </div>
+            ) : myRecipes.length > 0 ? (
+              // Vẽ danh sách món ăn ra
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {myRecipes.map((recipe) => (
+                  <Link 
+                    to={`/recipe/${recipe.RecipeID}`} 
+                    key={recipe.RecipeID} 
+                    className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group cursor-pointer block"
+                  >
+                    
+                    {/* Ảnh món ăn */}
+                    <div className="aspect-[4/3] overflow-hidden relative bg-gray-100">
+                      {recipe.ImageURL ? (
+                        <img 
+                          src={recipe.ImageURL} 
+                          alt={recipe.Title} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                         <div className="w-full h-full flex items-center justify-center text-gray-300">
+                           No Image
+                         </div>
+                      )}
+                      
+                      {/* Cục hiển thị độ khó (Số sao) */}
+                      <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm">
+                        <span className="text-yellow-500 text-sm">★</span> {recipe.Difficulty}
+                      </div>
+                    </div>
+                    
+                    {/* Thông tin bên dưới ảnh */}
+                    <div className="p-4">
+                      <h3 className="font-bold text-lg text-gray-900 line-clamp-1 mb-2 group-hover:text-orange-500 transition-colors">
+                        {recipe.Title}
+                      </h3>
+                      <div className="flex items-center text-sm text-gray-500 font-medium gap-4">
+                        <span className="flex items-center gap-1.5">
+                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                           </svg>
+                           {recipe.PrepTime + recipe.CookTime} phút
+                        </span>
+                      </div>
+                    </div>
+                    
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              // Nếu chưa có bài nào
+              <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-in fade-in">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-20 h-20 mb-4 opacity-50">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                </svg>
+                <h3 className="text-lg font-bold text-gray-800">Chưa có bài đăng của tôi nào</h3>
+                <p className="text-sm mt-1">Các món ăn bạn chia sẻ sẽ xuất hiện tại đây.</p>
+              </div>
+            )
+          ) : (
+            // Các Tab khác (Đăng lại, Đã lưu, Yêu thích)
+            <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-in fade-in">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-20 h-20 mb-4 opacity-50">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+              </svg>
+              <h3 className="text-lg font-bold text-gray-800">Chưa có {activeTab.toLowerCase()} nào</h3>
+            </div>
+          )}
         </div>
       </div>
 
@@ -306,7 +405,6 @@ export default function UserPage() {
                   </div>
                 </div>
 
-                {/* --- KHU VỰC USERNAME ÁP DỤNG LUẬT MỚI --- */}
                 <div className="flex flex-col sm:flex-row gap-4 border-b border-gray-100 pb-6">
                   <div className="w-full sm:w-1/4 text-sm font-bold text-gray-800 pt-3">Tên người dùng</div>
                   <div className="w-full sm:w-3/4">
@@ -314,10 +412,8 @@ export default function UserPage() {
                       type="text"
                       placeholder="Username"
                       value={formUsername}
-                      maxLength={16} // Giới hạn tối đa 16 ký tự
+                      maxLength={16}
                       onChange={(e) => {
-                        // 1. Chuyển tất cả thành chữ thường
-                        // 2. Loại bỏ các ký tự không hợp lệ bằng Regex (chỉ giữ lại a-z, 0-9, dấu chấm, dấu gạch dưới)
                         const val = e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, '');
                         setFormUsername(val);
                       }}

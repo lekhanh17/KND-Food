@@ -20,6 +20,9 @@ import AdminDashboard from "./pages/AdminDashboard";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+import RecipeDetail from './pages/RecipeDetail';
+import EditRecipe from './pages/EditRecipe';
+
 function NotificationBanner() {
   const [notifications, setNotifications] = useState(() => {
     const sharedRecipes = localStorage.getItem("sharedRecipes");
@@ -110,8 +113,10 @@ function AppContent() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<UserPage />} />
           <Route path="/create-recipe" element={<CreateRecipe />} />
+          <Route path="/recipe/:id" element={<RecipeDetail />} />
+          <Route path="/edit-recipe/:id" element={<EditRecipe />} />
           
-          {/* --- ĐÂY LÀ TRANG DÀNH RIÊNG CHO ADMIN --- */}
+          {/* --- TRANG CỦA ADMIN --- */}
           <Route 
             path="/admin" 
             element={
