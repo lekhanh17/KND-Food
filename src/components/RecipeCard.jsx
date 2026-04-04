@@ -1,28 +1,76 @@
+import { Link } from 'react-router-dom';
+
 export default function RecipeCard({ item }) {
+  // Hàm "phù phép" đổi số (1-5) thành Chữ + Màu sắc tương ứng
+  const getDifficultyUI = (level) => {
+    switch (Number(level)) {
+      case 1: return { label: "Rất dễ", color: "text-green-700 bg-green-50 border-green-200" };
+      case 2: return { label: "Dễ", color: "text-teal-700 bg-teal-50 border-teal-200" };
+      case 3: return { label: "Trung bình", color: "text-yellow-700 bg-yellow-50 border-yellow-200" };
+      case 4: return { label: "Khó", color: "text-orange-700 bg-orange-50 border-orange-200" };
+      case 5: return { label: "Thử thách", color: "text-red-700 bg-red-50 border-red-200" };
+      default: return { label: "Cơ bản", color: "text-gray-700 bg-gray-50 border-gray-200" };
+    }
+  };
+
+  const difficultyUI = getDifficultyUI(item.difficulty);
+
   return (
-    <div className="group bg-white rounded-[2rem] border border-gray-100 overflow-hidden hover:shadow-2xl hover:shadow-orange-100 transition-all duration-500">
-      <div className="relative h-64 overflow-hidden">
+    // SỬA Ở ĐÂY: Đổi thẻ <div> thành <Link> và thêm thuộc tính 'to'
+    <Link 
+      to={`/recipe/${item.id}`}
+      className="group bg-white rounded-[2rem] border border-gray-100 overflow-hidden hover:shadow-2xl hover:shadow-orange-100 transition-all duration-500 flex flex-col block cursor-pointer outline-none"
+    >
+      
+      {/* KHU VỰC ẢNH */}
+      <div className="relative h-56 overflow-hidden shrink-0">
         <img 
           src={item.image} 
           alt={item.title} 
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
         />
-        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-xs font-bold text-orange-600 uppercase tracking-widest">
+        <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-[10px] font-black text-orange-600 uppercase tracking-wider shadow-sm">
           {item.category}
         </div>
       </div>
-      <div className="p-8">
-        <h3 className="text-xl font-bold text-gray-800 mb-3 group-hover:text-orange-500 transition-colors line-clamp-1">
-          {item.title}
-        </h3>
-        <div className="flex items-center justify-between text-sm text-gray-500">
-          <div className="flex items-center gap-4">
-            <span>⏱ {item.time}</span>
-            <span>🔥 {item.calories} kcal</span>
-          </div>
-          <span className="font-bold text-gray-800">⭐ {item.rating}</span>
+
+      {/* KHU VỰC NỘI DUNG */}
+      <div className="p-6 flex flex-col flex-1 justify-between">
+        <div>
+          <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-orange-500 transition-colors line-clamp-2 leading-snug">
+            {item.title}
+          </h3>
         </div>
+        
+        <div>
+          {/* Hàng 1: Thời gian & Nhãn Độ khó */}
+          <div className="flex items-center gap-3 mb-4">
+            <span className="flex items-center gap-1.5 text-sm font-medium text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {item.time}
+            </span>
+            
+            {/* BADGE ĐỘ KHÓ ĐỔI MÀU */}
+            <span className={`px-2.5 py-0.5 rounded-lg border text-xs font-bold ${difficultyUI.color}`}>
+              {difficultyUI.label}
+            </span>
+          </div>
+
+          <hr className="border-gray-100 mb-3" />
+
+          {/* Hàng 2: Sao Đánh giá (Review) thực sự */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <span className="text-yellow-400 text-sm">★</span>
+              <span className="font-black text-gray-800 text-sm">{item.rating || "0.0"}</span>
+              <span className="text-gray-400 text-xs font-medium ml-1">({item.reviews || 0})</span>
+            </div>
+          </div>
+        </div>
+
       </div>
-    </div>
+    </Link>
   );
 }

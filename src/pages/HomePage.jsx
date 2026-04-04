@@ -1,54 +1,57 @@
+import { useState, useEffect } from "react";
 import Hero from "../components/Hero";
 import RecipeCard from "../components/RecipeCard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowRightLong } from "@fortawesome/free-solid-svg-icons";
-
-const MOCK_RECIPES = [
-  {
-    id: 1,
-    title: "Bún chả Hà Nội chuẩn vị",
-    category: "Món chính",
-    time: "45p",
-    calories: "450",
-    rating: "4.9",
-    image:
-      "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0?q=80&w=800",
-  },
-  {
-    id: 2,
-    title: "Salad ức gà sốt mè",
-    category: "Eat Clean",
-    time: "15p",
-    calories: "280",
-    rating: "4.8",
-    image:
-      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?q=80&w=800",
-  },
-  {
-    id: 3,
-    title: "Cá hồi áp chảo măng tây",
-    category: "Món chính",
-    time: "25p",
-    calories: "350",
-    rating: "5.0",
-    image:
-      "https://images.unsplash.com/photo-1467003909585-2f8a72700288?q=80&w=800",
-  },
-  {
-    id: 4,
-    title: "Bánh Pancake việt quất",
-    category: "Tráng miệng",
-    time: "20p",
-    calories: "320",
-    rating: "4.7",
-    image:
-      "https://images.unsplash.com/photo-1528207776546-365bb710ee93?q=80&w=800",
-  },
-];
+import defaultRecipeImg from "../assets/hero.png";
 
 export default function HomePage() {
+  const [recipes, setRecipes] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/recipes");
+        const data = await response.json();
+        
+        // BẢN DỊCH DANH MỤC: Bạn có thể sửa tên hoặc thêm ID cho khớp với Database của bạn nhé
+        const categoryMap = {
+          1: "Món chính",
+          2: "Ăn vặt",
+          3: "Tráng miệng",
+          4: "Healthy / Eatclean"
+        };
+
+        // Chuyển đổi dữ liệu từ API
+        const formattedRecipes = data.map(recipe => ({
+          id: recipe.RecipeID,
+          title: recipe.Title,
+          category: categoryMap[recipe.CategoryID] || `Danh mục ${recipe.CategoryID}`, 
+          time: `${(recipe.PrepTime || 0) + (recipe.CookTime || 0)}p`,
+          
+          // SỬA Ở ĐÂY: Tách biệt hoàn toàn Độ khó và Đánh giá
+          difficulty: recipe.Difficulty || 1, // Truyền đúng số độ khó (1-5)
+          rating: "4.8", // Mockup số sao đánh giá (sau này lấy từ DB)
+          reviews: Math.floor(Math.random() * 100) + 10, // Mockup số lượt đánh giá
+          
+          image: recipe.ImageURL || defaultRecipeImg //hiện ảnh mặc định đc import ở trên nếu món đó ko có ảnh
+        }));
+
+        setRecipes(formattedRecipes);
+      } catch (error) {
+        console.error("Lỗi tải danh sách món ăn:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRecipes();
+  }, []);
+
   return (
     <div className="bg-white min-h-screen">
+      {/* Giữ nguyên Hero Banner */}
       <Hero />
 
       {/* Trending Section */}
@@ -71,11 +74,22 @@ export default function HomePage() {
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {MOCK_RECIPES.map((item) => (
-            <RecipeCard key={item.id} item={item} />
-          ))}
-        </div>
+        {/* Xử lý trạng thái Loading và Hiển thị thẻ */}
+        {isLoading ? (
+          <div className="flex justify-center py-20">
+            <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : recipes.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {recipes.map((item) => (
+              <RecipeCard key={item.id} item={item} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20 text-gray-400 font-medium col-span-full">
+            Chưa có công thức nào được đăng tải.
+          </div>
+        )}
       </section>
     </div>
   );

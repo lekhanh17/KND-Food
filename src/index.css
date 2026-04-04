@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 /* Ép tất cả mọi thứ trên web dùng chung font Inter */
-body, html, * {
-  font-family: 'Inter', sans-serif !important;
+body,
+html,
+* {
+  font-family: "Inter", sans-serif !important;
 }

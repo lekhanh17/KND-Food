@@ -42,7 +42,7 @@ export default function UserPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // --- GỌI API LẤY DANH SÁCH BÀI ĐĂNG (Đã sửa lỗi ESLint) ---
+  // --- GỌI API LẤY DANH SÁCH BÀI ĐĂNG CỦA USER NÀY ---
   useEffect(() => {
     const fetchRecipes = async () => {
       setIsLoadingRecipes(true);
@@ -67,6 +67,18 @@ export default function UserPage() {
       fetchRecipes();
     }
   }, [user]);
+
+  // --- HÀM HỖ TRỢ HIỂN THỊ UI ĐỘ KHÓ (BỎ ICON NGỌN LỬA - ĐỒNG BỘ THEO YÊU CẦU MỚI NHẤT) ---
+  const getDifficultyUI = (level) => {
+    switch (Number(level)) {
+      case 1: return { label: "Rất dễ", color: "text-green-700 bg-green-50 border-green-200" };
+      case 2: return { label: "Dễ", color: "text-teal-700 bg-teal-50 border-teal-200" };
+      case 3: return { label: "Trung bình", color: "text-yellow-700 bg-yellow-50 border-yellow-200" };
+      case 4: return { label: "Khó", color: "text-orange-700 bg-orange-50 border-orange-200" };
+      case 5: return { label: "Thử thách", color: "text-red-700 bg-red-50 border-red-200" };
+      default: return { label: "Cơ bản", color: "text-gray-700 bg-gray-50 border-gray-200" };
+    }
+  };
 
   const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
@@ -302,50 +314,57 @@ export default function UserPage() {
             ) : myRecipes.length > 0 ? (
               // Vẽ danh sách món ăn ra
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                {myRecipes.map((recipe) => (
-                  <Link 
-                    to={`/recipe/${recipe.RecipeID}`} 
-                    key={recipe.RecipeID} 
-                    className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group cursor-pointer block"
-                  >
-                    
-                    {/* Ảnh món ăn */}
-                    <div className="aspect-[4/3] overflow-hidden relative bg-gray-100">
-                      {recipe.ImageURL ? (
-                        <img 
-                          src={recipe.ImageURL} 
-                          alt={recipe.Title} 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      ) : (
-                         <div className="w-full h-full flex items-center justify-center text-gray-300">
-                           No Image
-                         </div>
-                      )}
+                {myRecipes.map((recipe) => {
+                  // SỬA Ở ĐÂY: Tính UI độ khó dựa trên dữ liệu thật
+                  const difficultyUI = getDifficultyUI(recipe.Difficulty);
+
+                  return (
+                    // CHUYỂN TỪ THẺ DIV SANG THẺ LINK
+                    <Link 
+                      to={`/recipe/${recipe.RecipeID}`} 
+                      key={recipe.RecipeID} 
+                      className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group cursor-pointer block"
+                    >
                       
-                      {/* Cục hiển thị độ khó (Số sao) */}
-                      <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-sm">
-                        <span className="text-yellow-500 text-sm">★</span> {recipe.Difficulty}
+                      {/* Ảnh món ăn */}
+                      <div className="aspect-[4/3] overflow-hidden relative bg-gray-100">
+                        {recipe.ImageURL ? (
+                          <img 
+                            src={recipe.ImageURL} 
+                            alt={recipe.Title} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-300">
+                            No Image
+                          </div>
+                        )}
+                        
+                        {/* SỬA Ở ĐÂY: Thay thế cụm sao đè ảnh bằng cụm Badge đè ảnh */}
+                        <div className={`absolute top-3 left-3 px-3 py-1.5 rounded-lg border text-xs font-black shadow-sm ${difficultyUI.color}`}>
+                          {difficultyUI.label}
+                        </div>
                       </div>
-                    </div>
-                    
-                    {/* Thông tin bên dưới ảnh */}
-                    <div className="p-4">
-                      <h3 className="font-bold text-lg text-gray-900 line-clamp-1 mb-2 group-hover:text-orange-500 transition-colors">
-                        {recipe.Title}
-                      </h3>
-                      <div className="flex items-center text-sm text-gray-500 font-medium gap-4">
-                        <span className="flex items-center gap-1.5">
-                           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                           </svg>
-                           {recipe.PrepTime + recipe.CookTime} phút
-                        </span>
+                      
+                      {/* Thông tin bên dưới ảnh */}
+                      <div className="p-4">
+                        <h3 className="font-bold text-lg text-gray-900 line-clamp-1 mb-2 group-hover:text-orange-500 transition-colors">
+                          {recipe.Title}
+                        </h3>
+                        <div className="flex items-center text-sm text-gray-500 font-medium gap-4">
+                          <span className="flex items-center gap-1.5">
+                            {/* SỬA Ở ĐÂY: Đồng bộ icon SVG thời gian nấu */}
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {recipe.PrepTime + recipe.CookTime} phút
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    
-                  </Link>
-                ))}
+                      
+                    </Link>
+                  );
+                })}
               </div>
             ) : (
               // Nếu chưa có bài nào
