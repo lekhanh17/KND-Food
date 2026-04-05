@@ -169,8 +169,8 @@ export default function CreateRecipe() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         
         <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight">Tạo công thức mới</h1>
-          <p className="text-gray-500 mt-2 font-medium">Chia sẻ hương vị tuyệt vời của bạn với cộng đồng KND Food.</p>
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight">Tạo Công Thức Mới</h1>
+          <p className="text-gray-500 mt-2 font-medium">Chia sẻ công thức nấu ăn của bạn tới cộng đồng.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -185,12 +185,12 @@ export default function CreateRecipe() {
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Tên món ăn <span className="text-red-500">*</span></label>
-                <input type="text" required placeholder="VD: Phở bò xào lăn..." value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all font-medium" />
+                <input type="text" required placeholder="Nhập tên món ăn..." value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all font-medium" />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Mô tả ngắn</label>
-                <textarea rows="3" placeholder="Chia sẻ một chút cảm nghĩ..." value={description} onChange={(e) => setDescription(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all resize-none font-medium text-gray-700"></textarea>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Mô tả</label>
+                <textarea rows="3" placeholder="Chia sẻ cảm nghĩ của bạn..." value={description} onChange={(e) => setDescription(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all resize-none font-medium text-gray-700"></textarea>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -234,15 +234,15 @@ export default function CreateRecipe() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Chuẩn bị (Phút)</label>
-                  <input type="number" min="0" placeholder="VD: 15" value={prepTime} onChange={(e) => setPrepTime(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 font-medium"/>
+                  <input type="number" min="0"  value={prepTime} onChange={(e) => setPrepTime(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 font-medium"/>
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Nấu (Phút)</label>
-                  <input type="number" min="0" placeholder="VD: 30" value={cookTime} onChange={(e) => setCookTime(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 font-medium"/>
+                  <input type="number" min="0"  value={cookTime} onChange={(e) => setCookTime(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 font-medium"/>
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Khẩu phần (Người)</label>
-                  <input type="number" min="1" placeholder="VD: 4" value={servings} onChange={(e) => setServings(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 font-medium"/>
+                  <input type="number" min="1" value={servings} onChange={(e) => setServings(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 font-medium"/>
                 </div>
               </div>
             </div>
@@ -285,7 +285,7 @@ export default function CreateRecipe() {
                   {/* Hai nút chuyển tab */}
                   <div className="flex bg-gray-100 p-1 rounded-lg">
                     <button type="button" onClick={() => setVideoInputType('upload')} className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${videoInputType === 'upload' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Tải lên</button>
-                    <button type="button" onClick={() => setVideoInputType('link')} className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${videoInputType === 'link' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Link YouTube</button>
+                    <button type="button" onClick={() => setVideoInputType('link')} className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${videoInputType === 'link' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Link Video</button>
                   </div>
                 </div>
 
@@ -310,7 +310,7 @@ export default function CreateRecipe() {
                     <div className="pl-4 pr-3 text-gray-400">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" /></svg>
                     </div>
-                    <input type="url" placeholder="VD: https://youtube.com/watch?v=..." value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} className="w-full py-4 pr-4 bg-transparent outline-none font-medium placeholder-gray-400"/>
+                    <input type="url" placeholder="Hãy thêm đường dẫn..." value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} className="w-full py-4 pr-4 bg-transparent outline-none font-medium placeholder-gray-400"/>
                   </div>
                 )}
               </div>
@@ -326,14 +326,14 @@ export default function CreateRecipe() {
               {ingredients.map((ing, index) => (
                 <div key={index} className="flex flex-col sm:flex-row gap-3 group animate-in fade-in slide-in-from-bottom-2 duration-300">
                   <div className="flex-1">
-                    <input type="text" placeholder="Tên nguyên liệu (VD: Thịt ba chỉ)" value={ing.name} onChange={(e) => updateIngredient(index, 'name', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 font-medium" />
+                    <input type="text" placeholder="Nhập tên nguyên liệu..." value={ing.name} onChange={(e) => updateIngredient(index, 'name', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 font-medium" />
                   </div>
                   <div className="flex gap-3 sm:w-[40%]">
                     <div className="flex-1">
-                      <input type="text" placeholder="SL (VD: 500)" value={ing.amount} onChange={(e) => updateIngredient(index, 'amount', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 font-medium"/>
+                      <input type="text" placeholder="Số lượng" value={ing.amount} onChange={(e) => updateIngredient(index, 'amount', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 font-medium"/>
                     </div>
                     <div className="flex-1">
-                      <input type="text" placeholder="Đơn vị (g, kg...)" value={ing.unit} onChange={(e) => updateIngredient(index, 'unit', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 font-medium"/>
+                      <input type="text" placeholder="Đơn vị" value={ing.unit} onChange={(e) => updateIngredient(index, 'unit', e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-orange-500 font-medium"/>
                     </div>
                     <button type="button" onClick={() => removeIngredient(index)} disabled={ingredients.length === 1} className={`w-12 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-colors ${ingredients.length === 1 ? 'opacity-30 cursor-not-allowed' : 'opacity-100 sm:opacity-0 group-hover:opacity-100'}`}>
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -385,7 +385,7 @@ export default function CreateRecipe() {
 
           <div className="flex justify-end gap-4 pt-4">
             <button type="button" onClick={() => navigate('/profile')} className="px-8 py-4 bg-white border border-gray-300 text-gray-700 rounded-2xl font-bold hover:bg-gray-50 transition active:scale-95">Hủy bỏ</button>
-            <button type="submit" className="px-10 py-4 bg-orange-500 text-white rounded-2xl font-black hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition active:scale-95 uppercase tracking-wide">Đăng Công Thức</button>
+            <button type="submit" className="px-10 py-4 bg-orange-500 text-white rounded-2xl font-black hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition active:scale-95 tracking-wide">Đăng Công Thức</button>
           </div>
         </form>
       </div>

@@ -10,11 +10,12 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
+import ForgotPassword from './pages/ForgotPassword';
 import RegisterPage from "./pages/RegisterPage";
 import UserPage from "./pages/UserPage";
 import CreateRecipe from './pages/CreateRecipe';
 
-// --- IMPORT 2 FILE ADMIN VỪA TẠO ---
+// --- IMPORT ADMIN ---
 import AdminRoute from "./components/AdminRoute"; 
 import AdminDashboard from "./pages/AdminDashboard"; 
 
@@ -98,7 +99,7 @@ function AppContent() {
   const location = useLocation();
 
   // Các trang ko hiện Navbar và Footer
-  const hideLayoutPaths = ["/login", "/register", "/admin"];
+  const hideLayoutPaths = ["/login", "/register", "/admin", "/forgot-password"];
   const shouldHideLayout = hideLayoutPaths.includes(location.pathname);
 
   return (
@@ -113,6 +114,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<UserPage />} />
           <Route path="/create-recipe" element={<CreateRecipe />} />

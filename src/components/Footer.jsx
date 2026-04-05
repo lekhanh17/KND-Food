@@ -1,14 +1,17 @@
 import { Link } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-50 border-t border-gray-100 pt-16 pb-12 mt-auto font-sans">
+    <footer className="bg-gray-50 border-t border-gray-100 pt-16 pb-8 mt-auto font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
         {/* NỬA TRÊN: THÔNG TIN LIÊN HỆ & CHÍNH SÁCH */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-10">
+          
           {/* CỘT 1: Logo & Thông tin liên hệ */}
           <div className="space-y-6">
+            
+
             <div>
               <h4 className="text-gray-900 font-bold text-sm mb-2 uppercase tracking-wider">
                 Tổng đài hỗ trợ
@@ -17,7 +20,7 @@ export default function Footer() {
                 Thứ 2 - Chủ Nhật (8:00 - 23:00)
               </p>
               <p className="text-[#f97316] font-black text-2xl tracking-wide">
-                1900.6408
+                1900 0019
               </p>
             </div>
 
@@ -35,14 +38,13 @@ export default function Footer() {
                   Địa chỉ:
                 </span>
                 <span className="text-sm text-gray-500 leading-relaxed block max-w-xs">
-                  Tầng 12, Tòa nhà KND, 285 Cách Mạng Tháng Tám, Phường 12, Quận
-                  10, TP. Hồ Chí Minh
+                  Tầng 17, Tòa nhà LandMark 81 Skyview, 720A Điện Biên Phủ, Phường Thạnh Mỹ Tây, Hồ Chí Minh
                 </span>
               </div>
             </div>
           </div>
 
-          {/* CỘT 2: Link Dành cho Người dùng */}
+          {/* CỘT 2: Link Dành cho Khách hàng & Tác giả */}
           <div className="space-y-8">
             <div>
               <h4 className="text-gray-900 font-bold text-sm mb-4 uppercase tracking-wider">
@@ -95,7 +97,7 @@ export default function Footer() {
           {/* CỘT 3: Link Về công ty */}
           <div>
             <h4 className="text-gray-900 font-bold text-sm mb-4 uppercase tracking-wider">
-              Về KND Food
+              Về Chúng Tôi
             </h4>
             <ul className="space-y-3">
               <li>
@@ -103,7 +105,7 @@ export default function Footer() {
                   to="/"
                   className="text-sm text-gray-500 hover:text-[#f97316] transition-colors font-medium"
                 >
-                  Giới thiệu về nền tảng
+                  Giới thiệu
                 </Link>
               </li>
               <li>
@@ -134,96 +136,44 @@ export default function Footer() {
           </div>
         </div>
 
-        <hr className="border-gray-200 my-10" />
+        <hr className="border-gray-200 my-8" />
 
-        {/* NỬA DƯỚI: APP & MẠNG XÃ HỘI */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* CỘT 1: Ứng dụng KND Food */}
-          <div>
-            <h4 className="text-gray-900 font-bold text-sm mb-4 uppercase tracking-wider">
-              Tải ứng dụng KND Food
-            </h4>
-            <div className="flex flex-col gap-3">
-              {/* Nút Google Play */}
-              <a
-                href="#"
-                className="group flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-2.5 w-44 hover:border-[#f97316] hover:shadow-md transition-all"
-              >
-                <svg
-                  viewBox="0 0 512 512"
-                  fill="currentColor"
-                  className="w-6 h-6 text-gray-700 group-hover:text-[#f97316] transition-colors"
-                >
-                  <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z" />
-                </svg>
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-gray-500 leading-none mb-1">
-                    Tải nội dung trên
-                  </span>
-                  <span className="text-sm text-gray-900 font-bold leading-none">
-                    Google Play
-                  </span>
-                </div>
-              </a>
-              {/* Nút App Store */}
-              <a
-                href="#"
-                className="group flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-2.5 w-44 hover:border-[#f97316] hover:shadow-md transition-all"
-              >
-                <svg
-                  viewBox="0 0 384 512"
-                  fill="currentColor"
-                  className="w-7 h-7 text-gray-700 group-hover:text-[#f97316] transition-colors"
-                >
-                  <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
-                </svg>
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-gray-500 leading-none mb-1">
-                    Tải về trên
-                  </span>
-                  <span className="text-sm text-gray-900 font-bold leading-none">
-                    App Store
-                  </span>
-                </div>
-              </a>
+        {/* NỬA DƯỚI: BẢN QUYỀN, NGÔN NGỮ & MẠNG XÃ HỘI */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+          
+          {/* Bản quyền */}
+          <p className="text-gray-400 text-sm font-medium order-3 md:order-1 text-center md:text-left">
+            © {new Date().getFullYear()} KND Food. All rights reserved.
+          </p>
+
+          {/* Group: Ngôn ngữ + Mạng xã hội */}
+          <div className="flex flex-wrap justify-center items-center gap-6 md:gap-8 order-1 md:order-2">
+            
+            {/* THÊM MỚI: Phần Ngôn ngữ */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-bold text-gray-700 uppercase tracking-wider hidden sm:block">
+                Ngôn ngữ:
+              </span>
+              <div className="flex items-center gap-3">
+                {/* Tiếng Việt (Đang chọn - màu cam) */}
+                <button className="text-sm font-black text-[#f97316] hover:scale-110 transition-transform">
+                  VN
+                </button>
+                {/* Tiếng Anh (Chưa chọn - màu xám nhạt) */}
+                <button className="text-sm font-bold text-gray-400 hover:text-[#f97316] hover:scale-110 transition-all">
+                  EN
+                </button>
+              </div>
             </div>
-          </div>
 
-          {/* CỘT 2: Ứng dụng Quản lý */}
-          <div>
-            <h4 className="text-gray-900 font-bold text-sm mb-4 uppercase tracking-wider">
-              Ứng dụng dành cho Tác giả
-            </h4>
-            <div className="flex flex-col gap-3">
-              <a
-                href="#"
-                className="group flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-2.5 w-44 hover:border-[#f97316] hover:shadow-md transition-all"
-              >
-                <svg
-                  viewBox="0 0 512 512"
-                  fill="currentColor"
-                  className="w-6 h-6 text-gray-700 group-hover:text-[#f97316] transition-colors"
-                >
-                  <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0zm425.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z" />
-                </svg>
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-gray-500 leading-none mb-1">
-                    Tải nội dung trên
-                  </span>
-                  <span className="text-sm text-gray-900 font-bold leading-none">
-                    Google Play
-                  </span>
-                </div>
-              </a>
-            </div>
-          </div>
+            {/* Dấu gạch chia cách (Chỉ hiện trên màn hình lớn) */}
+            <div className="hidden md:block w-px h-6 bg-gray-300"></div>
 
-          {/* CỘT 3: Mạng xã hội & Ngôn ngữ & Bản quyền */}
-          <div className="flex flex-col justify-between">
-            <div>
-              <h4 className="text-gray-900 font-bold text-sm mb-4 uppercase tracking-wider">
-                Kết nối với chúng tôi
-              </h4>
+            {/* Phần Mạng xã hội */}
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-bold text-gray-700 uppercase tracking-wider hidden sm:block">
+                Theo dõi chúng tôi:
+              </span>
               <div className="flex gap-3">
                 {/* Facebook */}
                 <a
@@ -280,12 +230,7 @@ export default function Footer() {
                 </a>
               </div>
             </div>
-
-            <div className="mt-8">
-              <p className="text-gray-400 text-sm font-medium">
-                © {new Date().getFullYear()} KND Food. All rights reserved.
-              </p>
-            </div>
+            
           </div>
         </div>
       </div>
