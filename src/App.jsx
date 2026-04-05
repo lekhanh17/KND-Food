@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer"; // SỬA Ở ĐÂY: Import Footer vừa tạo
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -92,21 +93,23 @@ function NotificationBanner() {
   );
 }
 
-// --- COMPONENT XỬ LÝ LOGIC ẨN NAVBAR ---
+// --- COMPONENT XỬ LÝ LOGIC ẨN NAVBAR & FOOTER ---
 function AppContent() {
   const location = useLocation();
 
-  // Mình thêm "/admin" vào đây để trang Quản trị có không gian rộng rãi, không bị vướng Navbar chung
-  const hideNavbarPaths = ["/login", "/register", "/admin"];
-  const shouldHideNavbar = hideNavbarPaths.includes(location.pathname);
+  // Các trang không muốn hiện Navbar và Footer
+  const hideLayoutPaths = ["/login", "/register", "/admin"];
+  const shouldHideLayout = hideLayoutPaths.includes(location.pathname);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Chỉ hiện Navbar và Notification nếu không phải trang login/register/admin */}
-      {!shouldHideNavbar && <Navbar />}
-      {!shouldHideNavbar && <NotificationBanner />}
+    // SỬA Ở ĐÂY: Thêm flex flex-col min-h-screen để ép Footer xuống đáy màn hình
+    <div className="min-h-screen bg-white flex flex-col">
+      
+      {!shouldHideLayout && <Navbar />}
+      {!shouldHideLayout && <NotificationBanner />}
 
-      <main>
+      {/* SỬA Ở ĐÂY: Thêm flex-grow để nội dung chính tự đẩy Footer xuống */}
+      <main className="flex-grow">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
@@ -116,7 +119,6 @@ function AppContent() {
           <Route path="/recipe/:id" element={<RecipeDetail />} />
           <Route path="/edit-recipe/:id" element={<EditRecipe />} />
           
-          {/* --- TRANG CỦA ADMIN --- */}
           <Route 
             path="/admin" 
             element={
@@ -125,11 +127,13 @@ function AppContent() {
               </AdminRoute>
             } 
           />
-
-          {/* Nếu không khớp cái nào thì về trang chủ hoặc hiện 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+
+      {/* SỬA Ở ĐÂY: Hiển thị Footer nếu không nằm trong danh sách cấm */}
+      {!shouldHideLayout && <Footer />}
+
     </div>
   );
 }
@@ -138,18 +142,17 @@ function App() {
   return (
     <Router>
       <AppContent />
-      {/* Cấu hình ToastContainer mới - Hiện đại, sang trọng */}
       <ToastContainer
-        position="top-center"       // Đưa ra giữa màn hình phía trên
-        autoClose={2000}            // Tắt nhanh sau 2 giây (mặc định là 5s hơi lâu)
-        hideProgressBar={true}      // Giấu cái thanh thời gian chạy lùi đi
-        newestOnTop={true}          
+        position="top-center"
+        autoClose={2000}
+        hideProgressBar={true}
+        newestOnTop={true}
         closeOnClick={true}
         rtl={false}
         pauseOnFocusLoss={false}
         draggable={true}
         pauseOnHover={false}
-        theme="dark"                // Chuyển sang giao diện Dark Mode
+        theme="dark"
         toastClassName={() => 
           "relative flex items-center justify-center p-4 mb-4 min-h-12 rounded-full justify-between overflow-hidden cursor-pointer bg-gray-900 text-white shadow-2xl font-bold text-sm text-center"
         }

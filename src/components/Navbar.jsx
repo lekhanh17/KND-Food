@@ -74,7 +74,7 @@ export default function Navbar() {
       <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-8">
         
         {/* 1. LOGO */}
-        <Link to="/" className="flex items-center gap-3 shrink-0 group">
+        <Link to="/" className="flex items-center gap-3 -ml-2 shrink-0 group">
           <div className="w-11 h-11 bg-orange-500 rounded-2xl flex items-center justify-center text-white text-xl shadow-lg shadow-orange-200 group-hover:rotate-12 transition-transform duration-300">
             <FontAwesomeIcon icon={faBreadSlice} />
           </div>
