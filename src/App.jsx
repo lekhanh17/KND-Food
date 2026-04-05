@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
-import Footer from "./components/Footer"; // SỬA Ở ĐÂY: Import Footer vừa tạo
+import Footer from "./components/Footer";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -97,18 +97,18 @@ function NotificationBanner() {
 function AppContent() {
   const location = useLocation();
 
-  // Các trang không muốn hiện Navbar và Footer
+  // Các trang ko hiện Navbar và Footer
   const hideLayoutPaths = ["/login", "/register", "/admin"];
   const shouldHideLayout = hideLayoutPaths.includes(location.pathname);
 
   return (
-    // SỬA Ở ĐÂY: Thêm flex flex-col min-h-screen để ép Footer xuống đáy màn hình
+    // Thêm flex flex-col min-h-screen để ép Footer xuống đáy màn hình
     <div className="min-h-screen bg-white flex flex-col">
       
       {!shouldHideLayout && <Navbar />}
       {!shouldHideLayout && <NotificationBanner />}
 
-      {/* SỬA Ở ĐÂY: Thêm flex-grow để nội dung chính tự đẩy Footer xuống */}
+      {/* Thêm flex-grow để nội dung chính tự đẩy Footer xuống */}
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -131,7 +131,7 @@ function AppContent() {
         </Routes>
       </main>
 
-      {/* SỬA Ở ĐÂY: Hiển thị Footer nếu không nằm trong danh sách cấm */}
+      {/* Hiển thị Footer nếu không nằm trong danh sách cấm */}
       {!shouldHideLayout && <Footer />}
 
     </div>
