@@ -11,6 +11,7 @@ import Footer from "./components/Footer";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import RegisterPage from "./pages/RegisterPage";
 import UserPage from "./pages/UserPage";
 import CreateRecipe from './pages/CreateRecipe';
@@ -115,6 +116,7 @@ function AppContent() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<UserPage />} />
           <Route path="/create-recipe" element={<CreateRecipe />} />

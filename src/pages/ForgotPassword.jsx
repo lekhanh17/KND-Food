@@ -19,18 +19,32 @@ export default function ForgotPassword() {
     setStatus("loading");
     setErrorMessage("");
 
-    // Ở đây bạn sẽ gọi API backend để gửi email thật. 
-    // Tạm thời mình dùng setTimeout để giả lập độ trễ của mạng (1.5 giây).
     try {
-      // Ví dụ: await axios.post('/api/forgot-password', { email });
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      setStatus("success");
+      // GỌI API THẬT ĐẾN BACKEND NODE.JS
+      // *Lưu ý: Nếu Node.js của bạn chạy cổng khác (ví dụ 3000), nhớ sửa lại số 5000 ở link dưới nhé
+      const response = await fetch('http://localhost:5000/api/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ Email: email }) // Gửi email lên cho Node.js
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Gọi API thành công -> Hiện bảng xanh lá
+        setStatus("success");
+      } else {
+        // API báo lỗi (Sai email, lỗi server...) -> Hiện chữ đỏ
+        setErrorMessage(data.message || "Có lỗi xảy ra từ máy chủ.");
+        setStatus("error");
+      }
     } catch (error) {
-  console.error("Chi tiết lỗi:", error); // <--- Thêm dòng này
-  setErrorMessage("Có lỗi xảy ra. Vui lòng thử lại sau.");
-  setStatus("error");
-}
+      console.error("Chi tiết lỗi:", error);
+      setErrorMessage("Không thể kết nối đến Backend. Vui lòng kiểm tra lại Server.");
+      setStatus("error");
+    }
   };
 
   return (
@@ -92,7 +106,7 @@ export default function ForgotPassword() {
                 disabled={status === "loading"}
               />
               {status === "error" && (
-                <p className="text-red-500 text-xs font-bold mt-2 ml-1 animate-pulse">
+                <p className="text-red-500 text-xs font-bold mt-2 ml-1">
                   {errorMessage}
                 </p>
               )}
