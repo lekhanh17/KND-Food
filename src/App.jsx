@@ -119,6 +119,7 @@ function AppContent() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/profile" element={<UserPage />} />
+          <Route path="/user/:username" element={<UserPage />} />
           <Route path="/create-recipe" element={<CreateRecipe />} />
           <Route path="/recipe/:id" element={<RecipeDetail />} />
           <Route path="/edit-recipe/:id" element={<EditRecipe />} />

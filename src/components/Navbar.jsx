@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import SearchBar from "./SearchBar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBreadSlice, faChevronDown, faSearch, faBell, faUser, faSignOutAlt, faUtensils, faUserShield } from '@fortawesome/free-solid-svg-icons';
+import { faBreadSlice, faChevronDown, faBell, faUser, faSignOutAlt, faUtensils, faUserShield } from '@fortawesome/free-solid-svg-icons';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -84,16 +85,8 @@ export default function Navbar() {
         </Link>
 
         {/* 2. THANH TÌM KIẾM */}
-        <div className="flex-1 max-w-2xl relative group hidden md:block">
-          <input
-            type="text"
-            placeholder="Tìm công thức, nguyên liệu..."
-            className="w-full bg-gray-50 border border-gray-200 py-3 pl-14 pr-6 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all duration-300 shadow-sm"
-          />
-          <FontAwesomeIcon
-            icon={faSearch}
-            className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors"
-          />
+        <div className="flex-1 max-w-2xl relative z-50 hidden md:block">
+          <SearchBar />
         </div>
 
         {/* 3. ĐIỀU HƯỚNG & USER */}

@@ -1,12 +1,23 @@
 ﻿import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 export default function UserPage() {
+  // 1. LẤY TÊN TỪ URL (VD: khanh17)
+  const { username } = useParams();
+
+  // 2. NGƯỜI ĐANG ĐĂNG NHẬP (Chỉ dùng để kiểm tra quyền)
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('loggedInUser');
     return savedUser ? JSON.parse(savedUser) : null;
   });
+
+  // 3. NGƯỜI ĐANG ĐƯỢC XEM (Chủ nhân của cái trang này)
+  const [profileUser, setProfileUser] = useState(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+
+  // KIỂM TRA QUYỀN: Có phải đang xem trang của chính mình không?
+  const isOwnProfile = !username || (user && profileUser && user.UserID === profileUser.UserID);
 
   const fileInputRef = useRef(null);
   const modalFileInputRef = useRef(null); 
@@ -19,15 +30,14 @@ export default function UserPage() {
   const [activeTab, setActiveTab] = useState('Bài đăng của tôi'); 
   const tabs = ['Bài đăng của tôi', 'Đăng lại', 'Đã lưu', 'Yêu thích'];
 
-  const [formFullName, setFormFullName] = useState(() => user?.FullName || '');
-  const [formUsername, setFormUsername] = useState(() => user?.Username || '');
-  const [formBio, setFormBio] = useState(() => user?.Bio || '');
+  const [formFullName, setFormFullName] = useState('');
+  const [formUsername, setFormUsername] = useState('');
+  const [formBio, setFormBio] = useState('');
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
-  // --- STATE LƯU TRỮ DANH SÁCH BÀI ĐĂNG ---
   const [myRecipes, setMyRecipes] = useState([]);
   const [isLoadingRecipes, setIsLoadingRecipes] = useState(true);
 
@@ -42,33 +52,63 @@ export default function UserPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // --- GỌI API LẤY DANH SÁCH BÀI ĐĂNG CỦA USER NÀY ---
+  // --- TẢI DỮ LIỆU CHỦ NHÀ DỰA VÀO URL ---
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setIsProfileLoading(true);
+      if (username) {
+        // Đang xem qua link /user/:username (Trang của người khác hoặc của mình qua ô tìm kiếm)
+        try {
+          const res = await fetch(`http://localhost:5000/api/users/profile/${username}`);
+          const data = await res.json();
+          if (res.ok) {
+            setProfileUser(data);
+          } else {
+            setProfileUser(null);
+          }
+        } catch (err) {
+          setProfileUser(null);
+        }
+      } else {
+        // Đang xem qua link /profile (Trang của chính mình qua nút Menu)
+        setProfileUser(user);
+      }
+      setIsProfileLoading(false);
+    };
+
+    fetchProfile();
+  }, [username, user]);
+
+  // Đồng bộ dữ liệu vào Form mỗi khi có dữ liệu chủ nhà (để sửa)
+  useEffect(() => {
+    if (profileUser && isOwnProfile) {
+      setFormFullName(profileUser.FullName || '');
+      setFormUsername(profileUser.Username || '');
+      setFormBio(profileUser.Bio || '');
+    }
+  }, [profileUser, isOwnProfile]);
+
+  // --- TẢI DANH SÁCH BÀI ĐĂNG CỦA CHỦ NHÀ ---
   useEffect(() => {
     const fetchRecipes = async () => {
       setIsLoadingRecipes(true);
       try {
-        const res = await fetch(`http://localhost:5000/api/recipes/user/${user.UserID}`);
+        const res = await fetch(`http://localhost:5000/api/recipes/user/${profileUser.UserID}`);
         const data = await res.json();
-        
-        if (Array.isArray(data)) {
-          setMyRecipes(data);
-        } else {
-          setMyRecipes([]);
-        }
+        if (Array.isArray(data)) setMyRecipes(data);
+        else setMyRecipes([]);
       } catch (err) {
-        console.error("Lỗi fetch recipes:", err);
         setMyRecipes([]);
       } finally {
         setIsLoadingRecipes(false);
       }
     };
 
-    if (user) {
-      fetchRecipes();
-    }
-  }, [user]);
+    // Chỉ gọi API món ăn khi đã biết UserID của chủ nhà
+    if (profileUser?.UserID) fetchRecipes();
+  }, [profileUser]);
 
-  // --- HÀM HỖ TRỢ HIỂN THỊ UI ĐỘ KHÓ (BỎ ICON NGỌN LỬA - ĐỒNG BỘ THEO YÊU CẦU MỚI NHẤT) ---
+
   const getDifficultyUI = (level) => {
     switch (Number(level)) {
       case 1: return { label: "Rất dễ", color: "text-green-700 bg-green-50 border-green-200" };
@@ -81,6 +121,8 @@ export default function UserPage() {
   };
 
   const handleAvatarChange = async (e) => {
+    if (!isOwnProfile) return; // Bảo mật 2 lớp
+
     const file = e.target.files[0];
     if (!file) return;
 
@@ -103,12 +145,12 @@ export default function UserPage() {
         const updatedUser = { ...user, Avatar: data.avatarUrl };
         localStorage.setItem('loggedInUser', JSON.stringify(updatedUser));
         setUser(updatedUser);
+        setProfileUser(updatedUser); // Cập nhật cả UI
         window.dispatchEvent(new Event('user-changed'));
       } else {
         toast.error('❌ ' + data.message);
       }
     } catch (error) {
-      console.error(error);
       toast.error("Lỗi kết nối Server khi tải ảnh!");
     }
   };
@@ -119,10 +161,7 @@ export default function UserPage() {
     const trimmedUsername = formUsername.trim();
     const trimmedBio = formBio.trim();
 
-    if (!trimmedName) {
-      toast.warning('Vui lòng điền họ tên.');
-      return;
-    }
+    if (!trimmedName) return toast.warning('Vui lòng điền họ tên.');
 
     try {
       const response = await fetch('http://localhost:5000/api/users/update', {
@@ -146,6 +185,7 @@ export default function UserPage() {
         };
         localStorage.setItem('loggedInUser', JSON.stringify(updatedUser));
         setUser(updatedUser);
+        setProfileUser(updatedUser); // Cập nhật cả UI
         window.dispatchEvent(new Event('user-changed'));
         
         setIsEditingProfile(false); 
@@ -154,7 +194,6 @@ export default function UserPage() {
         toast.error('❌ Lỗi: ' + data.message);
       }
     } catch (error) {
-      console.error(error);
       toast.error('❌ Không thể kết nối đến Server!');
     }
   };
@@ -176,7 +215,6 @@ export default function UserPage() {
       });
 
       const data = await response.json();
-
       if (response.ok) {
         toast.success('🎉 ' + data.message);
         setIsChangePasswordOpen(false);
@@ -187,20 +225,32 @@ export default function UserPage() {
         toast.error('❌ ' + data.message);
       }
     } catch (error) {
-      console.error(error);
       toast.error('❌ Không thể kết nối đến Server!');
     }
   };
 
-  if (!user) {
+
+  // --- XỬ LÝ GIAO DIỆN CHỜ HOẶC LỖI ---
+  if (isProfileLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
-        <h2 className="text-2xl font-bold mb-4">Bạn chưa đăng nhập</h2>
-        <Link to="/login" className="px-6 py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition">Đăng nhập</Link>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 pt-20">
+        <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
       </div>
     );
   }
 
+  if (!profileUser) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6 pt-20">
+        <h2 className="text-2xl font-bold mb-2">Không tìm thấy người dùng này</h2>
+        <p className="text-gray-500 mb-6">Liên kết có thể bị hỏng hoặc trang đã bị xóa.</p>
+        <Link to="/" className="px-6 py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition">Về Trang chủ</Link>
+      </div>
+    );
+  }
+
+
+  // --- GIAO DIỆN CHÍNH THỨC ---
   return (
     <div className="min-h-screen bg-white pt-24 pb-14 text-gray-900 font-sans">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -208,69 +258,75 @@ export default function UserPage() {
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-10 mb-8 pt-8">
           
-          <div className="relative group cursor-pointer shrink-0" onClick={() => fileInputRef.current.click()}>
-            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center">
-              {user.Avatar ? (
-                <img src={user.Avatar} alt="Avatar" className="w-full h-full object-cover" />
+          <div 
+            className={`relative shrink-0 ${isOwnProfile ? 'cursor-pointer group' : ''}`} 
+            onClick={() => isOwnProfile && fileInputRef.current.click()}
+          >
+            <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center shadow-sm">
+              {profileUser.Avatar ? (
+                <img src={profileUser.Avatar} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-5xl font-black text-orange-500 uppercase">{user.FullName?.charAt(0)}</span>
+                <span className="text-5xl font-black text-orange-500 uppercase">{profileUser.FullName?.charAt(0)}</span>
               )}
             </div>
-            <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-8 h-8 text-white">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-              </svg>
-            </div>
+            
+            {/* Chỉ hiện lớp phủ mờ đổi ảnh nếu là chủ nhà */}
+            {isOwnProfile && (
+              <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-8 h-8 text-white">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                </svg>
+              </div>
+            )}
             <input type="file" ref={fileInputRef} onChange={handleAvatarChange} className="hidden" accept="image/*" />
           </div>
 
           <div className="flex flex-col items-center sm:items-start w-full">
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight">{user.FullName}</h1>
-            {user.Username && (
-              <p className="text-gray-500 font-medium text-sm mt-0.5">@{user.Username}</p>
+            <h1 className="text-3xl font-black text-gray-900 tracking-tight">{profileUser.FullName}</h1>
+            {profileUser.Username && (
+              <p className="text-gray-500 font-medium text-sm mt-0.5">@{profileUser.Username}</p>
             )}
             
-            <div className="flex items-center gap-2 mt-4">
-              <button 
-                onClick={() => setIsEditingProfile(true)}
-                className="px-6 py-2 bg-[#f97316] hover:bg-[#ea580c] text-white text-sm font-bold rounded-lg transition-all active:scale-95 flex items-center gap-2"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                  <path d="M2.695 14.763l-1.262 3.152a.5.5 0 00.65.65l3.152-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
-                </svg>
-                Chỉnh sửa hồ sơ
-              </button>
-              
-              <div className="relative" ref={settingsMenuRef}>
+            {/* CHỈ HIỆN CỤM NÚT "CHỈNH SỬA" NẾU LÀ CHỦ NHÀ */}
+            {isOwnProfile && (
+              <div className="flex items-center gap-2 mt-4">
                 <button 
-                  onClick={() => setIsSettingsMenuOpen(!isSettingsMenuOpen)}
-                  className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-all active:scale-95"
+                  onClick={() => setIsEditingProfile(true)}
+                  className="px-6 py-2 bg-[#f97316] hover:bg-[#ea580c] text-white text-sm font-bold rounded-lg transition-all active:scale-95 flex items-center gap-2"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                    <path d="M2.695 14.763l-1.262 3.152a.5.5 0 00.65.65l3.152-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
                   </svg>
+                  Chỉnh sửa hồ sơ
                 </button>
+                
+                <div className="relative" ref={settingsMenuRef}>
+                  <button 
+                    onClick={() => setIsSettingsMenuOpen(!isSettingsMenuOpen)}
+                    className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-all active:scale-95"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                    </svg>
+                  </button>
 
-                {isSettingsMenuOpen && (
-                  <div className="absolute right-0 sm:left-0 mt-2 w-48 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 py-2 z-10 animate-in fade-in zoom-in-95 duration-200">
-                    <button
-                      onClick={() => {
-                        setIsChangePasswordOpen(true);
-                        setIsSettingsMenuOpen(false); 
-                      }}
-                      className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-gray-700 hover:text-gray-900 text-sm font-bold transition-colors flex items-center gap-3"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                        <path fillRule="evenodd" d="M8 7a5 5 0 113.61 4.804l-1.903 1.903A1 1 0 019 14H8v1a1 1 0 01-1 1H6v1a1 1 0 01-1 1H3a1 1 0 01-1-1v-2a1 1 0 01.293-.707L8.196 8.39A5.002 5.002 0 018 7zm5-3a.5.5 0 000 1h.5a.5.5 0 01.5.5v.5a.5.5 0 001 0v-.5A1.5 1.5 0 0013.5 4H13z" clipRule="evenodd" />
-                      </svg>
-                      Đổi mật khẩu
-                    </button>
-                  </div>
-                )}
+                  {isSettingsMenuOpen && (
+                    <div className="absolute right-0 sm:left-0 mt-2 w-48 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 py-2 z-10 animate-in fade-in zoom-in-95 duration-200">
+                      <button
+                        onClick={() => {
+                          setIsChangePasswordOpen(true);
+                          setIsSettingsMenuOpen(false); 
+                        }}
+                        className="w-full text-left px-4 py-2.5 hover:bg-gray-50 text-gray-700 hover:text-gray-900 text-sm font-bold transition-colors flex items-center gap-3"
+                      >
+                        Đổi mật khẩu
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex gap-6 mt-5 text-sm">
               <div className="flex gap-1.5 cursor-pointer hover:underline"><span className="font-bold text-gray-900">0</span> <span className="text-gray-500">Đang follow</span></div>
@@ -279,7 +335,7 @@ export default function UserPage() {
             </div>
 
             <div className="mt-4 text-gray-900 font-medium text-sm whitespace-pre-wrap">
-              <p>{user.Bio ? user.Bio : 'Chưa có tiểu sử.'}</p>
+              <p>{profileUser.Bio ? profileUser.Bio : 'Chưa có tiểu sử.'}</p>
             </div>
           </div>
         </div>
@@ -294,7 +350,7 @@ export default function UserPage() {
                 activeTab === tab ? 'text-gray-900' : 'text-gray-500 hover:text-gray-800'
               }`}
             >
-              {tab}
+              {isOwnProfile ? tab : tab.replace(' của tôi', '')}
               {activeTab === tab && (
                 <div className="absolute bottom-0 left-0 w-full h-[2px] bg-black"></div>
               )}
@@ -306,27 +362,20 @@ export default function UserPage() {
         <div className="py-8">
           {activeTab === 'Bài đăng của tôi' ? (
             isLoadingRecipes ? (
-              // Đang tải dữ liệu
               <div className="flex flex-col items-center justify-center py-20 text-gray-400">
                 <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <h3 className="text-lg font-bold text-gray-800">Đang tải công thức...</h3>
               </div>
             ) : myRecipes.length > 0 ? (
-              // Vẽ danh sách món ăn ra
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {myRecipes.map((recipe) => {
-                  // SỬA Ở ĐÂY: Tính UI độ khó dựa trên dữ liệu thật
                   const difficultyUI = getDifficultyUI(recipe.Difficulty);
 
                   return (
-                    // CHUYỂN TỪ THẺ DIV SANG THẺ LINK
                     <Link 
                       to={`/recipe/${recipe.RecipeID}`} 
                       key={recipe.RecipeID} 
                       className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group cursor-pointer block"
                     >
-                      
-                      {/* Ảnh món ăn */}
                       <div className="aspect-[4/3] overflow-hidden relative bg-gray-100">
                         {recipe.ImageURL ? (
                           <img 
@@ -339,21 +388,17 @@ export default function UserPage() {
                             No Image
                           </div>
                         )}
-                        
-                        {/* SỬA Ở ĐÂY: Thay thế cụm sao đè ảnh bằng cụm Badge đè ảnh */}
                         <div className={`absolute top-3 left-3 px-3 py-1.5 rounded-lg border text-xs font-black shadow-sm ${difficultyUI.color}`}>
                           {difficultyUI.label}
                         </div>
                       </div>
                       
-                      {/* Thông tin bên dưới ảnh */}
                       <div className="p-4">
                         <h3 className="font-bold text-lg text-gray-900 line-clamp-1 mb-2 group-hover:text-orange-500 transition-colors">
                           {recipe.Title}
                         </h3>
                         <div className="flex items-center text-sm text-gray-500 font-medium gap-4">
                           <span className="flex items-center gap-1.5">
-                            {/* SỬA Ở ĐÂY: Đồng bộ icon SVG thời gian nấu */}
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
                               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -361,27 +406,22 @@ export default function UserPage() {
                           </span>
                         </div>
                       </div>
-                      
                     </Link>
                   );
                 })}
               </div>
             ) : (
-              // Nếu chưa có bài nào
               <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-in fade-in">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-20 h-20 mb-4 opacity-50">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
                 </svg>
-                <h3 className="text-lg font-bold text-gray-800">Chưa có bài đăng của tôi nào</h3>
-                <p className="text-sm mt-1">Các món ăn bạn chia sẻ sẽ xuất hiện tại đây.</p>
+                <h3 className="text-lg font-bold text-gray-800">Chưa có bài đăng nào</h3>
               </div>
             )
           ) : (
-            // Các Tab khác (Đăng lại, Đã lưu, Yêu thích)
             <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-in fade-in">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-20 h-20 mb-4 opacity-50">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
               </svg>
               <h3 className="text-lg font-bold text-gray-800">Chưa có {activeTab.toLowerCase()} nào</h3>
@@ -390,16 +430,14 @@ export default function UserPage() {
         </div>
       </div>
 
-      {/* MODAL EDIT PROFILE */}
-      {isEditingProfile && (
+      {/* MODAL EDIT PROFILE (CHỈ RENDER NẾU LÀ CHỦ NHÀ) */}
+      {isOwnProfile && isEditingProfile && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-[24px] w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
-            
             <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 shrink-0">
               <h3 className="text-2xl font-black text-gray-900">Sửa hồ sơ</h3>
               <button onClick={() => setIsEditingProfile(false)} className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-full transition font-bold">✕</button>
             </div>
-
             <div className="p-6 overflow-y-auto">
               <form id="editProfileForm" onSubmit={handleUpdateProfile} className="space-y-6">
                 
@@ -428,19 +466,13 @@ export default function UserPage() {
                   <div className="w-full sm:w-1/4 text-sm font-bold text-gray-800 pt-3">Tên người dùng</div>
                   <div className="w-full sm:w-3/4">
                     <input
-                      type="text"
-                      placeholder="Username"
-                      value={formUsername}
-                      maxLength={16}
+                      type="text" placeholder="Username" value={formUsername} maxLength={16}
                       onChange={(e) => {
                         const val = e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, '');
                         setFormUsername(val);
                       }}
                       className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl focus:outline-none focus:border-gray-300 focus:bg-white transition-all font-medium text-gray-900"
                     />
-                    <p className="text-xs text-gray-500 mt-2 leading-relaxed">
-                      Tên người dùng chỉ có thể chứa chữ cái thường, số, dấu gạch dưới và dấu chấm. Tối đa 16 ký tự. Thay đổi tên người dùng của bạn cũng sẽ thay đổi liên kết hồ sơ của bạn.
-                    </p>
                   </div>
                 </div>
 
@@ -448,15 +480,9 @@ export default function UserPage() {
                   <div className="w-full sm:w-1/4 text-sm font-bold text-gray-800 pt-3">Tên</div>
                   <div className="w-full sm:w-3/4">
                     <input
-                      type="text"
-                      required
-                      value={formFullName}
-                      onChange={(e) => setFormFullName(e.target.value)}
+                      type="text" required value={formFullName} onChange={(e) => setFormFullName(e.target.value)}
                       className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl focus:outline-none focus:border-gray-300 focus:bg-white transition-all font-medium text-gray-900"
                     />
-                    <p className="text-xs text-gray-500 mt-2">
-                      Bạn chỉ có thể thay đổi biệt danh 7 ngày một lần.
-                    </p>
                   </div>
                 </div>
 
@@ -464,19 +490,11 @@ export default function UserPage() {
                   <div className="w-full sm:w-1/4 text-sm font-bold text-gray-800 pt-3">Tiểu sử</div>
                   <div className="w-full sm:w-3/4">
                     <textarea
-                      rows="4"
-                      placeholder="Tiểu sử"
-                      value={formBio}
-                      onChange={(e) => setFormBio(e.target.value)}
-                      maxLength={80}
+                      rows="4" placeholder="Tiểu sử" value={formBio} onChange={(e) => setFormBio(e.target.value)} maxLength={80}
                       className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-xl focus:outline-none focus:border-gray-300 focus:bg-white transition-all font-medium text-gray-900 resize-none"
                     ></textarea>
-                    <p className="text-xs text-gray-400 mt-1 text-right">
-                      {formBio.length}/80
-                    </p>
                   </div>
                 </div>
-
               </form>
             </div>
 
@@ -488,13 +506,12 @@ export default function UserPage() {
                 Lưu
               </button>
             </div>
-
           </div>
         </div>
       )}
 
       {/* MODAL ĐỔI MẬT KHẨU */}
-      {isChangePasswordOpen && (
+      {isOwnProfile && isChangePasswordOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">
             <h3 className="text-2xl font-black text-gray-900 mb-6">Đổi mật khẩu</h3>
