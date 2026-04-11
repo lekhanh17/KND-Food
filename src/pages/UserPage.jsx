@@ -140,7 +140,7 @@ export default function UserPage() {
         };
       case 5:
         return {
-          label: "Thử thách",
+          label: "Rất khó",
           color: "text-red-700 bg-red-50 border-red-200",
         };
       default:
@@ -482,19 +482,42 @@ export default function UserPage() {
                       className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group cursor-pointer block"
                     >
                       <div className="aspect-[4/3] overflow-hidden relative bg-gray-100">
+                        
+                        {/* 1. THÊM NHÃN ĐANG CHỜ DUYỆT (GÓC PHẢI) */}
+                        {recipe.Status === 'Pending' && (
+                          <div className="absolute top-3 right-3 z-10 px-3 py-1.5 bg-yellow-500/90 backdrop-blur-md text-white text-[10px] font-black tracking-widest rounded-xl shadow-lg border border-yellow-400">
+                            <span className="flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
+                              Đang chờ duyệt
+                            </span>
+                          </div>
+                        )}
+
+                        {/* 2. NHÃN ĐÃ XUẤT BẢN (GÓC PHẢI) */}
+                        {(recipe.Status === 'Approved' || recipe.Status === 'Published') && (
+                          <div className="absolute top-3 right-3 z-10 px-3 py-1.5 bg-green-500/90 backdrop-blur-md text-white text-[10px] font-black tracking-widest rounded-xl shadow-lg">
+                            Đã duyệt
+                          </div>
+                        )}
+
                         {recipe.ImageURL ? (
                           <img
                             src={recipe.ImageURL}
                             alt={recipe.Title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            /* 3. LÀM MỜ ẢNH NẾU ĐANG CHỜ DUYỆT */
+                            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+                              recipe.Status === 'Pending' ? 'grayscale-[0.5] opacity-80' : ''
+                            }`}
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-300">
                             No Image
                           </div>
                         )}
+                        
+                        {/* Nhãn Độ khó (Góc trái) */}
                         <div
-                          className={`absolute top-3 left-3 px-3 py-1.5 rounded-lg border text-xs font-black shadow-sm ${difficultyUI.color}`}
+                          className={`absolute top-3 left-3 px-3 py-1.5 rounded-lg border text-xs font-black shadow-sm z-10 ${difficultyUI.color}`}
                         >
                           {difficultyUI.label}
                         </div>

@@ -1,25 +1,25 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
+import Swal from 'sweetalert2';
+import { toast } from 'react-toastify';
 
 export default function RecipeDetail() {
   const { id } = useParams();
-  const navigate = useNavigate(); // Dùng để chuyển trang
+  const navigate = useNavigate();
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 1. Lấy thông tin user đang đăng nhập (Để kiểm tra quyền Sửa/Xóa)
   const [loggedInUser] = useState(() => {
     const saved = localStorage.getItem("loggedInUser");
     return saved ? JSON.parse(saved) : null;
   });
 
   useEffect(() => {
-    // Gọi API lấy chi tiết món ăn
     fetch(`http://localhost:5000/api/recipes/detail/${id}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.message) {
-          setRecipe(null); // Có lỗi hoặc không tìm thấy
+          setRecipe(null);
         } else {
           setRecipe(data);
         }
@@ -31,44 +31,71 @@ export default function RecipeDetail() {
       });
   }, [id]);
 
-  // Hàm hỗ trợ chuyển đổi link YouTube thường thành link Embed để phát được trên web
   const getEmbedUrl = (url) => {
     if (!url) return null;
     if (url.includes("youtube.com/watch"))
       return url.replace("watch?v=", "embed/");
     if (url.includes("youtu.be/"))
       return url.replace("youtu.be/", "youtube.com/embed/");
-    return url; // Trả về nguyên gốc nếu là file tải lên (mp4)
+    return url;
   };
 
-  // 2. Hàm Xử lý Xóa món ăn
+  // ==========================================
+  // HÀM XỬ LÝ XÓA MÓN ĂN 
+  // ==========================================
   const handleDelete = async () => {
-    // Hỏi lại cho chắc chắn
-    if (
-      window.confirm(
-        "⚠️ Bạn có chắc chắn muốn xóa công thức này không? Hành động này không thể khôi phục!",
-      )
-    ) {
-      try {
-        const response = await fetch(
-          `http://localhost:5000/api/recipes/${id}`,
-          {
-            method: "DELETE",
-          },
-        );
+    // 1. Cấu hình giao diện cho Toastify
+    const toastConfig = {
+      position: "top-center",
+      autoClose: 1500,
+      hideProgressBar: true,
+      theme: "light",
+      className: "rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 mt-4",
+    };
 
-        if (response.ok) {
-          alert("Xóa công thức thành công!");
-          navigate("/profile"); // Đá về trang cá nhân sau khi xóa xong
-        } else {
-          const data = await response.json();
-          alert("Lỗi: " + data.message);
-        }
-      } catch (error) {
-        console.error(error);
-        alert("Lỗi kết nối đến máy chủ!");
+    Swal.fire({
+      title: 'Xóa công thức?',
+      text: "Hành động này không thể hoàn tác, bạn chắc chứ?",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#f97316',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Tôi chắc chắn!',
+      cancelButtonText: 'Hủy',
+      borderRadius: '20px',
+      customClass: {
+        popup: 'rounded-3xl shadow-2xl border border-gray-100'
       }
-    }
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const token = localStorage.getItem("token");
+          const response = await fetch(`http://localhost:5000/api/recipes/delete/${id}`, {
+            method: "DELETE",
+            headers: {
+              "Authorization": `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            // 2. Gọi Toast kèm Config
+            toast.success("Đã xóa công thức thành công!", toastConfig);
+            
+            // 3. Đợi 1.5s để người dùng thấy thông báo rồi mới về trang chủ
+            setTimeout(() => {
+              navigate("/"); 
+            }, 1500);
+            
+          } else {
+            const data = await response.json();
+            toast.error("❌ Lỗi: " + data.message, toastConfig);
+          }
+        } catch (error) {
+          console.error(error);
+          toast.error("❌ Lỗi kết nối đến máy chủ!", toastConfig);
+        }
+      }
+    });
   };
 
   if (loading) {
@@ -87,7 +114,6 @@ export default function RecipeDetail() {
         <p className="text-gray-500 mb-6 font-medium">
           Món ăn này không tồn tại hoặc đã bị xóa!
         </p>
-        {/* SỬA Ở ĐÂY: Thay Link thành button navigate(-1) */}
         <button
           onClick={() => navigate(-1)}
           className="px-6 py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition"
@@ -101,7 +127,6 @@ export default function RecipeDetail() {
   return (
     <div className="min-h-screen bg-gray-50 pt-28 pb-20 font-sans text-gray-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
-        {/* SỬA Ở ĐÂY: Thay Link bằng button và dùng navigate(-1) để lùi lại trang trước đó */}
         <button
           onClick={() => navigate(-1)}
           className="inline-flex items-center gap-2 text-gray-500 hover:text-orange-500 font-bold mb-6 transition-colors text-sm"
