@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faUserShield, faUsers, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
@@ -7,6 +7,7 @@ import { faTrash, faUserShield, faUsers, faArrowLeft } from '@fortawesome/free-s
 export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   // 1. Gọi API lấy danh sách người dùng
   useEffect(() => {
@@ -15,8 +16,29 @@ export default function AdminDashboard() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/users');
-      if (!response.ok) throw new Error('Lỗi mạng');
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error("Vui lòng đăng nhập lại!");
+        navigate('/login');
+        return;
+      }
+
+      // THÊM HEADER VÀO ĐÂY
+      const response = await fetch('http://localhost:5000/api/users', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+         if(response.status === 401 || response.status === 403) {
+            toast.error("Phiên đăng nhập hết hạn hoặc bạn không có quyền!");
+            navigate('/login');
+            return;
+         }
+         throw new Error('Lỗi mạng');
+      }
+      
       const data = await response.json();
       setUsers(data);
     } catch (error) {
@@ -27,18 +49,22 @@ export default function AdminDashboard() {
     }
   };
 
-  // 2. Hàm CẬP NHẬT VAI TRÒ (MỚI)
+  // 2. Hàm CẬP NHẬT VAI TRÒ
   const handleRoleChange = async (userId, newRole) => {
     try {
+      const token = localStorage.getItem('token');
+      // THÊM HEADER VÀO ĐÂY
       const response = await fetch(`http://localhost:5000/api/admin/update-role`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ userId, newRole }),
       });
 
       if (response.ok) {
         toast.success(`Đã chuyển vai trò thành ${newRole}!`);
-        // Cập nhật state tại chỗ để giao diện đổi màu ngay lập tức
         setUsers(users.map(u => u.UserID === userId ? { ...u, Role: newRole } : u));
       } else {
         const data = await response.json();
@@ -56,20 +82,26 @@ export default function AdminDashboard() {
     if (!isConfirm) return;
 
     try {
+      const token = localStorage.getItem('token');
+      // THÊM HEADER VÀO ĐÂY
       const response = await fetch(`http://localhost:5000/api/users/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (response.ok) {
         toast.success("Đã xóa người dùng!");
         setUsers(users.filter(user => user.UserID !== id));
       } else {
-        toast.error("Xóa thất bại!");
+        const data = await response.json();
+        toast.error(data.message || "Xóa thất bại!");
       }
     } catch (error) {
-  console.error(error);
-  toast.error("Lỗi kết nối Server!");
-}
+      console.error(error);
+      toast.error("Lỗi kết nối Server!");
+    }
   };
 
   return (

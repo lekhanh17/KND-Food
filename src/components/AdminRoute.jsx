@@ -6,11 +6,11 @@ export default function AdminRoute({ children }) {
   const savedUser = localStorage.getItem('loggedInUser');
   const user = savedUser ? JSON.parse(savedUser) : null;
 
-  // 2. Kiểm tra xem có đúng là Admin không (Nhớ Role viết hoa chữ R)
-  if (!user || user.Role !== 'Admin') {
-    // Nếu không phải Admin thì báo lỗi và đá về trang chủ
-    toast.error("Truy cập bị từ chối! Bạn không phải là Admin.", {
-        toastId: 'admin-error' // Thêm cái này để tránh nó hiện 2-3 thông báo cùng lúc
+  // 2. Kiểm tra điều kiện: Nếu ko có user HOẶC (Role không phải Admin & cũng không phải Staff)
+  if (!user || (user.Role !== 'Admin' && user.Role !== 'Staff')) {
+    // Đổi câu thông báo cho phù hợp với cả 2 role
+    toast.error("Truy cập bị từ chối! Bạn không có quyền quản trị.", {
+        toastId: 'admin-error' 
     });
     return <Navigate to="/" replace />;
   }

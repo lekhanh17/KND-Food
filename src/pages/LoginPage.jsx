@@ -5,7 +5,6 @@ import { toast } from "react-toastify";
 export default function LoginPage() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
-  // 1. Thêm biến trạng thái Loading
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e) => {
@@ -36,30 +35,31 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('loggedInUser', JSON.stringify(data.user));
+        // === PHẦN QUAN TRỌNG NHẤT: LƯU TOKEN VÀ USER ===
+        localStorage.setItem('token', data.token); // Lưu token để dùng cho các API sau này
+        localStorage.setItem('loggedInUser', JSON.stringify(data.user)); // Lưu thông tin user
 
-        // CHỈ GIỮ LẠI THÔNG BÁO THÀNH CÔNG NÀY
         toast.success(data.message || "Đăng nhập thành công!", toastConfig);
 
         setTimeout(() => {
-          if (data.user.Role === 'Admin') {
-            navigate('/admin'); 
+          // CHỈNH SỬA LOGIC ĐIỀU HƯỚNG:
+          // Ép kiểu về chữ hoa để so sánh cho chính xác (Admin hoặc Staff)
+          const userRole = data.user.Role.toUpperCase();
+          
+          if (userRole === 'ADMIN' || userRole === 'STAFF') {
+            navigate('/admin'); // Admin và Nhân viên đều vào trang quản trị
           } else {
-            navigate('/');
+            navigate('/'); // User bình thường về trang chủ
           }
         }, 2000);
 
       } else {
         setIsLoading(false);
-        // Cập nhật lỗi để hiển thị dòng chữ đỏ dưới ô mật khẩu
         setError(data.message || "Email hoặc Mật khẩu không chính xác!");
-        
-        // ĐÃ XÓA dòng toast.error ở đây!
       }
     } catch (err) {
       console.error("Lỗi API:", err);
       setIsLoading(false);
-      // Cập nhật lỗi mạng để hiển thị dòng chữ đỏ
       setError("Không thể kết nối đến Server!");
     }
   };
@@ -72,7 +72,6 @@ export default function LoginPage() {
           <h2 className="text-3xl font-bold text-orange-500 mb-2">Đăng nhập</h2>
         </div>
 
-        {/* 2. Điều kiện hiển thị: Nếu đang loading thì hiện Vòng xoay, nếu không thì hiện Form */}
         {isLoading ? (
           <div className="text-center py-10 animate-fade-in space-y-5">
             <div className="w-20 h-20 border-8 border-gray-100 border-t-[#f97316] rounded-full animate-spin mx-auto shadow-inner"></div>
@@ -82,9 +81,6 @@ export default function LoginPage() {
               </h3>
               <p className="text-sm text-gray-500 max-w-xs mx-auto">
                 Đang xác thực thông tin của bạn!
-              </p>
-              <p className="text-sm text-gray-500 max-w-xs mx-auto">
-                Vui lòng chờ trong giây lát...
               </p>
             </div>
           </div>
@@ -113,7 +109,6 @@ export default function LoginPage() {
 
               {error && <p className="text-red-500 text-xs font-bold mt-1">{error}</p>}
 
-              {/* QUÊN MẬT KHẨU */}
               <div className="flex justify-end mt-2 mb-6">
                 <Link 
                   to="/forgot-password" 
@@ -139,15 +134,8 @@ export default function LoginPage() {
                 </Link>
               </p>
             </div>
-
-            <div className="mt-4 text-center animate-fade-in">
-              <Link to="/" className="text-sm text-gray-400 hover:text-gray-600 transition-colors underline underline-offset-4">
-                Bỏ qua, vào trang chủ
-              </Link>
-            </div>
           </>
         )}
-
       </div>
     </div>
   );

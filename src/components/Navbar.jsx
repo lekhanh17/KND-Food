@@ -10,7 +10,7 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
-  // SỬA Ở ĐÂY: Đổi "user" thành "loggedInUser" cho khớp với trang Login
+  // Khởi tạo user từ localStorage
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem("loggedInUser");
     return savedUser ? JSON.parse(savedUser) : null;
@@ -36,8 +36,8 @@ export default function Navbar() {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const handleLogout = () => {
-    // SỬA Ở ĐÂY: Xóa đúng tên két sắt "loggedInUser"
     localStorage.removeItem("loggedInUser");
+    localStorage.removeItem("token"); // Xóa thêm token cho sạch két sắt
     setUser(null);
     navigate("/");
     window.location.reload(); 
@@ -56,7 +56,6 @@ export default function Navbar() {
 
   useEffect(() => {
     const syncUser = () => {
-      // SỬA Ở ĐÂY: Đọc đúng tên két sắt "loggedInUser"
       const savedUser = localStorage.getItem('loggedInUser');
       setUser(savedUser ? JSON.parse(savedUser) : null);
     };
@@ -125,8 +124,8 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* SỬA Ở ĐÂY: user.Role viết hoa chữ R */}
-          {user && user.Role === 'Admin' && (
+          {/* SỬA LẠI Ở ĐÂY: Cho phép cả Admin và Staff thấy nút Quản trị */}
+          {user && (user.Role === 'Admin' || user.Role === 'Staff') && (
             <Link 
               to="/admin" 
               className="hidden sm:flex items-center gap-2 text-red-600 bg-red-50 px-5 py-2.5 rounded-2xl hover:bg-red-600 hover:text-white transition-all duration-300 font-black text-xs uppercase tracking-wider border border-red-100 shadow-sm active:scale-95"
@@ -194,26 +193,23 @@ export default function Navbar() {
 
               {/* User Dropdown */}
               <div
-  className="relative py-2"
-  onMouseEnter={() => setIsUserMenuOpen(true)}
-  onMouseLeave={() => setIsUserMenuOpen(false)}
->
-  <button className="flex items-center gap-3 p-1.5 pr-4 bg-gray-50 hover:bg-gray-100 rounded-full transition-all border border-gray-100 group">
-    
-    {/* --- CHỈ SỬA KHÚC NÀY NÈ --- */}
-    <div className="w-9 h-9 bg-orange-500 text-white rounded-full flex items-center justify-center font-black shadow-md shadow-orange-200 uppercase overflow-hidden">
-      {user.Avatar ? (
-        <img src={user.Avatar} alt="nav-avt" className="w-full h-full object-cover" />
-      ) : (
-        user.FullName ? user.FullName.charAt(0) : "U"
-      )}
-    </div>
-    {/* --------------------------- */}
+                className="relative py-2"
+                onMouseEnter={() => setIsUserMenuOpen(true)}
+                onMouseLeave={() => setIsUserMenuOpen(false)}
+              >
+                <button className="flex items-center gap-3 p-1.5 pr-4 bg-gray-50 hover:bg-gray-100 rounded-full transition-all border border-gray-100 group">
+                  <div className="w-9 h-9 bg-orange-500 text-white rounded-full flex items-center justify-center font-black shadow-md shadow-orange-200 uppercase overflow-hidden">
+                    {user.Avatar ? (
+                      <img src={user.Avatar} alt="nav-avt" className="w-full h-full object-cover" />
+                    ) : (
+                      user.FullName ? user.FullName.charAt(0) : "U"
+                    )}
+                  </div>
 
-    <span className="text-sm font-bold text-gray-700">
-      {user.FullName ? user.FullName.split(" ")[0] : "Bạn"}
-    </span>
-  </button>
+                  <span className="text-sm font-bold text-gray-700">
+                    {user.FullName ? user.FullName.split(" ")[0] : "Bạn"}
+                  </span>
+                </button>
 
                 {isUserMenuOpen && (
                   <div className="absolute top-full right-0 w-56 bg-white shadow-2xl rounded-3xl p-3 border border-gray-50 mt-0.2 animate-in fade-in slide-in-from-top-2 duration-200">
