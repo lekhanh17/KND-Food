@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBreadSlice, faChevronDown, faBell, faUser, faSignOutAlt, faUtensils, faUserShield } from '@fortawesome/free-solid-svg-icons';
+import { faBreadSlice, faChevronDown, faBell, faUser, faSignOutAlt, faUtensils, faUserShield, faCheckCircle, faTimesCircle, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -10,43 +10,67 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
-  // Khởi tạo user từ localStorage
+  // 1. Khởi tạo user từ localStorage
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem("loggedInUser");
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  const [userRecipes] = useState(() => {
-    const saved = localStorage.getItem("sharedRecipes");
-    return saved ? JSON.parse(saved) : [];
-  });
+  // 2. State lưu danh sách thông báo thật từ API
+  const [notifications, setNotifications] = useState([]);
 
-  const [readNotifications, setReadNotifications] = useState(new Set());
+  // 4. Tính toán số thông báo chưa đọc
+  const unreadCount = useMemo(() => {
+    return notifications.filter((n) => !n.IsRead).length;
+  }, [notifications]);
 
-  const notifications = useMemo(() => {
-    return userRecipes.map((recipe) => ({
-      id: recipe.id,
-      title: recipe.title,
-      message: `Món ăn của bạn nhận được ${recipe.likes || 0} lượt thích!`,
-      read: readNotifications.has(recipe.id),
-      time: "Vừa xong",
-    }));
-  }, [userRecipes, readNotifications]);
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
+  // 5. Hàm Đăng xuất
   const handleLogout = () => {
     localStorage.removeItem("loggedInUser");
-    localStorage.removeItem("token"); // Xóa thêm token cho sạch két sắt
+    localStorage.removeItem("token");
     setUser(null);
     navigate("/");
     window.location.reload(); 
   };
 
-  const markAsRead = (id) =>
-    setReadNotifications((prev) => new Set([...prev, id]));
-  const markAllAsRead = () =>
-    setReadNotifications(new Set(notifications.map((n) => n.id)));
+  // 6. Hàm Đánh dấu đã đọc hết (Gọi API)
+  const markAllAsRead = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch("http://localhost:5000/api/notifications/read-all", {
+        method: "PUT",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (response.ok) {
+        // Cập nhật lại UI ngay lập tức
+        setNotifications(notifications.map(n => ({ ...n, IsRead: 1 })));
+      }
+    } catch (error) {
+      console.error("Lỗi cập nhật trạng thái đã đọc:", error);
+    }
+  };
+
+  // ==========================================
+  // HÀM MỚI: XÓA CÁC THÔNG BÁO ĐÃ ĐỌC
+  // ==========================================
+  const deleteReadNotifications = async () => {
+    const token = localStorage.getItem("token");
+    
+    try {
+      const response = await fetch("http://localhost:5000/api/notifications/delete-read", {
+        method: 'DELETE',
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        // Chỉ cần cập nhật lại UI: Xóa những bài đã đọc khỏi danh sách hiện tại
+        setNotifications(notifications.filter(n => !n.IsRead));
+        // Không cần gọi toast ở đây nữa cho đỡ phiền người dùng
+      }
+    } catch (error) {
+      console.error("Lỗi xóa thông báo:", error);
+    }
+  };
 
   const categories = [
     { id: 1, name: "Món chính" },
@@ -54,7 +78,26 @@ export default function Navbar() {
     { id: 3, name: "Tráng miệng" },
   ];
 
+  // 7. Theo dõi sự thay đổi của User và định kỳ lấy thông báo
   useEffect(() => {
+    // Đưa hàm fetch vào trong này luôn
+    const fetchNotifications = async () => {
+      const token = localStorage.getItem("token");
+      if (!token || !user) return;
+
+      try {
+        const response = await fetch("http://localhost:5000/api/notifications", {
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setNotifications(data);
+        }
+      } catch (error) {
+        console.error("Lỗi lấy thông báo:", error);
+      }
+    };
+
     const syncUser = () => {
       const savedUser = localStorage.getItem('loggedInUser');
       setUser(savedUser ? JSON.parse(savedUser) : null);
@@ -63,11 +106,31 @@ export default function Navbar() {
     window.addEventListener('user-changed', syncUser);
     window.addEventListener('storage', syncUser);
 
+    // Gọi hàm fetch lần đầu
+    if (user) {
+      fetchNotifications();
+    }
+
+    // Định kỳ lấy thông báo (30s)
+    const interval = setInterval(() => {
+      if (user) fetchNotifications();
+    }, 30000);
+
     return () => {
       window.removeEventListener('user-changed', syncUser);
       window.removeEventListener('storage', syncUser);
+      clearInterval(interval);
     };
-  }, []);
+  }, [user]); // [user] ở đây là đúng rồi
+
+  // Hàm chọn Icon dựa theo loại thông báo
+  const getNotifyIcon = (type) => {
+    switch (type) {
+      case 'Approve': return <FontAwesomeIcon icon={faCheckCircle} className="text-green-500" />;
+      case 'Reject': return <FontAwesomeIcon icon={faTimesCircle} className="text-red-500" />;
+      default: return <FontAwesomeIcon icon={faInfoCircle} className="text-blue-500" />;
+    }
+  };
 
   return (
     <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100 shadow-sm transition-all duration-300">
@@ -124,7 +187,7 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* SỬA LẠI Ở ĐÂY: Cho phép cả Admin và Staff thấy nút Quản trị */}
+          {/* NÚT QUẢN TRỊ */}
           {user && (user.Role === 'Admin' || user.Role === 'Staff') && (
             <Link 
               to="/admin" 
@@ -146,15 +209,15 @@ export default function Navbar() {
           {user ? (
             <div className="flex items-center gap-4 border-l border-gray-100 pl-4 ml-1">
               
-              {/* Thông báo */}
+              {/* --- CHUÔNG THÔNG BÁO --- */}
               <div className="relative">
                 <button
                   onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                  className="w-11 h-11 bg-gray-50 hover:bg-orange-50 rounded-2xl flex items-center justify-center text-gray-500 hover:text-orange-500 transition-all border border-gray-100"
+                  className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all border ${unreadCount > 0 ? "bg-orange-500 text-white shadow-lg shadow-orange-200 border-orange-400" : "bg-gray-50 text-gray-500 hover:bg-orange-50 hover:text-orange-500 border-gray-100"}`}
                 >
-                  <FontAwesomeIcon icon={faBell} />
+                  <FontAwesomeIcon icon={faBell} className={unreadCount > 0 ? "animate-tada" : ""} />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-black border-2 border-white animate-bounce">
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-black border-2 border-white">
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   )}
@@ -164,27 +227,46 @@ export default function Navbar() {
                   <div className="absolute top-full right-0 w-80 bg-white shadow-2xl rounded-3xl border border-gray-50 mt-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
                     <div className="p-5 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
                       <h3 className="font-black text-gray-800 text-sm uppercase">Thông báo</h3>
-                      <button
-                        onClick={markAllAsRead}
-                        className="text-[10px] text-orange-500 font-bold uppercase hover:underline"
-                      >
-                        Đọc hết
-                      </button>
+                      
+                      {/* GIAO DIỆN MỚI BỔ SUNG 2 NÚT TẠI ĐÂY */}
+                      <div className="flex gap-3">
+                        <button
+                          onClick={markAllAsRead}
+                          className="text-[10px] text-orange-500 font-bold uppercase hover:underline"
+                        >
+                          Đọc hết
+                        </button>
+                        <button
+                          onClick={deleteReadNotifications}
+                          className="text-[10px] text-red-400 font-bold uppercase hover:text-red-600 transition-colors"
+                        >
+                          Xóa đã đọc
+                        </button>
+                      </div>
+                      
                     </div>
                     <div className="max-h-72 overflow-y-auto">
                       {notifications.length > 0 ? (
                         notifications.map((n) => (
-                          <div
-                            key={n.id}
-                            onClick={() => markAsRead(n.id)}
-                            className={`p-4 border-b border-gray-50 hover:bg-orange-50/30 cursor-pointer transition ${!n.read ? "bg-orange-50/50" : ""}`}
+                          <Link
+                            to={n.Link || "#"}
+                            key={n.NotificationID}
+                            onClick={() => setIsNotificationOpen(false)}
+                            className={`flex gap-3 p-4 border-b border-gray-50 hover:bg-orange-50/30 transition ${!n.IsRead ? "bg-orange-50/50" : ""}`}
                           >
-                            <h4 className="font-bold text-gray-800 text-xs">{n.title}</h4>
-                            <p className="text-gray-500 text-[11px] mt-1">{n.message}</p>
-                          </div>
+                            <div className="mt-0.5">{getNotifyIcon(n.Type)}</div>
+                            <div>
+                              <p className={`text-xs leading-relaxed ${!n.IsRead ? "font-bold text-gray-900" : "text-gray-600"}`}>
+                                {n.Message}
+                              </p>
+                              <span className="text-[9px] text-gray-400 font-bold uppercase mt-1 block">
+                                {new Date(n.CreatedAt).toLocaleDateString('vi-VN')}
+                              </span>
+                            </div>
+                          </Link>
                         ))
                       ) : (
-                        <div className="p-8 text-center text-gray-400 text-xs">Không có thông báo mới</div>
+                        <div className="p-12 text-center text-gray-400 text-xs font-bold">Bạn không có thông báo mới</div>
                       )}
                     </div>
                   </div>
@@ -221,7 +303,7 @@ export default function Navbar() {
                       Hồ sơ cá nhân
                     </Link>
 
-                    <div className="my-1 border-t border-gray-50"></div>
+                    <div className="my-1 border-t border-gray-100"></div>
 
                     <button
                       onClick={handleLogout}

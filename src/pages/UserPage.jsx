@@ -72,7 +72,7 @@ export default function UserPage() {
           } else {
             setProfileUser(null);
           }
-        } catch (err) {
+        } catch {
           setProfileUser(null);
         }
       } else {
@@ -105,7 +105,7 @@ export default function UserPage() {
         const data = await res.json();
         if (Array.isArray(data)) setMyRecipes(data);
         else setMyRecipes([]);
-      } catch (err) {
+      } catch {
         setMyRecipes([]);
       } finally {
         setIsLoadingRecipes(false);
