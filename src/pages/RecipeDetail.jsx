@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Swal from 'sweetalert2';
 import { toast } from 'react-toastify';
+import Comments from "../components/Comments";
 
 export default function RecipeDetail() {
   const { id } = useParams();
@@ -379,6 +380,15 @@ export default function RecipeDetail() {
             </div>
           </div>
         </div>
+
+        {/* Chỉ hiện bình luận khi đã tải xong thông tin món ăn */}
+{!loading && recipe && (
+  <Comments 
+    recipeId={id} 
+    loggedInUser={loggedInUser} 
+    recipeAuthorId={recipe.UserID} 
+  />
+)}
       </div>
     </div>
   );
