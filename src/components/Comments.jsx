@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faStar } from "@fortawesome/free-solid-svg-icons";
 import Swal from 'sweetalert2';
 
 const API_BASE_URL = "http://localhost:5000/api";
@@ -16,16 +16,31 @@ const toastConfig = {
 };
 
 function formatCommentTime(createdAt) {
-  const commentDate = new Date(createdAt);
+  // 1. Cắt bỏ chữ Z (nếu có) để ép trình duyệt hiểu đây là giờ Local (giờ VN)
+  let dateString = createdAt;
+  if (typeof dateString === 'string' && dateString.endsWith('Z')) {
+    dateString = dateString.slice(0, -1);
+  }
+
+  const commentDate = new Date(dateString);
   if (Number.isNaN(commentDate.getTime())) return "Vừa xong";
+
   const diffMs = Date.now() - commentDate.getTime();
+  
+  // Nếu vẫn bị âm (do máy tính sai giờ), mặc định hiện Vừa xong
+  if (diffMs < 0) return "Vừa xong";
+
   const diffMinutes = Math.floor(diffMs / 60000);
+
   if (diffMinutes < 1) return "Vừa xong";
   if (diffMinutes < 60) return `${diffMinutes} phút trước`;
+
   const diffHours = Math.floor(diffMinutes / 60);
   if (diffHours < 24) return `${diffHours} giờ trước`;
+
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) return `${diffDays} ngày trước`;
+
   return commentDate.toLocaleDateString("vi-VN");
 }
 
@@ -39,6 +54,7 @@ async function parseApiResponse(response) {
   throw new Error("API chưa sẵn sàng hoặc không trả về JSON.");
 }
 
+// CẬP NHẬT: Thêm lấy rating từ API
 function normalizeComment(comment) {
   return {
     id: comment.CommentID || comment.commentId || comment.id || `${comment.UserID}-${comment.CreatedAt}`,
@@ -48,12 +64,17 @@ function normalizeComment(comment) {
     authorUsername: comment.Username || comment.authorUsername || "",
     authorAvatar: comment.Avatar || comment.authorAvatar || "",
     content: comment.Content || comment.content || "",
+    rating: comment.Rating || comment.rating || 5, // Lấy số sao, mặc định là 5
     createdAt: comment.CreatedAt || comment.createdAt || new Date().toISOString(),
   };
 }
 
 export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
   const [commentText, setCommentText] = useState("");
+  // CẬP NHẬT: State cho tính năng đánh giá sao
+  const [rating, setRating] = useState(0); 
+  const [hoverRating, setHoverRating] = useState(0);
+
   const [comments, setComments] = useState([]);
   const [isLoadingComments, setIsLoadingComments] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -85,29 +106,47 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
   }, [recipeId]);
 
   const totalCommentsLabel = useMemo(() => {
-    if (comments.length === 0) return "Chưa có bình luận nào";
-    if (comments.length === 1) return "1 bình luận";
-    return `${comments.length} bình luận`;
+    if (comments.length === 0) return "Chưa có đánh giá nào";
+    return `${comments.length} đánh giá`;
   }, [comments.length]);
+
+  // Text hiển thị theo số sao
+  const getRatingText = (star) => {
+    switch (star) {
+      case 5: return "Tuyệt vời";
+      case 4: return "Rất tốt";
+      case 3: return "Bình thường";
+      case 2: return "Kém";
+      case 1: return "Tệ";
+      default: return "Vui lòng chọn sao";
+    }
+  };
 
   const handleSubmitComment = async (event) => {
     event.preventDefault();
     const trimmedComment = commentText.trim();
-    if (!loggedInUser) { toast.info("Hãy đăng nhập để bình luận.", toastConfig); return; }
-    if (!trimmedComment) { toast.warning("Vui lòng nhập nội dung.", toastConfig); return; }
+    if (!loggedInUser) { toast.info("Hãy đăng nhập để đánh giá.", toastConfig); return; }
+    
+    // Validate Rating
+    if (rating === 0) { toast.warning("⚠️ Bạn quên chọn số sao đánh giá kìa!", toastConfig); return; }
+    if (!trimmedComment) { toast.warning("Vui lòng nhập nội dung đánh giá.", toastConfig); return; }
+    
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(`${API_BASE_URL}/comments`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-        body: JSON.stringify({ RecipeID: recipeId, UserID: loggedInUser.UserID, Content: trimmedComment }),
+        // Gửi thêm biến Rating lên server
+        body: JSON.stringify({ RecipeID: recipeId, UserID: loggedInUser.UserID, Content: trimmedComment, Rating: rating }),
       });
       const data = await parseApiResponse(response);
-      if (!response.ok) throw new Error(data.message || "Lỗi gửi cmt.");
+      if (!response.ok) throw new Error(data.message || "Lỗi gửi đánh giá.");
+      
       setComments((prev) => [normalizeComment(data), ...prev]);
       setCommentText("");
-      toast.success("Đã thêm bình luận.", toastConfig);
+      setRating(0); // Reset số sao
+      toast.success("Đã gửi đánh giá thành công.", toastConfig);
     } catch (error) {
       toast.error(error.message, toastConfig);
     } finally { setIsSubmitting(false); }
@@ -115,8 +154,8 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
 
   const handleDeleteComment = (commentId) => {
     Swal.fire({
-      title: 'Xóa bình luận?',
-      text: "Bạn có chắc chắn muốn xóa? Hành động này không thể hoàn tác.",
+      title: 'Xóa?',
+      text: "Bạn có chắc chắn muốn xóa đánh giá? Không thể hoàn tác!",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
@@ -141,13 +180,13 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
 
           if (response.ok) {
             setComments((prev) => prev.filter((c) => c.id !== commentId));
-            toast.success("Đã xóa bình luận!", toastConfig);
+            toast.success("Đã xóa đánh giá!", toastConfig);
           } else {
             const data = await response.json();
-            toast.error(`${data.message}`, toastConfig);
+            toast.error(`❌ ${data.message}`, toastConfig);
           }
         } catch (error) {
-          console.error("Lỗi xóa bình luận:", error); // Đã sửa lỗi biến error chưa dùng
+          console.error("Lỗi xóa bình luận:", error);
           toast.error("Lỗi kết nối!", toastConfig);
         }
       }
@@ -158,32 +197,59 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
     <section className="bg-white rounded-[2rem] p-6 md:p-10 shadow-sm border border-gray-100 mt-8">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
         <div>
-          <p className="text-[16px] font-black tracking-[0.18em] text-orange-500 mb-2">Bình Luận</p>
+          <p className="text-base font-black tracking-[0.18em] text-orange-500 mb-2 uppercase">Đánh Giá</p>
+          <h2 className="text-2xl md:text-3xl font-black text-[#1c2b36]">Nhận xét & Đánh giá</h2>
         </div>
-        <p className="text-base font-semibold text-gray-500">{totalCommentsLabel}</p>
+        <p className="text-sm font-semibold text-gray-500">{totalCommentsLabel}</p>
       </div>
 
       <form onSubmit={handleSubmitComment} className="mb-8">
-        <div className="rounded-[28px] border border-orange-100 bg-gradient-to-br from-orange-50/70 via-white to-white p-4 md:p-5 shadow-[0_10px_30px_rgba(249,115,22,0.08)]">
+        <div className="rounded-[28px] border border-orange-100 bg-gradient-to-br from-orange-50/70 via-white to-white p-5 shadow-[0_10px_30px_rgba(249,115,22,0.08)]">
+          
+          {/* KHU VỰC CHỌN SAO */}
+          <div className="flex items-center gap-4 mb-4 pb-4 border-b border-orange-100/50">
+            <span className="text-sm font-bold text-gray-700">Chất lượng công thức:</span>
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  type="button"
+                  key={star}
+                  className={`text-2xl transition-colors duration-200 ${star <= (hoverRating || rating) ? "text-yellow-400" : "text-gray-300"} hover:scale-110 active:scale-95`}
+                  onClick={() => setRating(star)}
+                  onMouseEnter={() => setHoverRating(star)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  disabled={!loggedInUser || isSubmitting}
+                >
+                  <FontAwesomeIcon icon={faStar} />
+                </button>
+              ))}
+            </div>
+            {rating > 0 && (
+              <span className="text-sm font-bold text-yellow-500 ml-2 animate-in fade-in zoom-in duration-300">
+                {getRatingText(rating)}
+              </span>
+            )}
+          </div>
+
           <div className="flex items-start gap-4">
             <div className="w-11 h-11 rounded-2xl bg-orange-500 text-white shrink-0 flex items-center justify-center font-black shadow-md shadow-orange-200">
               {loggedInUser?.Avatar ? <img src={loggedInUser.Avatar} alt="Avt" className="w-full h-full object-cover rounded-2xl" /> : (loggedInUser?.FullName?.charAt(0) || "?")}
             </div>
             <div className="flex-1">
               <textarea
-                rows="4" maxLength={300} value={commentText} onChange={(e) => setCommentText(e.target.value)}
-                placeholder={loggedInUser ? "Chia sẻ cảm nhận của bạn..." : "Đăng nhập để viết bình luận..."}
+                rows="3" maxLength={300} value={commentText} onChange={(e) => setCommentText(e.target.value)}
+                placeholder={loggedInUser ? "Chia sẻ cảm nhận của bạn về món ăn này..." : "Đăng nhập để viết đánh giá..."}
                 disabled={!loggedInUser || isSubmitting}
                 className="w-full resize-none rounded-3xl border border-white bg-white px-5 py-4 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 disabled:bg-gray-50"
               />
               <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <p className="text-xs text-gray-400">Bình luận tối đa 300 ký tự.</p>
                 {loggedInUser ? (
-                  <button type="submit" disabled={isSubmitting} className="rounded-2xl bg-orange-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-orange-200 hover:bg-orange-600 active:scale-95 disabled:bg-orange-300">
-                    {isSubmitting ? "Đang gửi..." : "Đăng bình luận"}
+                  <button type="submit" disabled={isSubmitting} className="rounded-2xl bg-orange-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-orange-200 hover:bg-orange-600 active:scale-95 disabled:bg-orange-300 disabled:scale-100">
+                    {isSubmitting ? "Đang gửi..." : "Đăng đánh giá"}
                   </button>
                 ) : (
-                  <Link to="/login" className="rounded-2xl bg-orange-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-orange-200 hover:bg-orange-600">Đăng nhập để bình luận</Link>
+                  <Link to="/login" className="rounded-2xl bg-orange-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-orange-200 hover:bg-orange-600">Đăng nhập để đánh giá</Link>
                 )}
               </div>
             </div>
@@ -195,7 +261,6 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
         {isLoadingComments ? (
           <div className="p-10 text-center"><div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div></div>
         ) : commentsError ? (
-          // Đã thêm lại phần hiển thị biến commentsError
           <div className="rounded-3xl border border-dashed border-red-200 bg-red-50/70 px-6 py-10 text-center">
             <p className="text-sm font-semibold text-red-500">{commentsError}</p>
             <button onClick={fetchComments} className="mt-4 inline-flex items-center justify-center rounded-2xl bg-white px-4 py-2 text-sm font-bold text-red-500 border border-red-200 transition hover:bg-red-50">
@@ -210,10 +275,19 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                   {comment.authorAvatar ? <img src={comment.authorAvatar} alt="Avt" className="w-full h-full object-cover" /> : (comment.authorName?.charAt(0) || "U")}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-1">
                     <div className="min-w-0">
                       <h3 className="text-sm font-black text-gray-900 truncate">{comment.authorName}</h3>
-                      {comment.authorUsername && <p className="text-xs text-gray-400 truncate">@{comment.authorUsername}</p>}
+                      {/* HIỂN THỊ SAO CỦA BÌNH LUẬN */}
+                      <div className="flex items-center gap-1 mt-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <FontAwesomeIcon 
+                            key={star} 
+                            icon={faStar} 
+                            className={`text-[10px] ${star <= comment.rating ? "text-yellow-400" : "text-gray-300"}`} 
+                          />
+                        ))}
+                      </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-xs font-semibold text-gray-400">{formatCommentTime(comment.createdAt)}</span>
@@ -224,13 +298,13 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                       )}
                     </div>
                   </div>
-                  <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap">{comment.content}</p>
+                  <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap mt-2">{comment.content}</p>
                 </div>
               </div>
             </article>
           ))
         ) : (
-          <div className="p-10 text-center text-gray-400 text-sm font-semibold">Chưa có bình luận nào.</div>
+          <div className="p-10 text-center text-gray-400 text-sm font-semibold">Chưa có đánh giá nào.</div>
         )}
       </div>
     </section>

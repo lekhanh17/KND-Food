@@ -15,7 +15,7 @@ export default function HomePage() {
         const response = await fetch("http://localhost:5000/api/recipes");
         const data = await response.json();
         
-        // BẢN DỊCH DANH MỤC: Bạn có thể sửa tên hoặc thêm ID cho khớp với Database của bạn nhé
+        // BẢN DỊCH DANH MỤC
         const categoryMap = {
           1: "Món chính",
           2: "Ăn vặt",
@@ -29,13 +29,15 @@ export default function HomePage() {
           title: recipe.Title,
           category: categoryMap[recipe.CategoryID] || `Danh mục ${recipe.CategoryID}`, 
           time: `${(recipe.PrepTime || 0) + (recipe.CookTime || 0)}p`,
+          difficulty: recipe.Difficulty || 1,
           
-          // SỬA Ở ĐÂY: Tách biệt hoàn toàn Độ khó và Đánh giá
-          difficulty: recipe.Difficulty || 1, // Truyền đúng số độ khó (1-5)
-          rating: "4.8", // Mockup số sao đánh giá (sau này lấy từ DB)
-          reviews: Math.floor(Math.random() * 100) + 10, // Mockup số lượt đánh giá
+          // ==========================================
+          // ĐÃ SỬA: Thay thế số liệu giả bằng số thật từ Backend
+          // ==========================================
+          rating: recipe.AverageRating || 0, 
+          reviews: recipe.ReviewCount || 0,  
           
-          image: recipe.ImageURL || defaultRecipeImg //hiện ảnh mặc định đc import ở trên nếu món đó ko có ảnh
+          image: recipe.ImageURL || defaultRecipeImg
         }));
 
         setRecipes(formattedRecipes);
