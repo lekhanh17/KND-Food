@@ -3,9 +3,9 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import Comments from "../components/Comments";
-// Thêm import cho icon Trái tim
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart } from "@fortawesome/free-solid-svg-icons";
+import RecipeCard from "../components/RecipeCard";
 
 export default function RecipeDetail() {
   const { id } = useParams();
@@ -16,6 +16,12 @@ export default function RecipeDetail() {
   // State cho tính năng Lưu (Yêu thích)
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // ==========================================
+  // === MỚI THÊM: STATE CHO AI RECOMMEND ===
+  // ==========================================
+  const [recommendations, setRecommendations] = useState([]);
+  const [loadingRecs, setLoadingRecs] = useState(true);
 
   const [loggedInUser] = useState(() => {
     const saved = localStorage.getItem("loggedInUser");
@@ -72,6 +78,28 @@ export default function RecipeDetail() {
     };
     checkSavedStatus();
   }, [id, loggedInUser]);
+
+  // ==========================================
+  // === MỚI THÊM: GỌI API LẤY MÓN ĂN GỢI Ý ===
+  // ==========================================
+  useEffect(() => {
+    if (!id) return;
+    const fetchRecommendations = async () => {
+      setLoadingRecs(true);
+      try {
+        const res = await fetch(`http://localhost:5000/api/recipes/recommend/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setRecommendations(data);
+        }
+      } catch (error) {
+        console.error("Lỗi lấy gợi ý từ AI:", error);
+      } finally {
+        setLoadingRecs(false);
+      }
+    };
+    fetchRecommendations();
+  }, [id]);
 
   const getEmbedUrl = (url) => {
     if (!url) return null;
@@ -463,6 +491,37 @@ export default function RecipeDetail() {
             </div>
           </div>
         </div>
+
+        {/* ==========================================
+            === MỚI THÊM: KHU VỰC AI GỢI Ý MÓN ĂN ===
+            ========================================== */}
+        {!loading && recipe && (
+          <div className="mt-16 mb-10 border-t border-gray-200 pt-10">
+            <h2 className="text-2xl font-black mb-8 flex items-center gap-3 text-[#1c2b36]">
+              <span className="text-3xl animate-bounce">✨</span>
+              Có thể bạn sẽ thích
+              <span className="text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-md ml-2 uppercase tracking-wider">
+                AI Gợi ý
+              </span>
+            </h2>
+
+            {loadingRecs ? (
+              <div className="flex justify-center py-10">
+                <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : recommendations.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {recommendations.map((item) => (
+                  <RecipeCard key={item.RecipeID} item={item} />
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 italic text-center bg-gray-50 py-8 rounded-2xl">
+                Hệ thống AI đang học hỏi thêm dữ liệu, hãy quay lại sau nhé!
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Chỉ hiện bình luận khi đã tải xong thông tin món ăn */}
         {!loading && recipe && (
