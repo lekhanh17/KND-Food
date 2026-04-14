@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import Swal from 'sweetalert2';
-import { toast } from 'react-toastify';
+import Swal from "sweetalert2";
+import { toast } from "react-toastify";
 import Comments from "../components/Comments";
+// Thêm import cho icon Trái tim
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHeart } from "@fortawesome/free-solid-svg-icons";
 
 export default function RecipeDetail() {
   const { id } = useParams();
@@ -10,11 +13,26 @@ export default function RecipeDetail() {
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // State cho tính năng Lưu (Yêu thích)
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
   const [loggedInUser] = useState(() => {
     const saved = localStorage.getItem("loggedInUser");
     return saved ? JSON.parse(saved) : null;
   });
 
+  // Cấu hình Toastify dùng chung
+  const toastConfig = {
+    position: "top-center",
+    autoClose: 1500,
+    hideProgressBar: true,
+    theme: "light",
+    className:
+      "rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 mt-4",
+  };
+
+  // Lấy chi tiết món ăn
   useEffect(() => {
     fetch(`http://localhost:5000/api/recipes/detail/${id}`)
       .then((res) => res.json())
@@ -32,6 +50,29 @@ export default function RecipeDetail() {
       });
   }, [id]);
 
+  // Kiểm tra xem user đã lưu món này chưa khi vừa vào trang
+  useEffect(() => {
+    const checkSavedStatus = async () => {
+      if (!loggedInUser || !id) return;
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(
+          `http://localhost:5000/api/favorites/check/${id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setIsSaved(data.isSaved);
+        }
+      } catch (error) {
+        console.error("Lỗi check save:", error);
+      }
+    };
+    checkSavedStatus();
+  }, [id, loggedInUser]);
+
   const getEmbedUrl = (url) => {
     if (!url) return null;
     if (url.includes("youtube.com/watch"))
@@ -42,58 +83,82 @@ export default function RecipeDetail() {
   };
 
   // ==========================================
-  // HÀM XỬ LÝ XÓA MÓN ĂN 
+  // HÀM XỬ LÝ LƯU / BỎ LƯU MÓN ĂN
+  // ==========================================
+  const handleToggleSave = async () => {
+    if (!loggedInUser) {
+      toast.info("Vui lòng đăng nhập để lưu công thức!", toastConfig);
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:5000/api/favorites/toggle", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ RecipeID: id }),
+      });
+
+      if (!res.ok) throw new Error("Lỗi mạng");
+      const data = await res.json();
+
+      // Cập nhật State để nút tự động đổi màu/trạng thái
+      setIsSaved(data.isSaved);
+    } catch (error) {
+      console.error("Chi tiết lỗi:", error);
+      toast.error("Có lỗi xảy ra, vui lòng thử lại!", toastConfig);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // ==========================================
+  // HÀM XỬ LÝ XÓA MÓN ĂN
   // ==========================================
   const handleDelete = async () => {
-    // 1. Cấu hình giao diện cho Toastify
-    const toastConfig = {
-      position: "top-center",
-      autoClose: 1500,
-      hideProgressBar: true,
-      theme: "light",
-      className: "rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 mt-4",
-    };
-
     Swal.fire({
-      title: 'Xóa công thức?',
+      title: "Xóa công thức?",
       text: "Hành động này không thể hoàn tác, bạn chắc chứ?",
-      icon: 'warning',
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#f97316',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Tôi chắc chắn!',
-      cancelButtonText: 'Hủy',
-      borderRadius: '20px',
+      confirmButtonColor: "#f97316",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Tôi chắc chắn!",
+      cancelButtonText: "Hủy",
+      borderRadius: "20px",
       customClass: {
-        popup: 'rounded-3xl shadow-2xl border border-gray-100'
-      }
+        popup: "rounded-3xl shadow-2xl border border-gray-100",
+      },
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           const token = localStorage.getItem("token");
-          const response = await fetch(`http://localhost:5000/api/recipes/delete/${id}`, {
-            method: "DELETE",
-            headers: {
-              "Authorization": `Bearer ${token}`
-            }
-          });
+          const response = await fetch(
+            `http://localhost:5000/api/recipes/delete/${id}`,
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
 
           if (response.ok) {
-            // 2. Gọi Toast kèm Config
             toast.success("Đã xóa công thức thành công!", toastConfig);
-            
-            // 3. Đợi 1.5s để người dùng thấy thông báo rồi mới về trang chủ
             setTimeout(() => {
-              navigate("/"); 
+              navigate("/");
             }, 1500);
-            
           } else {
             const data = await response.json();
-            toast.error("❌ Lỗi: " + data.message, toastConfig);
+            toast.error("Lỗi: " + data.message, toastConfig);
           }
         } catch (error) {
           console.error(error);
-          toast.error("❌ Lỗi kết nối đến máy chủ!", toastConfig);
+          toast.error("Lỗi kết nối đến máy chủ!", toastConfig);
         }
       }
     });
@@ -197,46 +262,64 @@ export default function RecipeDetail() {
                 </p>
               )}
 
-              {/* 3. HIỆN NÚT SỬA & XÓA NẾU LÀ TÁC GIẢ */}
-              {loggedInUser && loggedInUser.UserID === recipe.UserID && (
-                <div className="flex flex-wrap gap-3 mt-6">
-                  {/* Dẫn sang trang EditRecipe */}
-                  <Link
-                    to={`/edit-recipe/${recipe.RecipeID}`}
-                    className="px-5 py-2.5 bg-orange-50 text-orange-600 hover:bg-orange-100 rounded-xl font-bold text-sm transition-colors flex items-center gap-2"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      className="w-4 h-4"
-                    >
-                      <path d="M2.695 14.763l-1.262 3.152a.5.5 0 00.65.65l3.152-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
-                    </svg>
-                    Sửa công thức
-                  </Link>
+              {/* KHU VỰC CÁC NÚT TƯƠNG TÁC (LƯU, SỬA, XÓA) */}
+              <div className="flex flex-wrap items-center gap-3 mt-6">
+                {/* 1. NÚT LƯU CÔNG THỨC */}
+                <button
+                  onClick={handleToggleSave}
+                  disabled={isSaving}
+                  className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${
+                    isSaved
+                      ? "bg-red-50 text-red-500 hover:bg-red-100"
+                      : "bg-gray-50 text-gray-500 border border-gray-200 hover:text-red-500 hover:border-red-200"
+                  }`}
+                >
+                  <FontAwesomeIcon
+                    icon={faHeart}
+                    className={`text-base transition-transform ${isSaved ? "scale-110" : ""}`}
+                  />
+                  {isSaved ? "Đã lưu" : "Lưu công thức"}
+                </button>
 
-                  {/* Nút Xóa gọi hàm handleDelete */}
-                  <button
-                    onClick={handleDelete}
-                    className="px-5 py-2.5 bg-red-50 text-red-500 hover:bg-red-100 rounded-xl font-bold text-sm transition-colors flex items-center gap-2"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      className="w-4 h-4"
+                {/* 2. NÚT SỬA & XÓA (Chỉ hiện nếu là Tác giả) */}
+                {loggedInUser && loggedInUser.UserID === recipe.UserID && (
+                  <>
+                    <Link
+                      to={`/edit-recipe/${recipe.RecipeID}`}
+                      className="px-5 py-2.5 bg-orange-50 text-orange-600 hover:bg-orange-100 rounded-xl font-bold text-sm transition-colors flex items-center gap-2"
                     >
-                      <path
-                        fillRule="evenodd"
-                        d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    Xóa
-                  </button>
-                </div>
-              )}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        className="w-4 h-4"
+                      >
+                        <path d="M2.695 14.763l-1.262 3.152a.5.5 0 00.65.65l3.152-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
+                      </svg>
+                      Sửa
+                    </Link>
+
+                    <button
+                      onClick={handleDelete}
+                      className="px-5 py-2.5 bg-red-50 text-red-500 hover:bg-red-100 rounded-xl font-bold text-sm transition-colors flex items-center gap-2"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        className="w-4 h-4"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      Xóa
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
 
             {/* THÔNG TIN TÁC GIẢ */}
@@ -382,13 +465,13 @@ export default function RecipeDetail() {
         </div>
 
         {/* Chỉ hiện bình luận khi đã tải xong thông tin món ăn */}
-{!loading && recipe && (
-  <Comments 
-    recipeId={id} 
-    loggedInUser={loggedInUser} 
-    recipeAuthorId={recipe.UserID} 
-  />
-)}
+        {!loading && recipe && (
+          <Comments
+            recipeId={id}
+            loggedInUser={loggedInUser}
+            recipeAuthorId={recipe.UserID}
+          />
+        )}
       </div>
     </div>
   );

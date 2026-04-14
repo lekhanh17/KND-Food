@@ -1,6 +1,8 @@
 ﻿import { useState, useRef, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+// 1. IMPORT RECIPECARD VÀO ĐỂ TÁI SỬ DỤNG CHO TAB YÊU THÍCH
+import RecipeCard from "../components/RecipeCard";
 
 export default function UserPage() {
   // 1. LẤY TÊN TỪ URL (VD: khanh17)
@@ -29,7 +31,7 @@ export default function UserPage() {
   const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState("Bài đăng của tôi");
-  const tabs = ["Bài đăng của tôi", "Đăng lại", "Đã lưu", "Yêu thích"];
+  const tabs = ["Bài đăng của tôi", "Yêu thích"];
 
   const [formFullName, setFormFullName] = useState("");
   const [formUsername, setFormUsername] = useState("");
@@ -41,6 +43,12 @@ export default function UserPage() {
 
   const [myRecipes, setMyRecipes] = useState([]);
   const [isLoadingRecipes, setIsLoadingRecipes] = useState(true);
+
+  // ==============================================
+  // THÊM STATE CHO TAB YÊU THÍCH
+  // ==============================================
+  const [favoriteRecipes, setFavoriteRecipes] = useState([]);
+  const [isFetchingFav, setIsFetchingFav] = useState(false);
 
   // Đóng menu cài đặt khi click ra ngoài
   useEffect(() => {
@@ -61,7 +69,6 @@ export default function UserPage() {
     const fetchProfile = async () => {
       setIsProfileLoading(true);
       if (username) {
-        // Đang xem qua link /user/:username (Trang của người khác hoặc của mình qua ô tìm kiếm)
         try {
           const res = await fetch(
             `http://localhost:5000/api/users/profile/${username}`,
@@ -76,7 +83,6 @@ export default function UserPage() {
           setProfileUser(null);
         }
       } else {
-        // Đang xem qua link /profile (Trang của chính mình qua nút Menu)
         setProfileUser(user);
       }
       setIsProfileLoading(false);
@@ -112,9 +118,37 @@ export default function UserPage() {
       }
     };
 
-    // Chỉ gọi API món ăn khi đã biết UserID của chủ nhà
     if (profileUser?.UserID) fetchRecipes();
   }, [profileUser]);
+
+  // ==============================================
+  // TẢI DANH SÁCH MÓN ĂN YÊU THÍCH KHI MỞ TAB
+  // ==============================================
+  useEffect(() => {
+    if (activeTab === "Yêu thích" && isOwnProfile) {
+      const fetchMyFavorites = async () => {
+        setIsFetchingFav(true);
+        try {
+          const token = localStorage.getItem("token");
+          const response = await fetch("http://localhost:5000/api/favorites/my-favorites", {
+            headers: { "Authorization": `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setFavoriteRecipes(data);
+          } else {
+            setFavoriteRecipes([]);
+          }
+        } catch (error) {
+          console.error("Lỗi lấy danh sách yêu thích:", error);
+          setFavoriteRecipes([]);
+        } finally {
+          setIsFetchingFav(false);
+        }
+      };
+      fetchMyFavorites();
+    }
+  }, [activeTab, isOwnProfile]);
 
   const getDifficultyUI = (level) => {
     switch (Number(level)) {
@@ -465,6 +499,7 @@ export default function UserPage() {
 
         {/* --- KHU VỰC NỘI DUNG TABS --- */}
         <div className="py-8">
+          {/* TAB: BÀI ĐĂNG CỦA TÔI */}
           {activeTab === "Bài đăng của tôi" ? (
             isLoadingRecipes ? (
               <div className="flex flex-col items-center justify-center py-20 text-gray-400">
@@ -482,8 +517,6 @@ export default function UserPage() {
                       className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group cursor-pointer block"
                     >
                       <div className="aspect-[4/3] overflow-hidden relative bg-gray-100">
-                        
-                        {/* 1. THÊM NHÃN ĐANG CHỜ DUYỆT (GÓC PHẢI) */}
                         {recipe.Status === 'Pending' && (
                           <div className="absolute top-3 right-3 z-10 px-3 py-1.5 bg-yellow-500/90 backdrop-blur-md text-white text-[10px] font-black tracking-widest rounded-xl shadow-lg border border-yellow-400">
                             <span className="flex items-center gap-1.5">
@@ -493,7 +526,6 @@ export default function UserPage() {
                           </div>
                         )}
 
-                        {/* 2. NHÃN ĐÃ XUẤT BẢN (GÓC PHẢI) */}
                         {(recipe.Status === 'Approved' || recipe.Status === 'Published') && (
                           <div className="absolute top-3 right-3 z-10 px-3 py-1.5 bg-green-500/90 backdrop-blur-md text-white text-[10px] font-black tracking-widest rounded-xl shadow-lg">
                             Đã duyệt
@@ -504,7 +536,6 @@ export default function UserPage() {
                           <img
                             src={recipe.ImageURL}
                             alt={recipe.Title}
-                            /* 3. LÀM MỜ ẢNH NẾU ĐANG CHỜ DUYỆT */
                             className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
                               recipe.Status === 'Pending' ? 'grayscale-[0.5] opacity-80' : ''
                             }`}
@@ -515,7 +546,6 @@ export default function UserPage() {
                           </div>
                         )}
                         
-                        {/* Nhãn Độ khó (Góc trái) */}
                         <div
                           className={`absolute top-3 left-3 px-3 py-1.5 rounded-lg border text-xs font-black shadow-sm z-10 ${difficultyUI.color}`}
                         >
@@ -577,7 +607,51 @@ export default function UserPage() {
                 </h3>
               </div>
             )
+          ) : activeTab === "Yêu thích" ? (
+            /* ==============================================
+               TAB: YÊU THÍCH (THÊM MỚI Ở ĐÂY)
+               ============================================== */
+            !isOwnProfile ? (
+              <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-in fade-in">
+                <div className="text-4xl mb-3">🤫</div>
+                <h3 className="text-lg font-bold text-gray-800">
+                  Danh sách yêu thích là mục riêng tư
+                </h3>
+                <p className="text-sm mt-1">Chỉ chủ nhân của tài khoản này mới có thể xem.</p>
+              </div>
+            ) : isFetchingFav ? (
+              <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                <div className="w-8 h-8 border-4 border-red-400 border-t-transparent rounded-full animate-spin mb-4"></div>
+              </div>
+            ) : favoriteRecipes.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {favoriteRecipes.map((recipe) => (
+                  // GỌI COMPONENT RECIPECARD VÀO ĐÂY LÀ ĐẸP LUÔN
+                  <RecipeCard key={recipe.RecipeID} item={recipe} />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-in fade-in">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1}
+                  stroke="currentColor"
+                  className="w-20 h-20 mb-4 opacity-50 text-red-300"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                </svg>
+                <h3 className="text-lg font-bold text-gray-800">
+                  Bạn chưa lưu món ăn nào
+                </h3>
+                <Link to="/" className="mt-3 px-6 py-2 bg-red-50 text-red-500 font-bold rounded-lg hover:bg-red-100 transition">
+                  Khám phá ngay
+                </Link>
+              </div>
+            )
           ) : (
+            /* TAB KHÁC (FALLBACK) */
             <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-in fade-in">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
