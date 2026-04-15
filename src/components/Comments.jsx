@@ -198,7 +198,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
         <div>
           <p className="text-base font-black tracking-[0.18em] text-orange-500 mb-2 uppercase">Đánh Giá</p>
-          <h2 className="text-2xl md:text-3xl font-black text-[#1c2b36]">Nhận xét & Đánh giá</h2>
+
         </div>
         <p className="text-sm font-semibold text-gray-500">{totalCommentsLabel}</p>
       </div>

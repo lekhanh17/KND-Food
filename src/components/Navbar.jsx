@@ -10,6 +10,11 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
+  // ==========================================
+  // THÊM MỚI: State lưu danh sách Danh mục
+  // ==========================================
+  const [categories, setCategories] = useState([]);
+
   // 1. Khởi tạo user từ localStorage
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem("loggedInUser");
@@ -42,7 +47,6 @@ export default function Navbar() {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (response.ok) {
-        // Cập nhật lại UI ngay lập tức
         setNotifications(notifications.map(n => ({ ...n, IsRead: 1 })));
       }
     } catch (error) {
@@ -51,7 +55,7 @@ export default function Navbar() {
   };
 
   // ==========================================
-  // HÀM MỚI: XÓA CÁC THÔNG BÁO ĐÃ ĐỌC
+  // XÓA CÁC THÔNG BÁO ĐÃ ĐỌC
   // ==========================================
   const deleteReadNotifications = async () => {
     const token = localStorage.getItem("token");
@@ -63,24 +67,32 @@ export default function Navbar() {
       });
       
       if (response.ok) {
-        // Chỉ cần cập nhật lại UI: Xóa những bài đã đọc khỏi danh sách hiện tại
         setNotifications(notifications.filter(n => !n.IsRead));
-        // Không cần gọi toast ở đây nữa cho đỡ phiền người dùng
       }
     } catch (error) {
       console.error("Lỗi xóa thông báo:", error);
     }
   };
 
-  const categories = [
-    { id: 1, name: "Món chính" },
-    { id: 2, name: "Món canh" },
-    { id: 3, name: "Tráng miệng" },
-  ];
+  // ==========================================
+  // THÊM MỚI: Gọi API lấy danh mục từ Database
+  // ==========================================
+  useEffect(() => {
+    fetch("http://localhost:5000/api/categories")
+      .then((res) => res.json())
+      .then((data) => {
+        // Map dữ liệu Database (CategoryID, CategoryName) về dạng (id, name) để JSX bên dưới không bị lỗi
+        const formattedCategories = data.map(item => ({
+          id: item.CategoryID,
+          name: item.CategoryName
+        }));
+        setCategories(formattedCategories);
+      })
+      .catch((err) => console.error("Lỗi lấy danh mục:", err));
+  }, []);
 
   // 7. Theo dõi sự thay đổi của User và định kỳ lấy thông báo
   useEffect(() => {
-    // Đưa hàm fetch vào trong này luôn
     const fetchNotifications = async () => {
       const token = localStorage.getItem("token");
       if (!token || !user) return;
@@ -106,12 +118,10 @@ export default function Navbar() {
     window.addEventListener('user-changed', syncUser);
     window.addEventListener('storage', syncUser);
 
-    // Gọi hàm fetch lần đầu
     if (user) {
       fetchNotifications();
     }
 
-    // Định kỳ lấy thông báo (30s)
     const interval = setInterval(() => {
       if (user) fetchNotifications();
     }, 30000);
@@ -121,9 +131,8 @@ export default function Navbar() {
       window.removeEventListener('storage', syncUser);
       clearInterval(interval);
     };
-  }, [user]); // [user] ở đây là đúng rồi
+  }, [user]);
 
-  // Hàm chọn Icon dựa theo loại thông báo
   const getNotifyIcon = (type) => {
     switch (type) {
       case 'Approve': return <FontAwesomeIcon icon={faCheckCircle} className="text-green-500" />;
@@ -228,7 +237,6 @@ export default function Navbar() {
                     <div className="p-5 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
                       <h3 className="font-black text-gray-800 text-sm uppercase">Thông báo</h3>
                       
-                      {/* GIAO DIỆN MỚI BỔ SUNG 2 NÚT TẠI ĐÂY */}
                       <div className="flex gap-3">
                         <button
                           onClick={markAllAsRead}
@@ -240,7 +248,7 @@ export default function Navbar() {
                           onClick={deleteReadNotifications}
                           className="text-[10px] text-red-400 font-bold uppercase hover:text-red-600 transition-colors"
                         >
-                          Xóa đã đọc
+                          Xóa thông báo đã đọc
                         </button>
                       </div>
                       
@@ -266,7 +274,7 @@ export default function Navbar() {
                           </Link>
                         ))
                       ) : (
-                        <div className="p-12 text-center text-gray-400 text-xs font-bold">Bạn không có thông báo mới</div>
+                        <div className="p-12 text-center text-gray-400 text-xs font-bold">Không có thông báo mới</div>
                       )}
                     </div>
                   </div>
