@@ -18,8 +18,10 @@ export default function RecipeDetail() {
   const [isSaving, setIsSaving] = useState(false);
 
   // ==========================================
-  // === MỚI THÊM: STATE CHO AI RECOMMEND ===
+  // === MỚI THÊM: STATE LƯU TỪ ĐIỂN DANH MỤC ===
   // ==========================================
+  const [categories, setCategories] = useState({});
+
   const [recommendations, setRecommendations] = useState([]);
   const [loadingRecs, setLoadingRecs] = useState(true);
 
@@ -28,7 +30,6 @@ export default function RecipeDetail() {
     return saved ? JSON.parse(saved) : null;
   });
 
-  // Cấu hình Toastify dùng chung
   const toastConfig = {
     position: "top-center",
     autoClose: 1500,
@@ -37,6 +38,25 @@ export default function RecipeDetail() {
     className:
       "rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 mt-4",
   };
+
+  // ==========================================
+  // === MỚI THÊM: LẤY DANH MỤC TỪ DATABASE ===
+  // ==========================================
+  useEffect(() => {
+    fetch("http://localhost:5000/api/categories")
+      .then((res) => res.json())
+      .then((data) => {
+        const map = {};
+        if (Array.isArray(data)) {
+          // Biến [{CategoryID: 1, CategoryName: "Món xào"}] thành { 1: "Món xào" }
+          data.forEach((cat) => {
+            map[cat.CategoryID] = cat.CategoryName;
+          });
+        }
+        setCategories(map);
+      })
+      .catch((err) => console.error("Lỗi lấy danh mục:", err));
+  }, []);
 
   // Lấy chi tiết món ăn
   useEffect(() => {
@@ -79,9 +99,7 @@ export default function RecipeDetail() {
     checkSavedStatus();
   }, [id, loggedInUser]);
 
-  // ==========================================
-  // === MỚI THÊM: GỌI API LẤY MÓN ĂN GỢI Ý ===
-  // ==========================================
+  // GỌI API LẤY MÓN ĂN GỢI Ý
   useEffect(() => {
     if (!id) return;
     const fetchRecommendations = async () => {
@@ -110,9 +128,6 @@ export default function RecipeDetail() {
     return url;
   };
 
-  // ==========================================
-  // HÀM XỬ LÝ LƯU / BỎ LƯU MÓN ĂN
-  // ==========================================
   const handleToggleSave = async () => {
     if (!loggedInUser) {
       toast.info("Vui lòng đăng nhập để lưu công thức!", toastConfig);
@@ -133,8 +148,6 @@ export default function RecipeDetail() {
 
       if (!res.ok) throw new Error("Lỗi mạng");
       const data = await res.json();
-
-      // Cập nhật State để nút tự động đổi màu/trạng thái
       setIsSaved(data.isSaved);
     } catch (error) {
       console.error("Chi tiết lỗi:", error);
@@ -144,9 +157,6 @@ export default function RecipeDetail() {
     }
   };
 
-  // ==========================================
-  // HÀM XỬ LÝ XÓA MÓN ĂN
-  // ==========================================
   const handleDelete = async () => {
     Swal.fire({
       title: "Xóa công thức?",
@@ -274,8 +284,9 @@ export default function RecipeDetail() {
           <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-8">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-4">
-                <span className="px-3 py-1 bg-orange-50 text-orange-600 rounded-lg text-xs font-bold tracking-wide">
-                  Danh mục {recipe.CategoryID}
+                {/* ĐÃ SỬA: Tự động in tên danh mục ở đây */}
+                <span className="px-3 py-1 bg-orange-50 text-orange-600 rounded-lg text-xs font-bold tracking-wide uppercase">
+                  {categories[recipe.CategoryID] || "Khác"}
                 </span>
                 <span className="px-3 py-1 bg-yellow-50 text-yellow-600 rounded-lg text-xs font-bold tracking-wide">
                   ★ Độ khó: {recipe.Difficulty}/5
@@ -292,7 +303,6 @@ export default function RecipeDetail() {
 
               {/* KHU VỰC CÁC NÚT TƯƠNG TÁC (LƯU, SỬA, XÓA) */}
               <div className="flex flex-wrap items-center gap-3 mt-6">
-                {/* 1. NÚT LƯU CÔNG THỨC */}
                 <button
                   onClick={handleToggleSave}
                   disabled={isSaving}
@@ -309,7 +319,6 @@ export default function RecipeDetail() {
                   {isSaved ? "Đã lưu" : "Lưu công thức"}
                 </button>
 
-                {/* 2. NÚT SỬA & XÓA (Chỉ hiện nếu là Tác giả) */}
                 {loggedInUser && loggedInUser.UserID === recipe.UserID && (
                   <>
                     <Link
@@ -493,7 +502,7 @@ export default function RecipeDetail() {
         </div>
 
         {/* ==========================================
-            === MỚI THÊM: KHU VỰC AI GỢI Ý MÓN ĂN ===
+            === KHU VỰC AI GỢI Ý MÓN ĂN ===
             ========================================== */}
         {!loading && recipe && (
           <div className="mt-16 mb-10 border-t border-gray-200 pt-10">
@@ -511,9 +520,20 @@ export default function RecipeDetail() {
               </div>
             ) : recommendations.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {recommendations.map((item) => (
-                  <RecipeCard key={item.RecipeID} item={item} />
-                ))}
+                {/* Dịch lại dữ liệu trước khi đẩy vào RecipeCard */}
+                {recommendations.map((item) => {
+                  const formattedItem = {
+                    id: item.RecipeID,
+                    title: item.Title,
+                    category: categories[item.CategoryID] || "Khác",
+                    time: `${(item.PrepTime || 0) + (item.CookTime || 0)}p`,
+                    difficulty: item.Difficulty || 1,
+                    rating: item.AverageRating || 0,
+                    reviews: item.ReviewCount || 0,
+                    image: item.ImageURL
+                  };
+                  return <RecipeCard key={formattedItem.id} item={formattedItem} />;
+                })}
               </div>
             ) : (
               <p className="text-gray-500 italic text-center bg-gray-50 py-8 rounded-2xl">

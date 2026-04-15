@@ -10,30 +10,35 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchRecipes = async () => {
+    // Gọi cả 2 API cùng một lúc cho lẹ: Lấy Món ăn và Lấy Danh mục
+    const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/recipes");
-        const data = await response.json();
-        
-        // BẢN DỊCH DANH MỤC
-        const categoryMap = {
-          1: "Món chính",
-          2: "Ăn vặt",
-          3: "Tráng miệng",
-          4: "Healthy / Eatclean"
-        };
+        const [recipesRes, categoriesRes] = await Promise.all([
+          fetch("http://localhost:5000/api/recipes"),
+          fetch("http://localhost:5000/api/categories")
+        ]);
+
+        const recipesData = await recipesRes.json();
+        const categoriesData = await categoriesRes.json();
+
+        // Tự động tạo "Bản dịch danh mục" từ SQL
+        // Biến [ {CategoryID: 1, CategoryName: 'Món ăn'} ] thành { 1: 'Món ăn' }
+        const dynamicCategoryMap = {};
+        if (Array.isArray(categoriesData)) {
+            categoriesData.forEach(cat => {
+                dynamicCategoryMap[cat.CategoryID] = cat.CategoryName;
+            });
+        }
 
         // Chuyển đổi dữ liệu từ API
-        const formattedRecipes = data.map(recipe => ({
+        const formattedRecipes = recipesData.map(recipe => ({
           id: recipe.RecipeID,
           title: recipe.Title,
-          category: categoryMap[recipe.CategoryID] || `Danh mục ${recipe.CategoryID}`, 
+          // Lấy tên danh mục từ cái bản dịch vừa tạo tự động
+          category: dynamicCategoryMap[recipe.CategoryID] || `Khác`, 
           time: `${(recipe.PrepTime || 0) + (recipe.CookTime || 0)}p`,
           difficulty: recipe.Difficulty || 1,
           
-          // ==========================================
-          // ĐÃ SỬA: Thay thế số liệu giả bằng số thật từ Backend
-          // ==========================================
           rating: recipe.AverageRating || 0, 
           reviews: recipe.ReviewCount || 0,  
           
@@ -42,18 +47,17 @@ export default function HomePage() {
 
         setRecipes(formattedRecipes);
       } catch (error) {
-        console.error("Lỗi tải danh sách món ăn:", error);
+        console.error("Lỗi tải dữ liệu HomePage:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchRecipes();
+    fetchData();
   }, []);
 
   return (
     <div className="bg-white min-h-screen">
-      {/* Giữ nguyên Hero Banner */}
       <Hero />
 
       {/* Trending Section */}

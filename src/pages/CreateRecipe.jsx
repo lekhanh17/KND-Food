@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
-import { toast } from 'react-toastify';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 export default function CreateRecipe() {
   const navigate = useNavigate();
@@ -16,10 +16,9 @@ export default function CreateRecipe() {
   const [cookTime, setCookTime] = useState('');
   const [servings, setServings] = useState('');
   
-  // --- THAY ĐỔI: Độ khó bây giờ là SỐ (Mặc định là 1 sao) ---
   const [difficulty, setDifficulty] = useState(1); 
-  
-  const [category, setCategory] = useState('1'); 
+  const [category, setCategory] = useState(''); 
+  const [categories, setCategories] = useState([]);
   
   const [videoInputType, setVideoInputType] = useState('upload'); 
   const [videoUrl, setVideoUrl] = useState(''); 
@@ -34,12 +33,35 @@ export default function CreateRecipe() {
   const [ingredients, setIngredients] = useState([{ name: '', amount: '', unit: '' }]);
   const [steps, setSteps] = useState([{ description: '', imageFile: null, imagePreview: null }]);
 
+  useEffect(() => {
+    fetch('http://localhost:5000/api/categories')
+      .then(res => res.json())
+      .then(data => {
+        setCategories(data);
+        if (data.length > 0) {
+           setCategory(data[0].CategoryID.toString());
+        }
+      })
+      .catch(err => console.error("Lỗi lấy danh mục:", err));
+  }, []);
+
+  // Hàm hiển thị SweetAlert
+  const showWarning = (text) => {
+    Swal.fire({
+      title: 'Khoan đã!',
+      text: text,
+      icon: 'warning',
+      confirmButtonText: 'Đã hiểu',
+      confirmButtonColor: '#f97316',
+      customClass: { popup: 'rounded-3xl shadow-2xl border border-gray-100' }
+    });
+  };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       if (!file.type.startsWith('image/')) {
-        toast.error('Vui lòng chọn file hình ảnh hợp lệ!');
-        return;
+        return showWarning('Vui lòng chọn file hình ảnh hợp lệ!');
       }
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
@@ -50,12 +72,10 @@ export default function CreateRecipe() {
     const file = e.target.files[0];
     if (file) {
       if (!file.type.startsWith('video/')) {
-        toast.error('Vui lòng chọn file video hợp lệ (MP4, WebM...)!');
-        return;
+        return showWarning('Vui lòng chọn file video hợp lệ (MP4, WebM...)!');
       }
       if (file.size > 50 * 1024 * 1024) {
-        toast.warning('Video quá nặng! Vui lòng chọn video dưới 50MB.');
-        return;
+        return showWarning('Video quá nặng! Vui lòng chọn video dưới 50MB.');
       }
       setVideoFile(file);
       setVideoPreview(URL.createObjectURL(file));
@@ -87,7 +107,7 @@ export default function CreateRecipe() {
     const file = e.target.files[0];
     if (file) {
       if (!file.type.startsWith('image/')) {
-        return toast.error('Vui lòng chọn file hình ảnh hợp lệ!');
+        return showWarning('Vui lòng chọn file hình ảnh hợp lệ!');
       }
       const newSteps = [...steps];
       newSteps[index].imageFile = file;
@@ -100,34 +120,36 @@ export default function CreateRecipe() {
     e.preventDefault();
 
     if (!user) {
-      toast.error('Bạn cần đăng nhập để thực hiện chức năng này!');
-      navigate('/login');
+      Swal.fire({
+        title: 'Chưa đăng nhập!',
+        text: 'Bạn cần đăng nhập để chia sẻ công thức.',
+        icon: 'info',
+        confirmButtonText: 'Đăng nhập ngay',
+        confirmButtonColor: '#f97316',
+        customClass: { popup: 'rounded-3xl shadow-2xl border border-gray-100' }
+      }).then(() => navigate('/login'));
       return;
     }
 
     if (!title.trim() || !imageFile) {
-      return toast.warning('Vui lòng nhập tên món và chọn ảnh đại diện!');
+      return showWarning('Vui lòng nhập tên món và chọn ảnh đại diện!');
     }
 
     const validIngredients = ingredients.filter(i => i.name.trim() !== '');
     const validSteps = steps.filter(s => s.description.trim() !== '');
 
-    if (validIngredients.length === 0) return toast.warning('Vui lòng thêm ít nhất 1 nguyên liệu!');
-    if (validSteps.length === 0) return toast.warning('Vui lòng thêm ít nhất 1 bước thực hiện!');
+    if (validIngredients.length === 0) return showWarning('Vui lòng thêm ít nhất 1 nguyên liệu!');
+    if (validSteps.length === 0) return showWarning('Vui lòng thêm ít nhất 1 bước thực hiện!');
 
     const formData = new FormData();
     formData.append('UserID', user.UserID);
     formData.append('Title', title);
     formData.append('Description', description);
     formData.append('CategoryID', category);
-    
-    // GỬI SỐ SAO XUỐNG CỘT DIFFICULTY ĐỂ LƯU VÀO DB (1 -> 5)
     formData.append('Difficulty', difficulty);
-    
     formData.append('PrepTime', prepTime);
     formData.append('CookTime', cookTime);
     formData.append('Servings', servings);
-
     formData.append('mainImage', imageFile);
     
     if (videoInputType === 'upload' && videoFile) {
@@ -144,6 +166,17 @@ export default function CreateRecipe() {
         if (step.imageFile) formData.append(`stepImage_${index}`, step.imageFile);
     });
 
+    // Hiện loading của SweetAlert
+    Swal.fire({
+      title: 'Đang xử lý...',
+      text: 'Vui lòng chờ một chút để hệ thống tải dữ liệu lên nhé!',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+      customClass: { popup: 'rounded-3xl shadow-2xl border border-gray-100' }
+    });
+
     try {
       const response = await fetch('http://localhost:5000/api/recipes/create', {
           method: 'POST',
@@ -153,14 +186,38 @@ export default function CreateRecipe() {
       const data = await response.json();
 
       if (response.ok) {
-          toast.success('🎉 ' + data.message);
-          navigate('/profile'); 
+          // Thành công
+          Swal.fire({
+            title: 'Tuyệt vời!',
+            text: data.message,
+            icon: 'success',
+            confirmButtonText: 'Xem hồ sơ',
+            confirmButtonColor: '#10b981', // Màu xanh lá cho thành công
+            customClass: { popup: 'rounded-3xl shadow-2xl border border-gray-100' }
+          }).then(() => {
+            navigate('/profile'); 
+          });
       } else {
-          toast.error('❌ ' + data.message);
+          // Lỗi từ Server
+          Swal.fire({
+            title: 'Thất bại!',
+            text: data.message,
+            icon: 'error',
+            confirmButtonText: 'Đóng',
+            confirmButtonColor: '#ef4444',
+            customClass: { popup: 'rounded-3xl shadow-2xl border border-gray-100' }
+          });
       }
     } catch (error) {
       console.error(error);
-      toast.error('❌ Không thể kết nối tới Server!');
+      Swal.fire({
+        title: 'Lỗi kết nối!',
+        text: 'Không thể kết nối tới Server, vui lòng thử lại sau.',
+        icon: 'error',
+        confirmButtonText: 'Đóng',
+        confirmButtonColor: '#ef4444',
+        customClass: { popup: 'rounded-3xl shadow-2xl border border-gray-100' }
+      });
     }
   };
 
@@ -197,14 +254,18 @@ export default function CreateRecipe() {
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Danh mục</label>
                   <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 font-medium appearance-none cursor-pointer">
-                    <option value="1">Món chính</option>
-                    <option value="2">Ăn vặt</option>
-                    <option value="3">Tráng miệng</option>
-                    <option value="4">Healthy / Eat Clean</option>
+                    {categories.length > 0 ? (
+                      categories.map(cat => (
+                        <option key={cat.CategoryID} value={cat.CategoryID}>
+                          {cat.CategoryName}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="">Đang tải danh mục...</option>
+                    )}
                   </select>
                 </div>
                 
-                {/* --- CHỌN ĐỘ KHÓ BẰNG SAO --- */}
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Độ khó</label>
                   <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-1 min-h-[50px]">
@@ -256,7 +317,6 @@ export default function CreateRecipe() {
             </h2>
 
             <div className="space-y-6">
-              {/* Ảnh chính */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-3">Ảnh thành phẩm <span className="text-red-500">*</span></label>
                 <div onClick={() => fileInputRef.current.click()} className={`w-full aspect-[21/9] md:aspect-[21/7] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-all overflow-hidden relative group ${imagePreview ? 'border-transparent' : 'border-gray-300 hover:border-orange-500 hover:bg-orange-50'}`}>
@@ -277,12 +337,10 @@ export default function CreateRecipe() {
                 <input type="file" ref={fileInputRef} onChange={handleImageChange} className="hidden" accept="image/*" />
               </div>
 
-              {/* TÙY CHỌN VIDEO CÓ TAB CHUYỂN ĐỔI */}
               <div>
                 <div className="flex items-end justify-between mb-3">
                   <label className="block text-sm font-bold text-gray-700">Video hướng dẫn <span className="text-gray-400 font-normal ml-1">(Tùy chọn)</span></label>
                   
-                  {/* Hai nút chuyển tab */}
                   <div className="flex bg-gray-100 p-1 rounded-lg">
                     <button type="button" onClick={() => setVideoInputType('upload')} className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${videoInputType === 'upload' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Tải lên</button>
                     <button type="button" onClick={() => setVideoInputType('link')} className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${videoInputType === 'link' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Link Video</button>
