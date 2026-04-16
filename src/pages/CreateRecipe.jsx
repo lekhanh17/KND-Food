@@ -19,6 +19,19 @@ export default function CreateRecipe() {
   const [difficulty, setDifficulty] = useState(1); 
   const [category, setCategory] = useState(''); 
   const [categories, setCategories] = useState([]);
+
+  // BỔ SUNG: State và Ref cho Custom Dropdown
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // BỔ SUNG: Nhãn hiển thị cho thanh trượt độ khó
+  const difficultyLabels = {
+    '1': '1 - Rất dễ',
+    '2': '2 - Dễ',
+    '3': '3 - Trung bình',
+    '4': '4 - Khó',
+    '5': '5 - Rất khó'
+  };
   
   const [videoInputType, setVideoInputType] = useState('upload'); 
   const [videoUrl, setVideoUrl] = useState(''); 
@@ -43,6 +56,17 @@ export default function CreateRecipe() {
         }
       })
       .catch(err => console.error("Lỗi lấy danh mục:", err));
+  }, []);
+
+  // BỔ SUNG: Xử lý click ra ngoài để đóng dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   // Hàm hiển thị SweetAlert
@@ -166,7 +190,6 @@ export default function CreateRecipe() {
         if (step.imageFile) formData.append(`stepImage_${index}`, step.imageFile);
     });
 
-    // Hiện loading của SweetAlert
     Swal.fire({
       title: 'Đang xử lý...',
       text: 'Vui lòng chờ một chút để hệ thống tải dữ liệu lên nhé!',
@@ -186,19 +209,17 @@ export default function CreateRecipe() {
       const data = await response.json();
 
       if (response.ok) {
-          // Thành công
           Swal.fire({
             title: 'Tuyệt vời!',
             text: data.message,
             icon: 'success',
             confirmButtonText: 'Xem hồ sơ',
-            confirmButtonColor: '#10b981', // Màu xanh lá cho thành công
+            confirmButtonColor: '#10b981',
             customClass: { popup: 'rounded-3xl shadow-2xl border border-gray-100' }
           }).then(() => {
             navigate('/profile'); 
           });
       } else {
-          // Lỗi từ Server
           Swal.fire({
             title: 'Thất bại!',
             text: data.message,
@@ -232,7 +253,6 @@ export default function CreateRecipe() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           
-          {/* KHU VỰC 1 */}
           <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
               <span className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm">1</span>
@@ -250,44 +270,67 @@ export default function CreateRecipe() {
                 <textarea rows="3" placeholder="Chia sẻ cảm nghĩ của bạn..." value={description} onChange={(e) => setDescription(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all resize-none font-medium text-gray-700"></textarea>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8" ref={dropdownRef}>
+                {/* BỔ SUNG: CUSTOM SELECT DANH MỤC */}
+                <div className="relative">
                   <label className="block text-sm font-bold text-gray-700 mb-2">Danh mục</label>
-                  <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 font-medium appearance-none cursor-pointer">
-                    {categories.length > 0 ? (
-                      categories.map(cat => (
-                        <option key={cat.CategoryID} value={cat.CategoryID}>
-                          {cat.CategoryName}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="">Đang tải danh mục...</option>
-                    )}
-                  </select>
+                  <div 
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className={`w-full px-4 py-3 bg-gray-50 border rounded-xl flex justify-between items-center cursor-pointer transition-all ${isDropdownOpen ? 'border-orange-500 ring-2 ring-orange-500/20 bg-white' : 'border-gray-200 hover:border-gray-300'}`}
+                  >
+                    <span className="font-medium text-gray-900">
+                      {categories.find(c => c.CategoryID.toString() === category)?.CategoryName || 'Chọn danh mục...'}
+                    </span>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-4 h-4 text-gray-500 transition-transform ${isDropdownOpen ? 'rotate-180 text-orange-500' : ''}`}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  </div>
+
+                  {isDropdownOpen && (
+                    <div className="absolute z-50 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+                      <ul className="py-2">
+                        {categories.map((cat) => (
+                          <li 
+                            key={cat.CategoryID}
+                            onClick={() => {
+                              setCategory(cat.CategoryID.toString());
+                              setIsDropdownOpen(false);
+                            }}
+                            className={`px-4 py-2.5 cursor-pointer transition-colors ${category === cat.CategoryID.toString() ? 'bg-orange-50 text-orange-600 font-bold' : 'text-gray-700 hover:bg-gray-50 hover:text-orange-500'}`}
+                          >
+                            {cat.CategoryName}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
                 
+                {/* BỔ SUNG: THANH TRƯỢT ĐỘ KHÓ VỚI NHÃN NEO CHUẨN */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Độ khó</label>
-                  <div className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-1 min-h-[50px]">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        type="button"
-                        onClick={() => setDifficulty(star)}
-                        className={`transition-all active:scale-90 ${star <= difficulty ? 'text-yellow-400 hover:text-yellow-500 hover:scale-110' : 'text-gray-300 hover:text-yellow-200'}`}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
-                          <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                    ))}
-                    <span className="ml-3 text-sm font-bold text-orange-500">
-                      {difficulty === 1 && 'Rất dễ'}
-                      {difficulty === 2 && 'Dễ'}
-                      {difficulty === 3 && 'Trung bình'}
-                      {difficulty === 4 && 'Khó'}
-                      {difficulty === 5 && 'Rất khó'}
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-bold text-gray-700">Độ khó</label>
+                    <span className="text-xs font-black text-orange-600 bg-orange-50 px-3 py-1 rounded-lg uppercase tracking-wider">
+                      {difficultyLabels[difficulty]}
                     </span>
+                  </div>
+                  <div className="relative pt-2 pb-6">
+                    <input 
+                      type="range" 
+                      min="1" 
+                      max="5" 
+                      step="1"
+                      value={difficulty} 
+                      onChange={(e) => setDifficulty(parseInt(e.target.value))} 
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-500 hover:accent-orange-600 transition-all relative z-10"
+                    />
+                    <div className="absolute top-7 left-0 w-full text-[10px] font-black text-gray-400">
+                      <span className="absolute left-0">RẤT DỄ</span>
+                      <span className="absolute left-1/4 -translate-x-1/2">DỄ</span>
+                      <span className="absolute left-1/2 -translate-x-1/2">VỪA</span>
+                      <span className="absolute left-3/4 -translate-x-1/2">KHÓ</span>
+                      <span className="absolute right-0">RẤT KHÓ</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -309,7 +352,6 @@ export default function CreateRecipe() {
             </div>
           </div>
 
-          {/* KHU VỰC 2: MEDIA */}
           <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
               <span className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm">2</span>
@@ -340,7 +382,6 @@ export default function CreateRecipe() {
               <div>
                 <div className="flex items-end justify-between mb-3">
                   <label className="block text-sm font-bold text-gray-700">Video hướng dẫn <span className="text-gray-400 font-normal ml-1">(Tùy chọn)</span></label>
-                  
                   <div className="flex bg-gray-100 p-1 rounded-lg">
                     <button type="button" onClick={() => setVideoInputType('upload')} className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${videoInputType === 'upload' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Tải lên</button>
                     <button type="button" onClick={() => setVideoInputType('link')} className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${videoInputType === 'link' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>Link Video</button>
@@ -357,8 +398,7 @@ export default function CreateRecipe() {
                     ) : (
                       <div className="text-center p-6">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 mx-auto text-gray-400 mb-3 group-hover:text-orange-500 transition-colors"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" /></svg>
-                        <p className="text-gray-500 font-medium">Bấm vào đây để tải video lên</p>
-                        <p className="text-xs text-gray-400 mt-1">Hỗ trợ định dạng MP4, WebM (Tối đa 50MB)</p>
+                        <p className="text-gray-500 font-medium">Bấm vào đây để tải video lên <br />(giới hạn 50MB)</p>
                       </div>
                     )}
                     <input type="file" ref={videoInputRef} onChange={handleVideoChange} className="hidden" accept="video/mp4,video/webm" />
@@ -375,7 +415,6 @@ export default function CreateRecipe() {
             </div>
           </div>
 
-          {/* KHU VỰC 3: NGUYÊN LIỆU */}
           <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
               <span className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm">3</span> Nguyên liệu
@@ -405,7 +444,6 @@ export default function CreateRecipe() {
             </button>
           </div>
 
-          {/* KHU VỰC 4: CÁC BƯỚC THỰC HIỆN */}
           <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
               <span className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm">4</span> Các bước thực hiện

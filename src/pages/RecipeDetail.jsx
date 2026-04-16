@@ -13,17 +13,13 @@ export default function RecipeDetail() {
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // State cho tính năng Lưu (Yêu thích)
   const [isSaved, setIsSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
-  // ==========================================
-  // === MỚI THÊM: STATE LƯU TỪ ĐIỂN DANH MỤC ===
-  // ==========================================
   const [categories, setCategories] = useState({});
-
   const [recommendations, setRecommendations] = useState([]);
   const [loadingRecs, setLoadingRecs] = useState(true);
+
+  const [currentServings, setCurrentServings] = useState(1);
 
   const [loggedInUser] = useState(() => {
     const saved = localStorage.getItem("loggedInUser");
@@ -39,16 +35,12 @@ export default function RecipeDetail() {
       "rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 mt-4",
   };
 
-  // ==========================================
-  // === MỚI THÊM: LẤY DANH MỤC TỪ DATABASE ===
-  // ==========================================
   useEffect(() => {
     fetch("http://localhost:5000/api/categories")
       .then((res) => res.json())
       .then((data) => {
         const map = {};
         if (Array.isArray(data)) {
-          // Biến [{CategoryID: 1, CategoryName: "Món xào"}] thành { 1: "Món xào" }
           data.forEach((cat) => {
             map[cat.CategoryID] = cat.CategoryName;
           });
@@ -58,7 +50,6 @@ export default function RecipeDetail() {
       .catch((err) => console.error("Lỗi lấy danh mục:", err));
   }, []);
 
-  // Lấy chi tiết món ăn
   useEffect(() => {
     fetch(`http://localhost:5000/api/recipes/detail/${id}`)
       .then((res) => res.json())
@@ -67,6 +58,7 @@ export default function RecipeDetail() {
           setRecipe(null);
         } else {
           setRecipe(data);
+          setCurrentServings(data.Servings || 1);
         }
         setLoading(false);
       })
@@ -76,7 +68,6 @@ export default function RecipeDetail() {
       });
   }, [id]);
 
-  // Kiểm tra xem user đã lưu món này chưa khi vừa vào trang
   useEffect(() => {
     const checkSavedStatus = async () => {
       if (!loggedInUser || !id) return;
@@ -84,9 +75,7 @@ export default function RecipeDetail() {
         const token = localStorage.getItem("token");
         const res = await fetch(
           `http://localhost:5000/api/favorites/check/${id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         if (res.ok) {
           const data = await res.json();
@@ -99,7 +88,6 @@ export default function RecipeDetail() {
     checkSavedStatus();
   }, [id, loggedInUser]);
 
-  // GỌI API LẤY MÓN ĂN GỢI Ý
   useEffect(() => {
     if (!id) return;
     const fetchRecommendations = async () => {
@@ -121,10 +109,8 @@ export default function RecipeDetail() {
 
   const getEmbedUrl = (url) => {
     if (!url) return null;
-    if (url.includes("youtube.com/watch"))
-      return url.replace("watch?v=", "embed/");
-    if (url.includes("youtu.be/"))
-      return url.replace("youtu.be/", "youtube.com/embed/");
+    if (url.includes("youtube.com/watch")) return url.replace("watch?v=", "embed/");
+    if (url.includes("youtu.be/")) return url.replace("youtu.be/", "youtube.com/embed/");
     return url;
   };
 
@@ -168,28 +154,19 @@ export default function RecipeDetail() {
       confirmButtonText: "Tôi chắc chắn!",
       cancelButtonText: "Hủy",
       borderRadius: "20px",
-      customClass: {
-        popup: "rounded-3xl shadow-2xl border border-gray-100",
-      },
+      customClass: { popup: "rounded-3xl shadow-2xl border border-gray-100" },
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           const token = localStorage.getItem("token");
           const response = await fetch(
             `http://localhost:5000/api/recipes/delete/${id}`,
-            {
-              method: "DELETE",
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
+            { method: "DELETE", headers: { Authorization: `Bearer ${token}` } }
           );
 
           if (response.ok) {
             toast.success("Đã xóa công thức thành công!", toastConfig);
-            setTimeout(() => {
-              navigate("/");
-            }, 1500);
+            setTimeout(() => navigate("/"), 1500);
           } else {
             const data = await response.json();
             toast.error("Lỗi: " + data.message, toastConfig);
@@ -200,6 +177,64 @@ export default function RecipeDetail() {
         }
       }
     });
+  };
+
+  // ==========================================
+  // CĂN ĐỊNH LƯỢNG DỰA TRÊN KHẨU PHẦN ĂN
+  // ==========================================
+  const calculateQuantity = (quantity, unit, originalServings) => {
+    if (!originalServings || !quantity) return quantity;
+
+    // 1. Giữ nguyên các từ ngữ định tính
+    const qualitativeUnits = ["ít", "vừa đủ", "nhúm", "chút", "tùy thích", "tùy khẩu vị"];
+    if (unit && qualitativeUnits.includes(unit.toLowerCase().trim())) {
+      return quantity; 
+    }
+
+    // 2. Chuyển đổi chuỗi thành số
+    let num = NaN;
+    let cleanQuantity = quantity.toString().trim().replace(',', '.');
+    
+    cleanQuantity = cleanQuantity
+      .replace('½', '.5').replace('⅓', '.333').replace('¼', '.25')
+      .replace('¾', '.75').replace('⅔', '.666').replace('⅛', '.125')
+      .replace(/\s+/g, ''); 
+
+    if (cleanQuantity.includes('/')) {
+      const parts = cleanQuantity.split('/');
+      if (parts.length === 2) {
+        num = Number(parts[0]) / Number(parts[1]);
+      }
+    } else {
+      num = Number(cleanQuantity);
+    }
+
+    if (isNaN(num)) return quantity;
+
+    // 3. Tính toán tỷ lệ
+    const calculated = (num / originalServings) * currentServings;
+
+    // 4. HÀM PHỤ: Định dạng chuẩn Việt Nam
+    const smartFormatVietnamese = (dec) => {
+      if (Number.isInteger(dec)) return dec;
+
+      // NẾU NHỎ HƠN 1: Sử dụng phân số để hiển thị
+      if (dec < 1) {
+        if (dec < 0.2) return "1/8";
+        if (dec < 0.3) return "1/4";
+        if (dec < 0.45) return "1/3";
+        if (dec < 0.6) return "1/2";
+        if (dec < 0.75) return "2/3";
+        if (dec < 0.9) return "3/4";
+        return 1;
+      }
+
+      // NẾU LỚN HƠN 1: Làm tròn đến 0.5 gần nhất
+      const rounded = Math.round(dec * 2) / 2;
+      return rounded;
+    };
+
+    return smartFormatVietnamese(calculated);
   };
 
   if (loading) {
@@ -215,15 +250,8 @@ export default function RecipeDetail() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 pt-20">
         <h1 className="text-4xl font-black text-gray-800 mb-4">404</h1>
-        <p className="text-gray-500 mb-6 font-medium">
-          Món ăn này không tồn tại hoặc đã bị xóa!
-        </p>
-        <button
-          onClick={() => navigate(-1)}
-          className="px-6 py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition"
-        >
-          Quay lại
-        </button>
+        <p className="text-gray-500 mb-6 font-medium">Món ăn này không tồn tại hoặc đã bị xóa!</p>
+        <button onClick={() => navigate(-1)} className="px-6 py-3 bg-orange-500 text-white rounded-xl font-bold hover:bg-orange-600 transition">Quay lại</button>
       </div>
     );
   }
@@ -231,223 +259,107 @@ export default function RecipeDetail() {
   return (
     <div className="min-h-screen bg-gray-50 pt-28 pb-20 font-sans text-gray-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 text-gray-500 hover:text-orange-500 font-bold mb-6 transition-colors text-sm"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2.5}
-            stroke="currentColor"
-            className="w-4 h-4"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15.75 19.5L8.25 12l7.5-7.5"
-            />
-          </svg>
+        <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-gray-500 hover:text-orange-500 font-bold mb-6 transition-colors text-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
           Quay lại
         </button>
 
-        {/* MEDIA (VIDEO HOẶC ẢNH BÌA) */}
         <div className="w-full aspect-video md:aspect-[21/9] rounded-3xl overflow-hidden bg-gray-200 shadow-sm mb-6 relative">
           {recipe.VideoURL ? (
-            recipe.VideoURL.includes("youtube.com") ||
-            recipe.VideoURL.includes("youtu.be") ? (
-              <iframe
-                src={getEmbedUrl(recipe.VideoURL)}
-                className="w-full h-full"
-                allowFullScreen
-              ></iframe>
+            recipe.VideoURL.includes("youtube.com") || recipe.VideoURL.includes("youtu.be") ? (
+              <iframe src={getEmbedUrl(recipe.VideoURL)} className="w-full h-full" allowFullScreen></iframe>
             ) : (
-              <video
-                src={recipe.VideoURL}
-                controls
-                className="w-full h-full object-contain bg-black"
-              ></video>
+              <video src={recipe.VideoURL} controls className="w-full h-full object-contain bg-black"></video>
             )
           ) : (
-            <img
-              src={recipe.ImageURL}
-              alt={recipe.Title}
-              className="w-full h-full object-cover"
-            />
+            <img src={recipe.ImageURL} alt={recipe.Title} className="w-full h-full object-cover" />
           )}
         </div>
 
-        {/* KHỐI NỘI DUNG CHÍNH (NỀN TRẮNG) */}
         <div className="bg-white rounded-[2rem] p-6 md:p-10 shadow-sm border border-gray-100">
-          {/* HEADER MÓN ĂN */}
           <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-8">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-4">
-                {/* ĐÃ SỬA: Tự động in tên danh mục ở đây */}
-                <span className="px-3 py-1 bg-orange-50 text-orange-600 rounded-lg text-xs font-bold tracking-wide uppercase">
-                  {categories[recipe.CategoryID] || "Khác"}
-                </span>
-                <span className="px-3 py-1 bg-yellow-50 text-yellow-600 rounded-lg text-xs font-bold tracking-wide">
-                  ★ Độ khó: {recipe.Difficulty}/5
-                </span>
+                <span className="px-3 py-1 bg-orange-50 text-orange-600 rounded-lg text-xs font-bold tracking-wide uppercase">{categories[recipe.CategoryID] || "Khác"}</span>
+                <span className="px-3 py-1 bg-yellow-50 text-yellow-600 rounded-lg text-xs font-bold tracking-wide">★ Độ khó: {recipe.Difficulty}/5</span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-black text-[#1c2b36] tracking-tight leading-tight mb-4">
-                {recipe.Title}
-              </h1>
-              {recipe.Description && (
-                <p className="text-gray-500 text-base leading-relaxed">
-                  {recipe.Description}
-                </p>
-              )}
+              <h1 className="text-4xl md:text-5xl font-black text-[#1c2b36] tracking-tight leading-tight mb-4">{recipe.Title}</h1>
+              {recipe.Description && <p className="text-gray-500 text-base leading-relaxed">{recipe.Description}</p>}
 
-              {/* KHU VỰC CÁC NÚT TƯƠNG TÁC (LƯU, SỬA, XÓA) */}
               <div className="flex flex-wrap items-center gap-3 mt-6">
-                <button
-                  onClick={handleToggleSave}
-                  disabled={isSaving}
-                  className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${
-                    isSaved
-                      ? "bg-red-50 text-red-500 hover:bg-red-100"
-                      : "bg-gray-50 text-gray-500 border border-gray-200 hover:text-red-500 hover:border-red-200"
-                  }`}
-                >
-                  <FontAwesomeIcon
-                    icon={faHeart}
-                    className={`text-base transition-transform ${isSaved ? "scale-110" : ""}`}
-                  />
+                <button onClick={handleToggleSave} disabled={isSaving} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${isSaved ? "bg-red-50 text-red-500 hover:bg-red-100" : "bg-gray-50 text-gray-500 border border-gray-200 hover:text-red-500 hover:border-red-200"}`}>
+                  <FontAwesomeIcon icon={faHeart} className={`text-base transition-transform ${isSaved ? "scale-110" : ""}`} />
                   {isSaved ? "Đã lưu" : "Lưu công thức"}
                 </button>
 
                 {loggedInUser && loggedInUser.UserID === recipe.UserID && (
                   <>
-                    <Link
-                      to={`/edit-recipe/${recipe.RecipeID}`}
-                      className="px-5 py-2.5 bg-orange-50 text-orange-600 hover:bg-orange-100 rounded-xl font-bold text-sm transition-colors flex items-center gap-2"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        className="w-4 h-4"
-                      >
-                        <path d="M2.695 14.763l-1.262 3.152a.5.5 0 00.65.65l3.152-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
-                      </svg>
-                      Sửa
+                    <Link to={`/edit-recipe/${recipe.RecipeID}`} className="px-5 py-2.5 bg-orange-50 text-orange-600 hover:bg-orange-100 rounded-xl font-bold text-sm transition-colors flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M2.695 14.763l-1.262 3.152a.5.5 0 00.65.65l3.152-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" /></svg> Sửa
                     </Link>
-
-                    <button
-                      onClick={handleDelete}
-                      className="px-5 py-2.5 bg-red-50 text-red-500 hover:bg-red-100 rounded-xl font-bold text-sm transition-colors flex items-center gap-2"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        className="w-4 h-4"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      Xóa
+                    <button onClick={handleDelete} className="px-5 py-2.5 bg-red-50 text-red-500 hover:bg-red-100 rounded-xl font-bold text-sm transition-colors flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clipRule="evenodd" /></svg> Xóa
                     </button>
                   </>
                 )}
               </div>
             </div>
 
-            {/* THÔNG TIN TÁC GIẢ */}
             <div className="shrink-0 flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100 min-w-[160px]">
               <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden shrink-0 flex items-center justify-center">
                 {recipe.Avatar ? (
-                  <img
-                    src={recipe.Avatar}
-                    alt="Avatar"
-                    className="w-full h-full object-cover"
-                  />
+                  <img src={recipe.Avatar} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="font-bold text-gray-500">
-                    {recipe.FullName?.charAt(0)}
-                  </span>
+                  <span className="font-bold text-gray-500">{recipe.FullName?.charAt(0)}</span>
                 )}
               </div>
               <div className="pr-2">
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">
-                  Tác giả
-                </p>
-                <p className="font-bold text-sm text-gray-900">
-                  {recipe.FullName}
-                </p>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Tác giả</p>
+                <p className="font-bold text-sm text-gray-900">{recipe.FullName}</p>
               </div>
             </div>
           </div>
 
           <hr className="border-gray-100 mb-8" />
 
-          {/* THANH THÔNG SỐ */}
           <div className="grid grid-cols-3 gap-4 mb-10">
-            <div className="bg-gray-50 rounded-2xl p-4 text-center">
-              <p className="text-gray-500 font-bold text-sm uppercase tracking-wider mb-1">
-                Chuẩn bị
-              </p>
-              <p className="text-lg font-black text-gray-900">
-                {recipe.PrepTime}{" "}
-                <span className="text-base font-bold text-gray-700">Phút</span>
-              </p>
+            <div className="bg-gray-50 rounded-2xl p-4 flex flex-col justify-center items-center text-center">
+              <p className="text-gray-500 font-bold text-sm uppercase tracking-wider mb-1">Chuẩn bị</p>
+              <p className="text-lg font-black text-gray-900">{recipe.PrepTime} <span className="text-base font-bold text-gray-700">Phút</span></p>
             </div>
-            <div className="bg-gray-50 rounded-2xl p-4 text-center">
-              <p className="text-gray-500 font-bold text-sm uppercase tracking-wider mb-1">
-                Thực hiện
-              </p>
-              <p className="text-lg font-black text-gray-900">
-                {recipe.CookTime}{" "}
-                <span className="text-base font-bold text-gray-700">Phút</span>
-              </p>
+            <div className="bg-gray-50 rounded-2xl p-4 flex flex-col justify-center items-center text-center">
+              <p className="text-gray-500 font-bold text-sm uppercase tracking-wider mb-1">Thực hiện</p>
+              <p className="text-lg font-black text-gray-900">{recipe.CookTime} <span className="text-base font-bold text-gray-700">Phút</span></p>
             </div>
-            <div className="bg-gray-50 rounded-2xl p-4 text-center">
-              <p className="text-gray-500 font-bold text-sm uppercase tracking-wider mb-1">
-                Khẩu phần
-              </p>
-              <p className="text-lg font-black text-gray-900">
-                {recipe.Servings}{" "}
-                <span className="text-base font-bold text-gray-700">Người</span>
-              </p>
+            
+            <div className="bg-orange-50/50 rounded-2xl p-3 flex flex-col justify-center items-center text-center border border-orange-100">
+              <p className="text-orange-600 font-bold text-[11px] uppercase tracking-wider mb-1.5 flex items-center gap-1">Khẩu phần (Người)</p>
+              <div className="flex items-center gap-3 bg-white px-2 py-1 rounded-xl shadow-sm border border-orange-200/50">
+                <button onClick={() => setCurrentServings(prev => Math.max(1, prev - 1))} className="w-7 h-7 flex items-center justify-center rounded-lg bg-orange-50 text-orange-500 hover:bg-orange-500 hover:text-white transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12h-15" /></svg>
+                </button>
+                <span className="text-xl font-black text-gray-900 w-6 text-center">{currentServings}</span>
+                <button onClick={() => setCurrentServings(prev => prev + 1)} className="w-7 h-7 flex items-center justify-center rounded-lg bg-orange-50 text-orange-500 hover:bg-orange-500 hover:text-white transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* NGUYÊN LIỆU */}
           <div className="mb-12">
             <h2 className="text-xl font-black mb-4 flex items-center gap-3 text-[#1c2b36]">
               <span className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center shadow-sm">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 576 512"
-                  fill="currentColor"
-                  className="w-4 h-4"
-                >
-                  <path d="M253.3 35.1c6.1-11.8 1.5-26.3-10.2-32.4s-26.3-1.5-32.4 10.2L117.6 192H32c-17.7 0-32 14.3-32 32s14.3 32 32 32L83.9 463.5C90.5 506.3 127.3 536 170.7 536H405.3c43.4 0 80.2-29.7 86.8-72.5L544 256c17.7 0 32-14.3 32-32s-14.3-32-32-32H458.4L365.3 12.9C359.2 1.2 344.7-3.4 332.9 2.7s-16.3 20.6-10.2 32.4L404.3 192H171.7L253.3 35.1zM192 304v96c0 8.8-7.2 16-16 16s-16-7.2-16-16V304c0-8.8 7.2-16 16-16s16 7.2 16 16zm96-16c8.8 0 16 7.2 16 16v96c0 8.8-7.2 16-16 16s-16-7.2-16-16V304c0-8.8 7.2-16 16-16zm128 16v96c0 8.8-7.2 16-16 16s-16-7.2-16-16V304c0-8.8 7.2-16 16-16s16 7.2 16 16z" />
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" fill="currentColor" className="w-4 h-4"><path d="M253.3 35.1c6.1-11.8 1.5-26.3-10.2-32.4s-26.3-1.5-32.4 10.2L117.6 192H32c-17.7 0-32 14.3-32 32s14.3 32 32 32L83.9 463.5C90.5 506.3 127.3 536 170.7 536H405.3c43.4 0 80.2-29.7 86.8-72.5L544 256c17.7 0 32-14.3 32-32s-14.3-32-32-32H458.4L365.3 12.9C359.2 1.2 344.7-3.4 332.9 2.7s-16.3 20.6-10.2 32.4L404.3 192H171.7L253.3 35.1zM192 304v96c0 8.8-7.2 16-16 16s-16-7.2-16-16V304c0-8.8 7.2-16 16-16s16 7.2 16 16zm96-16c8.8 0 16 7.2 16 16v96c0 8.8-7.2 16-16 16s-16-7.2-16-16V304c0-8.8 7.2-16 16-16zm128 16v96c0 8.8-7.2 16-16 16s-16-7.2-16-16V304c0-8.8 7.2-16 16-16s16 7.2 16 16z" /></svg>
               </span>
               Nguyên liệu cần chuẩn bị
             </h2>
             <div className="bg-[#f0fdf4] border border-[#bbf7d0] rounded-3xl p-6 md:p-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
                 {recipe.ingredients?.map((ing, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between items-center border-b border-green-200/50 pb-3 last:border-0 md:even:last:border-0 md:odd:last:border-0 gap-4"
-                  >
-                    <span className="font-bold text-[#1c2b36] text-sm">
-                      {ing.IngredientName}
-                    </span>
-                    <span className="text-green-700 font-black text-sm whitespace-nowrap shrink-0 text-right">
-                      {isNaN(Number(ing.Quantity))
-                        ? ing.Quantity
-                        : Number(ing.Quantity)}{" "}
-                      {ing.Unit}
+                  <div key={index} className="flex justify-between items-center border-b border-green-200/50 pb-3 last:border-0 md:even:last:border-0 md:odd:last:border-0 gap-4">
+                    <span className="font-bold text-[#1c2b36] text-sm">{ing.IngredientName}</span>
+                    <span className="text-green-700 font-black text-sm whitespace-nowrap shrink-0 text-right bg-green-100/50 px-2 py-1 rounded-lg">
+                      {calculateQuantity(ing.Quantity, ing.Unit, recipe.Servings)} {ing.Unit}
                     </span>
                   </div>
                 ))}
@@ -455,18 +367,10 @@ export default function RecipeDetail() {
             </div>
           </div>
 
-          {/* CÁC BƯỚC THỰC HIỆN */}
           <div>
             <h2 className="text-xl font-black mb-6 flex items-center gap-3 text-[#1c2b36]">
               <span className="w-8 h-8 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center shadow-sm">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 448 512"
-                  fill="currentColor"
-                  className="w-4 h-4"
-                >
-                  <path d="M32 64C32 28.7 60.7 0 96 0H352c35.3 0 64 28.7 64 64V256h-8.5c-20 0-38.6-11.4-47.5-29.2L348.6 204C333 172.9 301.2 152 266.3 152c-29.4 0-56.9 14.6-73.4 39.4L171 224H160c-17.7 0-32 14.3-32 32s14.3 32 32 32h21c17 0 32.5-9.2 40.5-24l21.9-40.4c4.6-8.5 13.1-13.6 22.8-13.6c11.6 0 22.2 6.9 27.4 17.4l11.4 22.8c15.1 30.1 46 49.8 79.6 49.8H416v96H32V64zm0 352a32 32 0 1 0 64 0 32 32 0 1 0 -64 0zm320 32a32 32 0 1 0 0-64 32 32 0 1 0 0 64z" />
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" className="w-4 h-4"><path d="M32 64C32 28.7 60.7 0 96 0H352c35.3 0 64 28.7 64 64V256h-8.5c-20 0-38.6-11.4-47.5-29.2L348.6 204C333 172.9 301.2 152 266.3 152c-29.4 0-56.9 14.6-73.4 39.4L171 224H160c-17.7 0-32 14.3-32 32s14.3 32 32 32h21c17 0 32.5-9.2 40.5-24l21.9-40.4c4.6-8.5 13.1-13.6 22.8-13.6c11.6 0 22.2 6.9 27.4 17.4l11.4 22.8c15.1 30.1 46 49.8 79.6 49.8H416v96H32V64zm0 352a32 32 0 1 0 64 0 32 32 0 1 0 -64 0zm320 32a32 32 0 1 0 0-64 32 32 0 1 0 0 64z" /></svg>
               </span>
               Hướng dẫn thực hiện
             </h2>
@@ -474,24 +378,16 @@ export default function RecipeDetail() {
               {recipe.steps?.map((step, index) => (
                 <div key={index} className="flex gap-4">
                   <div className="shrink-0">
-                    <div className="w-8 h-8 rounded-full bg-orange-100 text-[#d97706] font-black text-sm flex items-center justify-center">
-                      {step.StepNumber}
-                    </div>
+                    <div className="w-8 h-8 rounded-full bg-orange-100 text-[#d97706] font-black text-sm flex items-center justify-center">{step.StepNumber}</div>
                   </div>
                   <div className="flex-1 bg-gray-50 border border-gray-100 rounded-3xl p-6">
                     <p className="text-sm text-[#1c2b36] leading-relaxed whitespace-pre-wrap mb-4">
-                      <span className="font-bold block mb-1">
-                        Bước {step.StepNumber}
-                      </span>
+                      <span className="font-bold block mb-1">Bước {step.StepNumber}</span>
                       {step.Instruction}
                     </p>
                     {step.ImageURL && (
                       <div className="rounded-2xl overflow-hidden border border-gray-200">
-                        <img
-                          src={step.ImageURL}
-                          alt={`Bước ${step.StepNumber}`}
-                          className="w-full object-cover max-h-[300px]"
-                        />
+                        <img src={step.ImageURL} alt={`Bước ${step.StepNumber}`} className="w-full object-cover max-h-[300px]" />
                       </div>
                     )}
                   </div>
@@ -501,26 +397,17 @@ export default function RecipeDetail() {
           </div>
         </div>
 
-        {/* ==========================================
-            === KHU VỰC AI GỢI Ý MÓN ĂN ===
-            ========================================== */}
         {!loading && recipe && (
           <div className="mt-16 mb-10 border-t border-gray-200 pt-10">
             <h2 className="text-2xl font-black mb-8 flex items-center gap-3 text-[#1c2b36]">
-              <span className="text-3xl animate-bounce">✨</span>
-              Có thể bạn sẽ thích
-              <span className="text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-md ml-2 uppercase tracking-wider">
-                AI Gợi ý
-              </span>
+              <span className="text-3xl animate-bounce">✨</span> Có thể bạn sẽ thích
+              <span className="text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-md ml-2 uppercase tracking-wider">AI Gợi ý</span>
             </h2>
 
             {loadingRecs ? (
-              <div className="flex justify-center py-10">
-                <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
-              </div>
+              <div className="flex justify-center py-10"><div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>
             ) : recommendations.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {/* Dịch lại dữ liệu trước khi đẩy vào RecipeCard */}
                 {recommendations.map((item) => {
                   const formattedItem = {
                     id: item.RecipeID,
@@ -536,21 +423,12 @@ export default function RecipeDetail() {
                 })}
               </div>
             ) : (
-              <p className="text-gray-500 italic text-center bg-gray-50 py-8 rounded-2xl">
-                Hệ thống AI đang học hỏi thêm dữ liệu, hãy quay lại sau nhé!
-              </p>
+              <p className="text-gray-500 italic text-center bg-gray-50 py-8 rounded-2xl">Hệ thống AI đang học hỏi thêm dữ liệu, hãy quay lại sau nhé!</p>
             )}
           </div>
         )}
 
-        {/* Chỉ hiện bình luận khi đã tải xong thông tin món ăn */}
-        {!loading && recipe && (
-          <Comments
-            recipeId={id}
-            loggedInUser={loggedInUser}
-            recipeAuthorId={recipe.UserID}
-          />
-        )}
+        {!loading && recipe && <Comments recipeId={id} loggedInUser={loggedInUser} recipeAuthorId={recipe.UserID} />}
       </div>
     </div>
   );

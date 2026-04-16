@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 
 export default function EditRecipe() {
   const { id } = useParams();
@@ -8,13 +8,17 @@ export default function EditRecipe() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Lấy user hiện tại
+  const [categories, setCategories] = useState([]);
+
+  // MỚI THÊM: State và Ref để quản lý Custom Dropdown
+  const [openDropdown, setOpenDropdown] = useState(null); // 'category', 'difficulty', or null
+  const dropdownRef = useRef(null);
+
   const [loggedInUser] = useState(() => {
     const saved = localStorage.getItem('loggedInUser');
     return saved ? JSON.parse(saved) : null;
   });
 
-  // State lưu trữ toàn bộ dữ liệu Form
   const [formData, setFormData] = useState({
     Title: '',
     Description: '',
@@ -27,11 +31,58 @@ export default function EditRecipe() {
     steps: []
   });
 
-  // GỌI API LẤY DỮ LIỆU CŨ ĐIỀN VÀO FORM
+  // MỚI THÊM: Xử lý click ra ngoài để đóng dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdown(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const showError = (text, callback) => {
+    Swal.fire({
+      title: 'Lỗi! ❌',
+      text: text,
+      icon: 'error',
+      confirmButtonText: 'Đóng',
+      confirmButtonColor: '#ef4444',
+      customClass: { popup: 'rounded-3xl shadow-2xl border border-gray-100' }
+    }).then(() => {
+      if (callback) callback();
+    });
+  };
+
+  const showWarning = (text) => {
+    Swal.fire({
+      title: 'Khoan đã! ⚠️',
+      text: text,
+      icon: 'warning',
+      confirmButtonText: 'Đã hiểu',
+      confirmButtonColor: '#f97316',
+      customClass: { popup: 'rounded-3xl shadow-2xl border border-gray-100' }
+    });
+  };
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/categories')
+      .then(res => res.json())
+      .then(data => setCategories(data))
+      .catch(err => console.error("Lỗi lấy danh mục:", err));
+  }, []);
+
   useEffect(() => {
     if (!loggedInUser) {
-      toast.error("Vui lòng đăng nhập!");
-      navigate('/login');
+      Swal.fire({
+        title: 'Chưa đăng nhập!',
+        text: 'Vui lòng đăng nhập để tiếp tục.',
+        icon: 'info',
+        confirmButtonText: 'Đăng nhập ngay',
+        confirmButtonColor: '#f97316',
+        customClass: { popup: 'rounded-3xl shadow-2xl border border-gray-100' }
+      }).then(() => navigate('/login'));
       return;
     }
 
@@ -39,13 +90,10 @@ export default function EditRecipe() {
       .then(res => res.json())
       .then(data => {
         if (data.message) {
-          toast.error("Không tìm thấy món ăn!");
-          navigate('/profile');
+          showError("Không tìm thấy món ăn!", () => navigate('/profile'));
         } else if (data.UserID !== loggedInUser.UserID) {
-          toast.error("Bạn không có quyền sửa món này!");
-          navigate('/profile');
+          showError("Bạn không có quyền sửa món này!", () => navigate('/profile'));
         } else {
-          // Điền dữ liệu vào form
           setFormData({
             Title: data.Title || '',
             Description: data.Description || '',
@@ -62,18 +110,22 @@ export default function EditRecipe() {
       })
       .catch(err => {
         console.error(err);
-        toast.error("Lỗi tải dữ liệu!");
+        showError("Lỗi tải dữ liệu!");
         setIsLoading(false);
       });
   }, [id, loggedInUser, navigate]);
 
-  // HÀM XỬ LÝ THAY ĐỔI TEXT CHUNG
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // --- QUẢN LÝ NGUYÊN LIỆU ---
+  // MỚI THÊM: Hàm chọn item cho Custom Dropdown
+  const handleCustomSelect = (name, value) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setOpenDropdown(null);
+  };
+
   const handleIngredientChange = (index, field, value) => {
     const newIngredients = [...formData.ingredients];
     newIngredients[index][field] = value;
@@ -92,7 +144,6 @@ export default function EditRecipe() {
     setFormData({ ...formData, ingredients: newIngredients });
   };
 
-  // --- QUẢN LÝ CÁC BƯỚC THỰC HIỆN ---
   const handleStepChange = (index, value) => {
     const newSteps = [...formData.steps];
     newSteps[index].Instruction = value;
@@ -111,36 +162,63 @@ export default function EditRecipe() {
     setFormData({ ...formData, steps: newSteps });
   };
 
-  // SUBMIT FORM LÊN SERVER
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.Title.trim()) return toast.warning("Vui lòng nhập tên món ăn!");
+    if (!formData.Title.trim()) return showWarning("Vui lòng nhập tên món ăn!");
 
     setIsSaving(true);
+    
+    Swal.fire({
+      title: 'Đang lưu...',
+      text: 'Vui lòng chờ một chút để hệ thống cập nhật nhé!',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+      customClass: { popup: 'rounded-3xl shadow-2xl border border-gray-100' }
+    });
+
     try {
       const response = await fetch(`http://localhost:5000/api/recipes/update/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          UserID: loggedInUser.UserID // Gửi kèm UserID để Backend xác thực
+          UserID: loggedInUser.UserID
         })
       });
 
       const data = await response.json();
+      
       if (response.ok) {
-        toast.success("Cập nhật thành công! 🎉");
-        navigate(`/recipe/${id}`); // Chuyển về trang chi tiết xem thành quả
+        Swal.fire({
+          title: 'Tuyệt vời! 🎉',
+          text: "Cập nhật công thức thành công!",
+          icon: 'success',
+          confirmButtonText: 'Xem thành quả',
+          confirmButtonColor: '#10b981',
+          customClass: { popup: 'rounded-3xl shadow-2xl border border-gray-100' }
+        }).then(() => {
+          navigate(`/recipe/${id}`); 
+        });
       } else {
-        toast.error("Lỗi: " + data.message);
+        showError(data.message);
       }
     } catch (error) {
       console.error(error);
-      toast.error("Không thể kết nối Server!");
+      showError("Không thể kết nối Server!");
     } finally {
       setIsSaving(false);
     }
   };
+
+  const difficultyOptions = [
+    { value: '1', label: '1 - Rất dễ' },
+    { value: '2', label: '2 - Dễ' },
+    { value: '3', label: '3 - Trung bình' },
+    { value: '4', label: '4 - Khó' },
+    { value: '5', label: '5 - Rất khó' },
+  ];
 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center"><div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div></div>;
@@ -160,7 +238,6 @@ export default function EditRecipe() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           
-          {/* THÔNG TIN CHUNG */}
           <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100 space-y-6">
             <h2 className="text-xl font-bold text-gray-900 border-b pb-4">Thông tin cơ bản</h2>
             
@@ -174,7 +251,75 @@ export default function EditRecipe() {
               <textarea name="Description" value={formData.Description} onChange={handleChange} rows="3" className="w-full px-4 py-3 bg-gray-50 border border-transparent focus:border-orange-500 focus:bg-white rounded-xl transition outline-none resize-none" placeholder="Chia sẻ một chút về món ăn này..."></textarea>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* CUSTOM DROPDOWNS KHU VỰC NÀY */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4" ref={dropdownRef}>
+              
+              {/* CUSTOM SELECT DANH MỤC */}
+              <div className="relative">
+                <label className="block text-sm font-bold text-gray-700 mb-2">Danh mục</label>
+                <div 
+                  onClick={() => setOpenDropdown(openDropdown === 'category' ? null : 'category')}
+                  className={`w-full px-4 py-3 bg-gray-50 border rounded-xl flex justify-between items-center cursor-pointer transition ${openDropdown === 'category' ? 'border-orange-500 bg-white' : 'border-transparent hover:border-gray-200'}`}
+                >
+                  <span className="text-gray-900">
+                    {categories.find(c => c.CategoryID.toString() === formData.CategoryID.toString())?.CategoryName || 'Đang tải...'}
+                  </span>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-4 h-4 text-gray-500 transition-transform ${openDropdown === 'category' ? 'rotate-180 text-orange-500' : ''}`}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </div>
+
+                {openDropdown === 'category' && (
+                  <div className="absolute z-10 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden max-h-60 overflow-y-auto">
+                    <ul className="py-2">
+                      {categories.map((cat) => (
+                        <li 
+                          key={cat.CategoryID}
+                          onClick={() => handleCustomSelect('CategoryID', cat.CategoryID)}
+                          className={`px-4 py-2.5 cursor-pointer transition-colors ${formData.CategoryID.toString() === cat.CategoryID.toString() ? 'bg-orange-50 text-orange-600 font-bold' : 'text-gray-700 hover:bg-gray-50 hover:text-orange-500'}`}
+                        >
+                          {cat.CategoryName}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              {/* CUSTOM SELECT ĐỘ KHÓ */}
+              <div className="relative">
+                <label className="block text-sm font-bold text-gray-700 mb-2">Độ khó (1-5)</label>
+                <div 
+                  onClick={() => setOpenDropdown(openDropdown === 'difficulty' ? null : 'difficulty')}
+                  className={`w-full px-4 py-3 bg-gray-50 border rounded-xl flex justify-between items-center cursor-pointer transition ${openDropdown === 'difficulty' ? 'border-orange-500 bg-white' : 'border-transparent hover:border-gray-200'}`}
+                >
+                  <span className="text-gray-900">
+                    {difficultyOptions.find(d => d.value === formData.Difficulty.toString())?.label || 'Chọn độ khó'}
+                  </span>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={`w-4 h-4 text-gray-500 transition-transform ${openDropdown === 'difficulty' ? 'rotate-180 text-orange-500' : ''}`}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </div>
+
+                {openDropdown === 'difficulty' && (
+                  <div className="absolute z-10 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden">
+                    <ul className="py-2">
+                      {difficultyOptions.map((diff) => (
+                        <li 
+                          key={diff.value}
+                          onClick={() => handleCustomSelect('Difficulty', diff.value)}
+                          className={`px-4 py-2.5 cursor-pointer transition-colors ${formData.Difficulty.toString() === diff.value ? 'bg-orange-50 text-orange-600 font-bold' : 'text-gray-700 hover:bg-gray-50 hover:text-orange-500'}`}
+                        >
+                          {diff.label}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Chuẩn bị (Phút)</label>
                 <input type="number" name="PrepTime" value={formData.PrepTime} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-transparent focus:border-orange-500 focus:bg-white rounded-xl outline-none" />
@@ -186,16 +331,6 @@ export default function EditRecipe() {
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Khẩu phần (Người)</label>
                 <input type="number" name="Servings" value={formData.Servings} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-transparent focus:border-orange-500 focus:bg-white rounded-xl outline-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Độ khó (1-5)</label>
-                <select name="Difficulty" value={formData.Difficulty} onChange={handleChange} className="w-full px-4 py-3 bg-gray-50 border border-transparent focus:border-orange-500 focus:bg-white rounded-xl outline-none">
-                  <option value="1">1 - Rất dễ</option>
-                  <option value="2">2 - Dễ</option>
-                  <option value="3">3 - Trung bình</option>
-                  <option value="4">4 - Khó</option>
-                  <option value="5">5 - Thử thách</option>
-                </select>
               </div>
             </div>
           </div>
@@ -214,7 +349,6 @@ export default function EditRecipe() {
                   <input type="text" placeholder="Số lượng (VD: 200)" value={ing.Quantity} onChange={(e) => handleIngredientChange(index, 'Quantity', e.target.value)} className="w-full sm:w-32 px-4 py-3 bg-gray-50 border border-transparent focus:border-green-500 rounded-xl outline-none" />
                   <input type="text" placeholder="Đơn vị (VD: gram)" value={ing.Unit} onChange={(e) => handleIngredientChange(index, 'Unit', e.target.value)} className="w-full sm:w-32 px-4 py-3 bg-gray-50 border border-transparent focus:border-green-500 rounded-xl outline-none" />
                   
-                  {/* SỬA Ở ĐÂY: Dùng SVG thay cho thẻ i */}
                   <button type="button" onClick={() => removeIngredient(index)} className="p-3 text-red-400 hover:bg-red-50 rounded-xl transition" title="Xóa">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" fill="currentColor" className="w-5 h-5">
                       <path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/>
@@ -241,7 +375,6 @@ export default function EditRecipe() {
                     <textarea rows="3" placeholder={`Mô tả bước ${index + 1}...`} value={step.Instruction} onChange={(e) => handleStepChange(index, e.target.value)} className="w-full px-4 py-3 border border-transparent focus:border-orange-500 rounded-xl outline-none resize-none bg-white"></textarea>
                   </div>
                   
-                  {/* SỬA Ở ĐÂY: Dùng SVG thay cho thẻ i */}
                   <button type="button" onClick={() => removeStep(index)} className="p-2 text-red-400 hover:bg-red-100 rounded-xl transition mt-1" title="Xóa bước">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" fill="currentColor" className="w-5 h-5">
                       <path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/>
