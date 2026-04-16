@@ -30,8 +30,23 @@ export default function HomePage() {
             });
         }
 
-        // Chuyển đổi dữ liệu từ API
-        const formattedRecipes = recipesData.map(recipe => ({
+        // ==========================================
+        // ĐÃ SỬA: LỌC MÓN NỔI BẬT THEO RATING & REVIEW
+        // ==========================================
+        let trendingRecipes = [...recipesData].sort((a, b) => {
+          // Ưu tiên 1: Đánh giá cao xếp trước
+          if (b.AverageRating !== a.AverageRating) {
+            return b.AverageRating - a.AverageRating;
+          }
+          // Ưu tiên 2: Nhiều người đánh giá hơn xếp trước
+          return b.ReviewCount - a.ReviewCount;
+        });
+
+        // Chỉ cắt lấy 4 món đầu tiên cho đẹp đội hình trang chủ
+        const topRecipes = trendingRecipes.slice(0, 4);
+
+        // Chuyển đổi dữ liệu từ API (Dùng topRecipes thay vì recipesData)
+        const formattedRecipes = topRecipes.map(recipe => ({
           id: recipe.RecipeID,
           title: recipe.Title,
           // Lấy tên danh mục từ cái bản dịch vừa tạo tự động
