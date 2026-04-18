@@ -10,26 +10,19 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
-  // ==========================================
-  // THÊM MỚI: State lưu danh sách Danh mục
-  // ==========================================
   const [categories, setCategories] = useState([]);
 
-  // 1. Khởi tạo user từ localStorage
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem("loggedInUser");
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  // 2. State lưu danh sách thông báo thật từ API
   const [notifications, setNotifications] = useState([]);
 
-  // 4. Tính toán số thông báo chưa đọc
   const unreadCount = useMemo(() => {
     return notifications.filter((n) => !n.IsRead).length;
   }, [notifications]);
 
-  // 5. Hàm Đăng xuất
   const handleLogout = () => {
     localStorage.removeItem("loggedInUser");
     localStorage.removeItem("token");
@@ -38,7 +31,6 @@ export default function Navbar() {
     window.location.reload(); 
   };
 
-  // 6. Hàm Đánh dấu đã đọc hết (Gọi API)
   const markAllAsRead = async () => {
     const token = localStorage.getItem("token");
     try {
@@ -54,18 +46,13 @@ export default function Navbar() {
     }
   };
 
-  // ==========================================
-  // XÓA CÁC THÔNG BÁO ĐÃ ĐỌC
-  // ==========================================
   const deleteReadNotifications = async () => {
     const token = localStorage.getItem("token");
-    
     try {
       const response = await fetch("http://localhost:5000/api/notifications/delete-read", {
         method: 'DELETE',
         headers: { "Authorization": `Bearer ${token}` }
       });
-      
       if (response.ok) {
         setNotifications(notifications.filter(n => !n.IsRead));
       }
@@ -74,14 +61,10 @@ export default function Navbar() {
     }
   };
 
-  // ==========================================
-  // THÊM MỚI: Gọi API lấy danh mục từ Database
-  // ==========================================
   useEffect(() => {
     fetch("http://localhost:5000/api/categories")
       .then((res) => res.json())
       .then((data) => {
-        // Map dữ liệu Database (CategoryID, CategoryName) về dạng (id, name) để JSX bên dưới không bị lỗi
         const formattedCategories = data.map(item => ({
           id: item.CategoryID,
           name: item.CategoryName
@@ -91,7 +74,6 @@ export default function Navbar() {
       .catch((err) => console.error("Lỗi lấy danh mục:", err));
   }, []);
 
-  // 7. Theo dõi sự thay đổi của User và định kỳ lấy thông báo
   useEffect(() => {
     const fetchNotifications = async () => {
       const token = localStorage.getItem("token");
@@ -145,7 +127,7 @@ export default function Navbar() {
     <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100 shadow-sm transition-all duration-300">
       <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-8">
         
-        {/* 1. LOGO */}
+        {/* LOGO */}
         <Link to="/" className="flex items-center gap-3 -ml-2 shrink-0 group">
           <div className="w-11 h-11 bg-orange-500 rounded-2xl flex items-center justify-center text-white text-xl shadow-lg shadow-orange-200 group-hover:rotate-12 transition-transform duration-300">
             <FontAwesomeIcon icon={faBreadSlice} />
@@ -155,12 +137,12 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* 2. THANH TÌM KIẾM */}
+        {/* THANH TÌM KIẾM */}
         <div className="flex-1 max-w-2xl relative z-50 hidden md:block">
           <SearchBar />
         </div>
 
-        {/* 3. ĐIỀU HƯỚNG & USER */}
+        {/* ĐIỀU HƯỚNG & USER */}
         <div className="flex items-center gap-5 shrink-0">
           
           <div className="hidden xl:flex items-center gap-6 text-gray-600 font-bold text-sm">
@@ -185,7 +167,8 @@ export default function Navbar() {
                   {categories.map((cat) => (
                     <Link
                       key={cat.id}
-                      to={`/category/${cat.id}`}
+                      // ĐÃ SỬA: Đổi URL trỏ thẳng về trang /recipes kèm theo ID danh mục
+                      to={`/recipes?category=${cat.id}`}
                       className="block px-4 py-2.5 text-xs hover:bg-orange-50 hover:text-orange-500 rounded-xl transition-all font-bold text-gray-700"
                     >
                       {cat.name}
@@ -218,7 +201,7 @@ export default function Navbar() {
           {user ? (
             <div className="flex items-center gap-4 border-l border-gray-100 pl-4 ml-1">
               
-              {/* --- CHUÔNG THÔNG BÁO --- */}
+              {/* CHUÔNG THÔNG BÁO */}
               <div className="relative">
                 <button
                   onClick={() => setIsNotificationOpen(!isNotificationOpen)}

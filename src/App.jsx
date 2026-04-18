@@ -15,6 +15,7 @@ import ResetPassword from './pages/ResetPassword';
 import RegisterPage from "./pages/RegisterPage";
 import UserPage from "./pages/UserPage";
 import CreateRecipe from './pages/CreateRecipe';
+import AllRecipes from './pages/AllRecipes';
 
 // --- IMPORT ADMIN ---
 import AdminRoute from "./components/AdminRoute"; 
@@ -123,6 +124,7 @@ function AppContent() {
           <Route path="/create-recipe" element={<CreateRecipe />} />
           <Route path="/recipe/:id" element={<RecipeDetail />} />
           <Route path="/edit-recipe/:id" element={<EditRecipe />} />
+          <Route path="/recipes" element={<AllRecipes />} />
           
           <Route 
             path="/admin" 

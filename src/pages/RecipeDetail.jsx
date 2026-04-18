@@ -264,15 +264,27 @@ export default function RecipeDetail() {
           Quay lại
         </button>
 
-        <div className="w-full aspect-video md:aspect-[21/9] rounded-3xl overflow-hidden bg-gray-200 shadow-sm mb-6 relative">
+        {/* ĐÃ SỬA: KHU VỰC HIỂN THỊ ẢNH BÌA/VIDEO NÉT CĂNG VỚI HIỆU ỨNG BLUR */}
+        <div className="w-full h-[350px] md:h-[450px] mb-10 flex justify-center items-center">
+          {/* Container này không có màu nền, không có viền. 
+              Nó chỉ làm nhiệm vụ giữ đúng chiều cao 450px ở mọi trang để giao diện đồng bộ */}
+              
           {recipe.VideoURL ? (
             recipe.VideoURL.includes("youtube.com") || recipe.VideoURL.includes("youtu.be") ? (
-              <iframe src={getEmbedUrl(recipe.VideoURL)} className="w-full h-full" allowFullScreen></iframe>
+              <div className="w-full h-full rounded-3xl overflow-hidden shadow-lg">
+                <iframe src={getEmbedUrl(recipe.VideoURL)} className="w-full h-full" allowFullScreen></iframe>
+              </div>
             ) : (
-              <video src={recipe.VideoURL} controls className="w-full h-full object-contain bg-black"></video>
+              <video src={recipe.VideoURL} controls className="max-w-full max-h-full object-contain rounded-3xl shadow-lg bg-black"></video>
             )
           ) : (
-            <img src={recipe.ImageURL} alt={recipe.Title} className="w-full h-full object-cover" />
+            <img 
+              src={recipe.ImageURL} 
+              alt={recipe.Title} 
+              // Ảnh tự do điều chỉnh nhưng không vượt quá khung vô hình
+              // Bo góc lớn và đổ bóng nổi bật lên trang giấy
+              className="max-w-full max-h-full object-contain rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] bg-white/50" 
+            />
           )}
         </div>
 
@@ -385,9 +397,10 @@ export default function RecipeDetail() {
                       <span className="font-bold block mb-1">Bước {step.StepNumber}</span>
                       {step.Instruction}
                     </p>
+                    {/* ĐÃ SỬA: Ảnh của các bước không bị ép căng ra nữa */}
                     {step.ImageURL && (
-                      <div className="rounded-2xl overflow-hidden border border-gray-200">
-                        <img src={step.ImageURL} alt={`Bước ${step.StepNumber}`} className="w-full object-cover max-h-[300px]" />
+                      <div className="rounded-2xl overflow-hidden border border-gray-200 bg-gray-100 flex justify-center">
+                        <img src={step.ImageURL} alt={`Bước ${step.StepNumber}`} className="w-full object-contain max-h-[300px]" />
                       </div>
                     )}
                   </div>
