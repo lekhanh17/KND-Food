@@ -20,11 +20,9 @@ export default function CreateRecipe() {
   const [category, setCategory] = useState(''); 
   const [categories, setCategories] = useState([]);
 
-  // BỔ SUNG: State và Ref cho Custom Dropdown
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // BỔ SUNG: Nhãn hiển thị cho thanh trượt độ khó
   const difficultyLabels = {
     '1': '1 - Rất dễ',
     '2': '2 - Dễ',
@@ -58,7 +56,6 @@ export default function CreateRecipe() {
       .catch(err => console.error("Lỗi lấy danh mục:", err));
   }, []);
 
-  // BỔ SUNG: Xử lý click ra ngoài để đóng dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -69,7 +66,6 @@ export default function CreateRecipe() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Hàm hiển thị SweetAlert
   const showWarning = (text) => {
     Swal.fire({
       title: 'Khoan đã!',
@@ -175,6 +171,13 @@ export default function CreateRecipe() {
     formData.append('CookTime', cookTime);
     formData.append('Servings', servings);
     formData.append('mainImage', imageFile);
+
+    // XỬ LÝ QUYỀN ADMIN Ở ĐÂY:
+    // Kiểm tra xem user đang đăng nhập có phải Admin không (dựa vào Role hoặc RoleID)
+    const isAdmin = user.Role === 'Admin' || user.RoleID === 1 || user.isAdmin === true;
+    
+    // Nếu là Admin thì Status = 1 (Hiện luôn), nếu không thì Status = 0 (Chờ duyệt)
+    formData.append('Status', isAdmin ? 1 : 0);
     
     if (videoInputType === 'upload' && videoFile) {
         formData.append('mainVideo', videoFile);
@@ -271,7 +274,6 @@ export default function CreateRecipe() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8" ref={dropdownRef}>
-                {/* BỔ SUNG: CUSTOM SELECT DANH MỤC */}
                 <div className="relative">
                   <label className="block text-sm font-bold text-gray-700 mb-2">Danh mục</label>
                   <div 
@@ -306,7 +308,6 @@ export default function CreateRecipe() {
                   )}
                 </div>
                 
-                {/* BỔ SUNG: THANH TRƯỢT ĐỘ KHÓ VỚI NHÃN NEO CHUẨN */}
                 <div>
                   <div className="flex justify-between items-center mb-2">
                     <label className="block text-sm font-bold text-gray-700">Độ khó</label>

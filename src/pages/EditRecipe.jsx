@@ -192,10 +192,10 @@ export default function EditRecipe() {
       
       if (response.ok) {
         Swal.fire({
-          title: 'Tuyệt vời! 🎉',
+          title: 'Chúc mừng!',
           text: "Cập nhật công thức thành công!",
           icon: 'success',
-          confirmButtonText: 'Xem thành quả',
+          confirmButtonText: 'Xem',
           confirmButtonColor: '#10b981',
           customClass: { popup: 'rounded-3xl shadow-2xl border border-gray-100' }
         }).then(() => {
