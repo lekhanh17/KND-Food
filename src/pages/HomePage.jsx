@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom"; 
+import { Link } from "react-router-dom";
 import Hero from "../components/Hero";
 import RecipeCard from "../components/RecipeCard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRightLong, faUtensils } from "@fortawesome/free-solid-svg-icons";
+import {
+  faArrowRightLong,
+  faUtensils,
+} from "@fortawesome/free-solid-svg-icons";
 import defaultRecipeImg from "../assets/hero.png";
 
 export default function HomePage() {
   const [trendingRecipes, setTrendingRecipes] = useState([]);
   const [allRecipes, setAllRecipes] = useState([]); // ĐÃ THÊM: Lưu toàn bộ công thức
-  const [allCategories, setAllCategories] = useState([]); 
+  const [allCategories, setAllCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -17,7 +20,7 @@ export default function HomePage() {
       try {
         const [recipesRes, categoriesRes] = await Promise.all([
           fetch("http://localhost:5000/api/recipes"),
-          fetch("http://localhost:5000/api/categories")
+          fetch("http://localhost:5000/api/categories"),
         ]);
 
         const recipesData = await recipesRes.json();
@@ -25,28 +28,32 @@ export default function HomePage() {
 
         const dynamicCategoryMap = {};
         if (Array.isArray(categoriesData)) {
-            categoriesData.forEach(cat => {
-                dynamicCategoryMap[cat.CategoryID] = cat.CategoryName;
-            });
-            setAllCategories(categoriesData);
+          categoriesData.forEach((cat) => {
+            dynamicCategoryMap[cat.CategoryID] = cat.CategoryName;
+          });
+          setAllCategories(categoriesData);
         }
 
         // Lọc các công thức đã duyệt
-        const approvedRecipes = recipesData.filter(r => 
-          !r.Status || r.Status === 'Approved' || r.Status === 1 || r.Status === '1'
+        const approvedRecipes = recipesData.filter(
+          (r) =>
+            !r.Status ||
+            r.Status === "Approved" ||
+            r.Status === 1 ||
+            r.Status === "1",
         );
 
         // Format toàn bộ công thức
-        const formattedAllRecipes = approvedRecipes.map(recipe => ({
+        const formattedAllRecipes = approvedRecipes.map((recipe) => ({
           id: recipe.RecipeID,
           title: recipe.Title,
-          category: dynamicCategoryMap[recipe.CategoryID] || `Khác`, 
+          category: dynamicCategoryMap[recipe.CategoryID] || `Khác`,
           categoryId: recipe.CategoryID, // Cần ID để lát nữa phân loại
           time: `${(recipe.PrepTime || 0) + (recipe.CookTime || 0)}p`,
           difficulty: recipe.Difficulty || 1,
-          rating: recipe.AverageRating || 0, 
-          reviews: recipe.ReviewCount || 0,  
-          image: recipe.ImageURL || defaultRecipeImg
+          rating: recipe.AverageRating || 0,
+          reviews: recipe.ReviewCount || 0,
+          image: recipe.ImageURL || defaultRecipeImg,
         }));
 
         setAllRecipes(formattedAllRecipes); // Lưu lại tất cả
@@ -57,7 +64,6 @@ export default function HomePage() {
           return b.reviews - a.reviews;
         });
         setTrendingRecipes(sortedTrending.slice(0, 4));
-
       } catch (error) {
         console.error("Lỗi tải dữ liệu HomePage:", error);
       } finally {
@@ -89,9 +95,9 @@ export default function HomePage() {
 
         <div className="flex flex-wrap gap-4 pl-2">
           {isLoading ? (
-             <div className="w-full flex py-4">
-               <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-             </div>
+            <div className="w-full flex py-4">
+              <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
           ) : (
             allCategories.map((cat) => (
               <Link
@@ -117,9 +123,15 @@ export default function HomePage() {
               Những công thức được yêu thích nhất tuần này
             </p>
           </div>
-          <Link to="/recipes" className="text-orange-500 font-bold hover:underline underline-offset-8 flex items-center group">
+          <Link
+            to="/recipes"
+            className="text-orange-500 font-bold hover:underline underline-offset-8 flex items-center group"
+          >
             Xem tất cả
-            <FontAwesomeIcon icon={faArrowRightLong} className="ml-2 group-hover:translate-x-1 transition-transform" />
+            <FontAwesomeIcon
+              icon={faArrowRightLong}
+              className="ml-2 group-hover:translate-x-1 transition-transform"
+            />
           </Link>
         </div>
 
@@ -143,46 +155,54 @@ export default function HomePage() {
       {/* ========================================== */}
       {/* 3. ĐÃ THÊM: DUYỆT TỪNG DANH MỤC VÀ HIỂN THỊ MÓN ĂN */}
       {/* ========================================== */}
-      {!isLoading && allCategories.map(cat => {
-        // Lọc ra các món ăn thuộc danh mục hiện tại
-        const recipesInCategory = allRecipes.filter(r => r.categoryId === cat.CategoryID);
-        
-        // Cú lừa UI/UX: Nếu danh mục này CHƯA có món nào, thì ĐỪNG in nguyên cái khung ra làm gì cho trống web
-        if (recipesInCategory.length === 0) return null;
+      {!isLoading &&
+        allCategories.map((cat) => {
+          // Lọc ra các món ăn thuộc danh mục hiện tại
+          const recipesInCategory = allRecipes.filter(
+            (r) => r.categoryId === cat.CategoryID,
+          );
 
-        // Chỉ lấy tối đa 4 món để hiện ở Trang chủ cho gọn
-        const displayRecipes = recipesInCategory.slice(0, 4);
+          // Cú lừa UI/UX: Nếu danh mục này CHƯA có món nào, thì ĐỪNG in nguyên cái khung ra làm gì cho trống web
+          if (recipesInCategory.length === 0) return null;
 
-        return (
-          <section key={cat.CategoryID} className="container mx-auto px-6 py-12 border-t border-gray-50">
-            <div className="flex justify-between items-end mb-10">
-              <div>
-                <h2 className="text-3xl font-black text-gray-900 capitalize">
-                  {cat.CategoryName}
-                </h2>
+          // Chỉ lấy tối đa 4 món để hiện ở Trang chủ cho gọn
+          const displayRecipes = recipesInCategory.slice(0, 4);
+
+          return (
+            <section
+              key={cat.CategoryID}
+              className="container mx-auto px-6 py-12 border-t border-gray-50"
+            >
+              <div className="flex justify-between items-end mb-10">
+                <div>
+                  <h2 className="text-3xl font-black text-gray-900 capitalize">
+                    {cat.CategoryName}
+                  </h2>
+                </div>
+
+                {/* Nút Xem thêm dẫn tới trang lọc của đúng danh mục này */}
+                {recipesInCategory.length > 4 && (
+                  <Link
+                    to={`/recipes?category=${cat.CategoryID}`}
+                    className="text-orange-500 font-bold hover:underline underline-offset-8 flex items-center group text-sm"
+                  >
+                    Xem thêm
+                    <FontAwesomeIcon
+                      icon={faArrowRightLong}
+                      className="ml-2 group-hover:translate-x-1 transition-transform"
+                    />
+                  </Link>
+                )}
               </div>
-              
-              {/* Nút Xem thêm dẫn tới trang lọc của đúng danh mục này */}
-              {recipesInCategory.length > 4 && (
-                <Link 
-                  to={`/recipes?category=${cat.CategoryID}`} 
-                  className="text-orange-500 font-bold hover:underline underline-offset-8 flex items-center group text-sm"
-                >
-                  Xem thêm
-                  <FontAwesomeIcon icon={faArrowRightLong} className="ml-2 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              )}
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {displayRecipes.map((item) => (
-                <RecipeCard key={item.id} item={item} />
-              ))}
-            </div>
-          </section>
-        );
-      })}
-
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                {displayRecipes.map((item) => (
+                  <RecipeCard key={item.id} item={item} />
+                ))}
+              </div>
+            </section>
+          );
+        })}
     </div>
   );
 }
