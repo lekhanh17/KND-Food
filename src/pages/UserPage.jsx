@@ -1,8 +1,23 @@
 ﻿import { useState, useRef, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import { toast } from "react-toastify";
+import Swal from "sweetalert2"; // ĐÃ THAY ĐỔI: Sử dụng SweetAlert2
 // 1. IMPORT RECIPECARD VÀO ĐỂ TÁI SỬ DỤNG CHO TAB YÊU THÍCH
 import RecipeCard from "../components/RecipeCard";
+
+// ==============================================
+// CẤU HÌNH SWEETALERT DẠNG TOAST (HIỆN Ở GÓC, TỰ TẮT)
+// ==============================================
+const Toast = Swal.mixin({
+  toast: true,
+  position: "top-end",
+  showConfirmButton: false,
+  timer: 3000,
+  timerProgressBar: true,
+  didOpen: (toast) => {
+    toast.onmouseenter = Swal.stopTimer;
+    toast.onmouseleave = Swal.resumeTimer;
+  }
+});
 
 export default function UserPage() {
   // 1. LẤY TÊN TỪ URL (VD: khanh17)
@@ -50,6 +65,12 @@ export default function UserPage() {
   const [favoriteRecipes, setFavoriteRecipes] = useState([]);
   const [isFetchingFav, setIsFetchingFav] = useState(false);
 
+  // ==============================================
+  // STATE CHO NÚT THEO DÕI
+  // ==============================================
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isTogglingFollow, setIsTogglingFollow] = useState(false);
+
   // Đóng menu cài đặt khi click ra ngoài
   useEffect(() => {
     function handleClickOutside(event) {
@@ -83,13 +104,45 @@ export default function UserPage() {
           setProfileUser(null);
         }
       } else {
-        setProfileUser(user);
+        // Cập nhật lại thông tin user từ API để lấy 3 con số thống kê thay vì lấy từ LocalStorage cũ rích
+        if (user) {
+          try {
+            const res = await fetch(`http://localhost:5000/api/users/profile/${user.Username || user.UserID}`);
+            const data = await res.json();
+            if (res.ok) setProfileUser(data);
+            else setProfileUser(user);
+          } catch {
+            setProfileUser(user);
+          }
+        } else {
+            setProfileUser(null);
+        }
       }
       setIsProfileLoading(false);
     };
 
     fetchProfile();
-  }, [username, user]);
+  }, [username]); 
+
+  // ==============================================
+  // KIỂM TRA TRẠNG THÁI FOLLOW KHI VÀO TRANG NGƯỜI KHÁC
+  // ==============================================
+  useEffect(() => {
+    const checkFollowStatus = async () => {
+      if (user && profileUser && !isOwnProfile) {
+        try {
+          const res = await fetch(`http://localhost:5000/api/users/check-follow?followerId=${user.UserID}&followeeId=${profileUser.UserID}`);
+          if (res.ok) {
+            const data = await res.json();
+            setIsFollowing(data.isFollowing);
+          }
+        } catch (error) {
+          console.error("Lỗi kiểm tra trạng thái theo dõi:", error);
+        }
+      }
+    };
+    checkFollowStatus();
+  }, [user, profileUser, isOwnProfile]);
 
   // Đồng bộ dữ liệu vào Form mỗi khi có dữ liệu chủ nhà (để sửa)
   useEffect(() => {
@@ -150,6 +203,47 @@ export default function UserPage() {
     }
   }, [activeTab, isOwnProfile]);
 
+  // ==============================================
+  // HÀM XỬ LÝ KHI BẤM NÚT THEO DÕI
+  // ==============================================
+  const handleFollowToggle = async () => {
+    if (!user) {
+      Toast.fire({ icon: "warning", title: "Vui lòng đăng nhập để theo dõi!" });
+      return;
+    }
+    setIsTogglingFollow(true);
+    try {
+      const res = await fetch("http://localhost:5000/api/users/follow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          FollowerID: user.UserID,
+          TargetUserID: profileUser.UserID
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setIsFollowing(data.isFollowing);
+        
+        // ==============================================
+        // ĐÃ SỬA: Ép kiểu để tránh lỗi undefined + 1 = NaN
+        // ==============================================
+        setProfileUser(prev => {
+          const currentCount = prev.FollowerCount || 0;
+          return {
+            ...prev,
+            FollowerCount: data.isFollowing ? currentCount + 1 : Math.max(0, currentCount - 1)
+          };
+        });
+        
+      }
+    } catch (error) {
+      console.error("Lỗi xử lý follow", error);
+    } finally {
+      setIsTogglingFollow(false);
+    }
+  };
+
   const getDifficultyUI = (level) => {
     switch (Number(level)) {
       case 1:
@@ -186,13 +280,13 @@ export default function UserPage() {
   };
 
   const handleAvatarChange = async (e) => {
-    if (!isOwnProfile) return; // Bảo mật 2 lớp
+    if (!isOwnProfile) return; 
 
     const file = e.target.files[0];
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      toast.error("Vui lòng chọn file hình ảnh!");
+      Toast.fire({ icon: "error", title: "Vui lòng chọn file hình ảnh!" });
       return;
     }
 
@@ -213,14 +307,15 @@ export default function UserPage() {
         const updatedUser = { ...user, Avatar: data.avatarUrl };
         localStorage.setItem("loggedInUser", JSON.stringify(updatedUser));
         setUser(updatedUser);
-        setProfileUser(updatedUser); // Cập nhật cả UI
+        setProfileUser(prev => ({...prev, Avatar: data.avatarUrl})); 
         window.dispatchEvent(new Event("user-changed"));
+        Toast.fire({ icon: "success", title: "Cập nhật ảnh hồ sơ thành công!" });
       } else {
-        toast.error("❌ " + data.message);
+        Toast.fire({ icon: "error", title: data.message });
       }
     } catch (error) {
       console.error(error);
-      toast.error("Lỗi kết nối Server!");
+      Toast.fire({ icon: "error", title: "Lỗi kết nối Server!" });
     }
   };
 
@@ -230,7 +325,10 @@ export default function UserPage() {
     const trimmedUsername = formUsername.trim();
     const trimmedBio = formBio.trim();
 
-    if (!trimmedName) return toast.warning("Vui lòng điền họ tên.");
+    if (!trimmedName) {
+      Toast.fire({ icon: "warning", title: "Vui lòng điền họ tên." });
+      return;
+    }
 
     try {
       const response = await fetch("http://localhost:5000/api/users/update", {
@@ -254,26 +352,31 @@ export default function UserPage() {
         };
         localStorage.setItem("loggedInUser", JSON.stringify(updatedUser));
         setUser(updatedUser);
-        setProfileUser(updatedUser); // Cập nhật cả UI
+        setProfileUser(prev => ({...prev, FullName: trimmedName, Username: trimmedUsername, Bio: trimmedBio})); 
         window.dispatchEvent(new Event("user-changed"));
 
         setIsEditingProfile(false);
+        Toast.fire({ icon: "success", title: "Cập nhật hồ sơ thành công!" });
       } else {
         const data = await response.json();
-        toast.error("❌ Lỗi: " + data.message);
+        Toast.fire({ icon: "error", title: data.message });
       }
     } catch (error) {
       console.error(error);
-      toast.error("Lỗi kết nối Server!");
+      Toast.fire({ icon: "error", title: "Lỗi kết nối Server!" });
     }
   };
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
-    if (newPassword !== confirmNewPassword)
-      return toast.error("⚠️ Mật khẩu mới không khớp!");
-    if (newPassword.length < 6)
-      return toast.warning("⚠️ Mật khẩu ít nhất 6 ký tự!");
+    if (newPassword !== confirmNewPassword) {
+      Toast.fire({ icon: "error", title: "Mật khẩu mới không khớp!" });
+      return;
+    }
+    if (newPassword.length < 6) {
+      Toast.fire({ icon: "warning", title: "Mật khẩu ít nhất 6 ký tự!" });
+      return;
+    }
 
     try {
       const response = await fetch(
@@ -291,17 +394,17 @@ export default function UserPage() {
 
       const data = await response.json();
       if (response.ok) {
-        toast.success("🎉 " + data.message);
+        Toast.fire({ icon: "success", title: data.message });
         setIsChangePasswordOpen(false);
         setCurrentPassword("");
         setNewPassword("");
         setConfirmNewPassword("");
       } else {
-        toast.error("❌ " + data.message);
+        Toast.fire({ icon: "error", title: data.message });
       }
     } catch (error) {
       console.error(error);
-      toast.error("Lỗi kết nối Server!");
+      Toast.fire({ icon: "error", title: "Lỗi kết nối Server!" });
     }
   };
 
@@ -400,8 +503,10 @@ export default function UserPage() {
               </p>
             )}
 
-            {/* CHỈ HIỆN CỤM NÚT "CHỈNH SỬA" NẾU LÀ CHỦ NHÀ */}
-            {isOwnProfile && (
+            {/* ==============================================
+                CHUYỂN ĐỔI NÚT DỰA VÀO VIỆC CÓ PHẢI CHỦ NHÀ KHÔNG 
+                ============================================== */}
+            {isOwnProfile ? (
               <div className="flex items-center gap-2 mt-4">
                 <button
                   onClick={() => setIsEditingProfile(true)}
@@ -454,19 +559,36 @@ export default function UserPage() {
                   )}
                 </div>
               </div>
+            ) : (
+              <div className="flex items-center gap-2 mt-4">
+                <button
+                  onClick={handleFollowToggle}
+                  disabled={isTogglingFollow}
+                  className={`px-8 py-2 text-sm font-bold rounded-lg transition-all active:scale-95 flex items-center gap-2 ${
+                    isFollowing 
+                      ? "bg-gray-100 hover:bg-red-50 text-gray-800 hover:text-red-500 border border-gray-200 hover:border-red-200" 
+                      : "bg-[#f97316] hover:bg-[#ea580c] text-white"
+                  }`}
+                >
+                  {isFollowing ? "Đang theo dõi" : "Theo dõi"}
+                </button>
+              </div>
             )}
 
+            {/* ==============================================
+                HIỂN THỊ CÁC CON SỐ THẬT TỪ DATABASE
+                ============================================== */}
             <div className="flex gap-6 mt-5 text-sm">
               <div className="flex gap-1.5 cursor-pointer hover:underline">
-                <span className="font-bold text-gray-900">0</span>{" "}
+                <span className="font-bold text-gray-900">{profileUser.FollowingCount || 0}</span>{" "}
                 <span className="text-gray-500">Đang follow</span>
               </div>
               <div className="flex gap-1.5 cursor-pointer hover:underline">
-                <span className="font-bold text-gray-900">0</span>{" "}
+                <span className="font-bold text-gray-900">{profileUser.FollowerCount || 0}</span>{" "}
                 <span className="text-gray-500">Follower</span>
               </div>
               <div className="flex gap-1.5 cursor-pointer hover:underline">
-                <span className="font-bold text-gray-900">0</span>{" "}
+                <span className="font-bold text-gray-900">{profileUser.TotalLikes || 0}</span>{" "}
                 <span className="text-gray-500">Thích</span>
               </div>
             </div>
@@ -609,7 +731,7 @@ export default function UserPage() {
             )
           ) : activeTab === "Yêu thích" ? (
             /* ==============================================
-               TAB: YÊU THÍCH (THÊM MỚI Ở ĐÂY)
+               TAB: YÊU THÍCH
                ============================================== */
             !isOwnProfile ? (
               <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-in fade-in">
@@ -626,7 +748,6 @@ export default function UserPage() {
             ) : favoriteRecipes.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {favoriteRecipes.map((recipe) => (
-                  // GỌI COMPONENT RECIPECARD VÀO ĐÂY LÀ ĐẸP LUÔN
                   <RecipeCard key={recipe.RecipeID} item={recipe} />
                 ))}
               </div>

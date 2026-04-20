@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBreadSlice, faChevronDown, faBell, faUser, faSignOutAlt, faUtensils, faUserShield, faCheckCircle, faTimesCircle, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import { faBreadSlice, faChevronDown, faBell, faUser, faSignOutAlt, faUtensils, faUserShield, faCheckCircle, faTimesCircle, faInfoCircle, faUserPlus, faHeart } from '@fortawesome/free-solid-svg-icons';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -117,9 +117,11 @@ export default function Navbar() {
 
   const getNotifyIcon = (type) => {
     switch (type) {
-      case 'Approve': return <FontAwesomeIcon icon={faCheckCircle} className="text-green-500" />;
-      case 'Reject': return <FontAwesomeIcon icon={faTimesCircle} className="text-red-500" />;
-      default: return <FontAwesomeIcon icon={faInfoCircle} className="text-blue-500" />;
+      case 'Approve': return <FontAwesomeIcon icon={faCheckCircle} className="text-green-500 text-lg" />;
+      case 'Reject': return <FontAwesomeIcon icon={faTimesCircle} className="text-red-500 text-lg" />;
+      case 'Follow': return <FontAwesomeIcon icon={faUserPlus} className="text-blue-500 text-lg" />;
+      case 'Favorite': return <FontAwesomeIcon icon={faHeart} className="text-pink-500 text-lg animate-pulse" />;
+      default: return <FontAwesomeIcon icon={faInfoCircle} className="text-gray-400 text-lg" />;
     }
   };
 
