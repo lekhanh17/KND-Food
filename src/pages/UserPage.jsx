@@ -71,6 +71,14 @@ export default function UserPage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [isTogglingFollow, setIsTogglingFollow] = useState(false);
 
+  // ==============================================
+  // ĐÃ THÊM: STATE CHO POPUP DANH SÁCH FOLLOW
+  // ==============================================
+  const [isFollowModalOpen, setIsFollowModalOpen] = useState(false);
+  const [followModalType, setFollowModalType] = useState(""); // "followers" hoặc "following"
+  const [followList, setFollowList] = useState([]);
+  const [isLoadingFollowList, setIsLoadingFollowList] = useState(false);
+
   // Đóng menu cài đặt khi click ra ngoài
   useEffect(() => {
     function handleClickOutside(event) {
@@ -225,9 +233,7 @@ export default function UserPage() {
       if (res.ok) {
         setIsFollowing(data.isFollowing);
         
-        // ==============================================
-        // ĐÃ SỬA: Ép kiểu để tránh lỗi undefined + 1 = NaN
-        // ==============================================
+        // Ép kiểu để tránh lỗi undefined + 1 = NaN
         setProfileUser(prev => {
           const currentCount = prev.FollowerCount || 0;
           return {
@@ -241,6 +247,28 @@ export default function UserPage() {
       console.error("Lỗi xử lý follow", error);
     } finally {
       setIsTogglingFollow(false);
+    }
+  };
+
+  // ==============================================
+  // ĐÃ THÊM: HÀM MỞ POPUP DANH SÁCH THEO DÕI
+  // ==============================================
+  const handleOpenFollowList = async (type) => {
+    setFollowModalType(type);
+    setIsFollowModalOpen(true);
+    setIsLoadingFollowList(true);
+    setFollowList([]);
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/users/${profileUser.UserID}/${type}`);
+      if (res.ok) {
+        const data = await res.json();
+        setFollowList(data);
+      }
+    } catch (error) {
+      Toast.fire({ icon: "error", title: "Không thể lấy danh sách!" });
+    } finally {
+      setIsLoadingFollowList(false);
     }
   };
 
@@ -503,9 +531,7 @@ export default function UserPage() {
               </p>
             )}
 
-            {/* ==============================================
-                CHUYỂN ĐỔI NÚT DỰA VÀO VIỆC CÓ PHẢI CHỦ NHÀ KHÔNG 
-                ============================================== */}
+            {/* CHUYỂN ĐỔI NÚT DỰA VÀO VIỆC CÓ PHẢI CHỦ NHÀ KHÔNG */}
             {isOwnProfile ? (
               <div className="flex items-center gap-2 mt-4">
                 <button
@@ -575,21 +601,16 @@ export default function UserPage() {
               </div>
             )}
 
-            {/* ==============================================
-                HIỂN THỊ CÁC CON SỐ THẬT TỪ DATABASE
-                ============================================== */}
+            {/* HIỂN THỊ CÁC CON SỐ THẬT TỪ DATABASE CÓ CLICK */}
             <div className="flex gap-6 mt-5 text-sm">
-              <div className="flex gap-1.5 cursor-pointer hover:underline">
-                <span className="font-bold text-gray-900">{profileUser.FollowingCount || 0}</span>{" "}
-                <span className="text-gray-500">Đang follow</span>
+              <div className="flex gap-1.5 cursor-pointer hover:underline text-gray-500 group" onClick={() => handleOpenFollowList('following')}>
+                <span className="font-bold text-gray-900 group-hover:text-orange-500">{profileUser.FollowingCount || 0}</span> Đang follow
               </div>
-              <div className="flex gap-1.5 cursor-pointer hover:underline">
-                <span className="font-bold text-gray-900">{profileUser.FollowerCount || 0}</span>{" "}
-                <span className="text-gray-500">Follower</span>
+              <div className="flex gap-1.5 cursor-pointer hover:underline text-gray-500 group" onClick={() => handleOpenFollowList('followers')}>
+                <span className="font-bold text-gray-900 group-hover:text-orange-500">{profileUser.FollowerCount || 0}</span> Follower
               </div>
-              <div className="flex gap-1.5 cursor-pointer hover:underline">
-                <span className="font-bold text-gray-900">{profileUser.TotalLikes || 0}</span>{" "}
-                <span className="text-gray-500">Thích</span>
+              <div className="flex gap-1.5 text-gray-500 cursor-default">
+                <span className="font-bold text-gray-900">{profileUser.TotalLikes || 0}</span> Thích
               </div>
             </div>
 
@@ -795,6 +816,51 @@ export default function UserPage() {
           )}
         </div>
       </div>
+
+      {/* ==============================================
+          MODAL HIỂN THỊ DANH SÁCH FOLLOW
+          ============================================== */}
+      {isFollowModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col overflow-hidden max-h-[80vh]">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100 shrink-0">
+              <h3 className="text-xl font-black text-gray-900">
+                {followModalType === 'followers' ? 'Người theo dõi' : 'Đang theo dõi'}
+              </h3>
+              <button onClick={() => setIsFollowModalOpen(false)} className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-full transition font-bold">✕</button>
+            </div>
+            
+            <div className="p-2 overflow-y-auto">
+              {isLoadingFollowList ? (
+                <div className="flex justify-center py-10"><div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div></div>
+              ) : followList.length > 0 ? (
+                followList.map(item => (
+                  <Link 
+                    key={item.UserID} 
+                    to={`/profile/${item.Username || item.UserID}`}
+                    onClick={() => setIsFollowModalOpen(false)}
+                    className="flex items-center gap-4 p-3 hover:bg-gray-50 rounded-2xl transition-colors"
+                  >
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center">
+                      {item.Avatar ? (
+                        <img src={item.Avatar} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-xl font-bold text-orange-500 uppercase">{item.FullName?.charAt(0)}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <div className="font-bold text-gray-900 truncate">{item.FullName}</div>
+                      <div className="text-xs text-gray-500 truncate">@{item.Username}</div>
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <div className="text-center py-10 text-gray-400 font-medium">Danh sách trống.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL EDIT PROFILE (CHỈ RENDER NẾU LÀ CHỦ NHÀ) */}
       {isOwnProfile && isEditingProfile && (
