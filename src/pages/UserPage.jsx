@@ -130,7 +130,7 @@ export default function UserPage() {
     };
 
     fetchProfile();
-  }, [username]); 
+  }, [username, user]);
 
   // ==============================================
   // KIỂM TRA TRẠNG THÁI FOLLOW KHI VÀO TRANG NGƯỜI KHÁC
@@ -266,6 +266,7 @@ export default function UserPage() {
         setFollowList(data);
       }
     } catch (error) {
+      console.error(error);
       Toast.fire({ icon: "error", title: "Không thể lấy danh sách!" });
     } finally {
       setIsLoadingFollowList(false);

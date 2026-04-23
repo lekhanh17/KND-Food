@@ -21,6 +21,11 @@ import AllRecipes from './pages/AllRecipes';
 import AdminRoute from "./components/AdminRoute"; 
 import AdminDashboard from "./pages/AdminDashboard"; 
 
+// ==============================================
+// ĐÃ THÊM: IMPORT COMPONENT SCROLL TO TOP
+// ==============================================
+import ScrollToTop from "./components/ScrollToTop";
+
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -108,6 +113,11 @@ function AppContent() {
     // Thêm flex flex-col min-h-screen để ép Footer xuống đáy màn hình
     <div className="min-h-screen bg-white flex flex-col">
       
+      {/* ==============================================
+          ĐÃ THÊM: KÍCH HOẠT SCROLL TO TOP Ở ĐÂY
+          ============================================== */}
+      <ScrollToTop />
+
       {!shouldHideLayout && <Navbar />}
       {!shouldHideLayout && <NotificationBanner />}
 
