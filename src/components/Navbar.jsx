@@ -125,6 +125,42 @@ export default function Navbar() {
     }
   };
 
+  // ==============================================
+  // ĐÃ THÊM: HÀM TÍNH TOÁN THỜI GIAN TRÔI QUA
+  // ==============================================
+  const timeAgo = (dateString) => {
+    const now = new Date();
+    let past = new Date(dateString);
+
+    // FIX TIMEZONE: Nếu thời gian từ DB bị tính thành tương lai (lệch +7 tiếng)
+    if (past > now) {
+      // Ép nó lùi về 7 tiếng (7 * 60 phút * 60 giây * 1000 mili-giây)
+      past = new Date(past.getTime() - 7 * 60 * 60 * 1000);
+    }
+
+    const diffInSeconds = Math.floor((now - past) / 1000);
+
+    // Đảm bảo không bị âm (nếu có độ trễ 1-2 giây của mạng)
+    const safeDiff = diffInSeconds < 0 ? 0 : diffInSeconds;
+
+    if (safeDiff < 60) return "Vừa xong";
+    
+    const diffInMinutes = Math.floor(safeDiff / 60);
+    if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
+    
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return `${diffInHours} giờ trước`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 30) return `${diffInDays} ngày trước`;
+    
+    const diffInMonths = Math.floor(diffInDays / 30);
+    if (diffInMonths < 12) return `${diffInMonths} tháng trước`;
+    
+    const diffInYears = Math.floor(diffInDays / 365);
+    return `${diffInYears} năm trước`;
+  };
+
   return (
     <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100 shadow-sm transition-all duration-300">
       <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-8">
@@ -169,7 +205,6 @@ export default function Navbar() {
                   {categories.map((cat) => (
                     <Link
                       key={cat.id}
-                      // ĐÃ SỬA: Đổi URL trỏ thẳng về trang /recipes kèm theo ID danh mục
                       to={`/recipes?category=${cat.id}`}
                       className="block px-4 py-2.5 text-xs hover:bg-orange-50 hover:text-orange-500 rounded-xl transition-all font-bold text-gray-700"
                     >
@@ -252,8 +287,9 @@ export default function Navbar() {
                               <p className={`text-xs leading-relaxed ${!n.IsRead ? "font-bold text-gray-900" : "text-gray-600"}`}>
                                 {n.Message}
                               </p>
+                              {/* ĐÃ SỬA: Gọi hàm timeAgo thay vì hiển thị ngày tháng khô khan */}
                               <span className="text-[9px] text-gray-400 font-bold uppercase mt-1 block">
-                                {new Date(n.CreatedAt).toLocaleDateString('vi-VN')}
+                                {timeAgo(n.CreatedAt)}
                               </span>
                             </div>
                           </Link>

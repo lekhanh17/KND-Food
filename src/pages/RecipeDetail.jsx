@@ -179,19 +179,14 @@ export default function RecipeDetail() {
     });
   };
 
-  // ==========================================
-  // CĂN ĐỊNH LƯỢNG DỰA TRÊN KHẨU PHẦN ĂN
-  // ==========================================
   const calculateQuantity = (quantity, unit, originalServings) => {
     if (!originalServings || !quantity) return quantity;
 
-    // 1. Giữ nguyên các từ ngữ định tính
     const qualitativeUnits = ["ít", "vừa đủ", "nhúm", "chút", "tùy thích", "tùy khẩu vị"];
     if (unit && qualitativeUnits.includes(unit.toLowerCase().trim())) {
       return quantity; 
     }
 
-    // 2. Chuyển đổi chuỗi thành số
     let num = NaN;
     let cleanQuantity = quantity.toString().trim().replace(',', '.');
     
@@ -211,14 +206,11 @@ export default function RecipeDetail() {
 
     if (isNaN(num)) return quantity;
 
-    // 3. Tính toán tỷ lệ
     const calculated = (num / originalServings) * currentServings;
 
-    // 4. HÀM PHỤ: Định dạng chuẩn Việt Nam
     const smartFormatVietnamese = (dec) => {
       if (Number.isInteger(dec)) return dec;
 
-      // NẾU NHỎ HƠN 1: Sử dụng phân số để hiển thị
       if (dec < 1) {
         if (dec < 0.2) return "1/8";
         if (dec < 0.3) return "1/4";
@@ -229,7 +221,6 @@ export default function RecipeDetail() {
         return 1;
       }
 
-      // NẾU LỚN HƠN 1: Làm tròn đến 0.5 gần nhất
       const rounded = Math.round(dec * 2) / 2;
       return rounded;
     };
@@ -264,11 +255,7 @@ export default function RecipeDetail() {
           Quay lại
         </button>
 
-        {/* ĐÃ SỬA: KHU VỰC HIỂN THỊ ẢNH BÌA/VIDEO NÉT CĂNG VỚI HIỆU ỨNG BLUR */}
         <div className="w-full h-[350px] md:h-[450px] mb-10 flex justify-center items-center">
-          {/* Container này không có màu nền, không có viền. 
-              Nó chỉ làm nhiệm vụ giữ đúng chiều cao 450px ở mọi trang để giao diện đồng bộ */}
-              
           {recipe.VideoURL ? (
             recipe.VideoURL.includes("youtube.com") || recipe.VideoURL.includes("youtu.be") ? (
               <div className="w-full h-full rounded-3xl overflow-hidden shadow-lg">
@@ -281,8 +268,6 @@ export default function RecipeDetail() {
             <img 
               src={recipe.ImageURL} 
               alt={recipe.Title} 
-              // Ảnh tự do điều chỉnh nhưng không vượt quá khung vô hình
-              // Bo góc lớn và đổ bóng nổi bật lên trang giấy
               className="max-w-full max-h-full object-contain rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] bg-white/50" 
             />
           )}
@@ -397,7 +382,6 @@ export default function RecipeDetail() {
                       <span className="font-bold block mb-1">Bước {step.StepNumber}</span>
                       {step.Instruction}
                     </p>
-                    {/* ĐÃ SỬA: Ảnh của các bước không bị ép căng ra nữa */}
                     {step.ImageURL && (
                       <div className="rounded-2xl overflow-hidden border border-gray-200 bg-gray-100 flex justify-center">
                         <img src={step.ImageURL} alt={`Bước ${step.StepNumber}`} className="w-full object-contain max-h-[300px]" />
@@ -441,6 +425,7 @@ export default function RecipeDetail() {
           </div>
         )}
 
+        {/* NƠI RÁP COMPONENT COMMENTS VÀO */}
         {!loading && recipe && <Comments recipeId={id} loggedInUser={loggedInUser} recipeAuthorId={recipe.UserID} />}
       </div>
     </div>

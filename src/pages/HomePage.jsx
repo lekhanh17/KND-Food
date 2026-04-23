@@ -11,20 +11,23 @@ import defaultRecipeImg from "../assets/hero.png";
 
 export default function HomePage() {
   const [trendingRecipes, setTrendingRecipes] = useState([]);
-  const [allRecipes, setAllRecipes] = useState([]); // ĐÃ THÊM: Lưu toàn bộ công thức
+  const [allRecipes, setAllRecipes] = useState([]); // Lưu toàn bộ công thức
   const [allCategories, setAllCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [recipesRes, categoriesRes] = await Promise.all([
+        // ĐÃ SỬA: Gọi thêm API featured để lấy top món ăn nổi bật (đã có đánh giá)
+        const [recipesRes, categoriesRes, featuredRes] = await Promise.all([
           fetch("http://localhost:5000/api/recipes"),
           fetch("http://localhost:5000/api/categories"),
+          fetch("http://localhost:5000/api/recipes/featured"), 
         ]);
 
         const recipesData = await recipesRes.json();
         const categoriesData = await categoriesRes.json();
+        const featuredData = await featuredRes.json();
 
         const dynamicCategoryMap = {};
         if (Array.isArray(categoriesData)) {
@@ -43,7 +46,7 @@ export default function HomePage() {
             r.Status === "1",
         );
 
-        // Format toàn bộ công thức
+        // Format toàn bộ công thức (dùng để render theo từng danh mục ở dưới)
         const formattedAllRecipes = approvedRecipes.map((recipe) => ({
           id: recipe.RecipeID,
           title: recipe.Title,
@@ -58,12 +61,23 @@ export default function HomePage() {
 
         setAllRecipes(formattedAllRecipes); // Lưu lại tất cả
 
-        // Tách riêng 4 món nổi bật nhất (Trending)
-        let sortedTrending = [...formattedAllRecipes].sort((a, b) => {
-          if (b.rating !== a.rating) return b.rating - a.rating;
-          return b.reviews - a.reviews;
-        });
-        setTrendingRecipes(sortedTrending.slice(0, 4));
+        // ==============================================
+        // ĐÃ SỬA: Lấy dữ liệu từ API Featured để gán cho Trending
+        // ==============================================
+        const formattedTrending = featuredData.map((recipe) => ({
+          id: recipe.RecipeID,
+          title: recipe.Title,
+          category: dynamicCategoryMap[recipe.CategoryID] || `Khác`,
+          categoryId: recipe.CategoryID,
+          time: `${(recipe.PrepTime || 0) + (recipe.CookTime || 0)}p`,
+          difficulty: recipe.Difficulty || 1,
+          rating: recipe.AverageRating || 0,
+          reviews: recipe.ReviewCount || 0,
+          image: recipe.ImageURL || defaultRecipeImg,
+        }));
+
+        setTrendingRecipes(formattedTrending);
+
       } catch (error) {
         console.error("Lỗi tải dữ liệu HomePage:", error);
       } finally {
@@ -153,7 +167,7 @@ export default function HomePage() {
       </section>
 
       {/* ========================================== */}
-      {/* 3. ĐÃ THÊM: DUYỆT TỪNG DANH MỤC VÀ HIỂN THỊ MÓN ĂN */}
+      {/* 3. DUYỆT TỪNG DANH MỤC VÀ HIỂN THỊ MÓN ĂN */}
       {/* ========================================== */}
       {!isLoading &&
         allCategories.map((cat) => {
