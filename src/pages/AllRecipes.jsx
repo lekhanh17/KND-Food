@@ -10,15 +10,15 @@ export default function AllRecipes() {
   
   const [searchParams] = useSearchParams(); 
   const categoryIdParam = searchParams.get('category'); 
-  const sortParam = searchParams.get('sort'); // ĐÃ THÊM: Bắt tham số sort từ URL
+  const sortParam = searchParams.get('sort'); // Bắt tham số sort từ URL
 
-  // ĐÃ SỬA: Nếu trên URL có sort=popular thì mặc định chọn 'top_rated' (Đánh giá cao)
+  // Nếu trên URL có sort=popular thì mặc định chọn 'top_rated' (Đánh giá cao)
   const [sortBy, setSortBy] = useState(sortParam === 'popular' ? 'top_rated' : 'newest'); 
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // ĐÃ THÊM: Theo dõi nếu URL thay đổi (nhấn back/forward) thì tự cập nhật lại dropdown
+  // Theo dõi nếu URL thay đổi (nhấn back/forward) thì tự cập nhật lại dropdown
   useEffect(() => {
     if (sortParam === 'popular') {
       setSortBy('top_rated');
@@ -103,7 +103,15 @@ export default function AllRecipes() {
     .sort((a, b) => {
       if (sortBy === 'newest') return b.id - a.id; 
       if (sortBy === 'oldest') return a.id - b.id; 
-      if (sortBy === 'top_rated') return b.rating - a.rating; 
+      
+      // ĐÃ SỬA: Logic xếp hạng thông minh (Xét Rating trước, Bằng Rating thì xét Reviews)
+      if (sortBy === 'top_rated') {
+        if (b.rating === a.rating) {
+          return b.reviews - a.reviews;
+        }
+        return b.rating - a.rating;
+      }
+      
       return 0;
     });
 
@@ -114,7 +122,7 @@ export default function AllRecipes() {
   ];
 
   // ==========================================
-  // ĐÃ SỬA: Đổi tiêu đề cực xịn theo ngữ cảnh
+  // Đổi tiêu đề cực xịn theo ngữ cảnh
   // ==========================================
   let pageTitle = "Tất Cả Công Thức";
   let pageSubtitle = "Khám phá bộ sưu tập món ngon đa dạng từ cộng đồng.";
