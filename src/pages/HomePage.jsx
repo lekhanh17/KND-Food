@@ -22,7 +22,7 @@ export default function HomePage() {
         const [recipesRes, categoriesRes, featuredRes] = await Promise.all([
           fetch("http://localhost:5000/api/recipes"),
           fetch("http://localhost:5000/api/categories"),
-          fetch("http://localhost:5000/api/recipes/featured"), 
+          fetch("http://localhost:5000/api/recipes/featured"),
         ]);
 
         const recipesData = await recipesRes.json();
@@ -77,7 +77,6 @@ export default function HomePage() {
         }));
 
         setTrendingRecipes(formattedTrending);
-
       } catch (error) {
         console.error("Lỗi tải dữ liệu HomePage:", error);
       } finally {
@@ -137,16 +136,19 @@ export default function HomePage() {
               Những công thức được yêu thích nhất tuần này
             </p>
           </div>
-          <Link
-            to="/recipes"
-            className="text-orange-500 font-bold hover:underline underline-offset-8 flex items-center group"
-          >
-            Xem tất cả
-            <FontAwesomeIcon
-              icon={faArrowRightLong}
-              className="ml-2 group-hover:translate-x-1 transition-transform"
-            />
-          </Link>
+          {/* Điều kiện lớn hơn 4 mới hiện nút Xem tất cả */}
+          {trendingRecipes.length > 4 && (
+            <Link
+              to="/recipes?sort=popular"
+              className="text-orange-500 font-bold hover:underline underline-offset-8 flex items-center group"
+            >
+              Xem tất cả
+              <FontAwesomeIcon
+                icon={faArrowRightLong}
+                className="ml-2 group-hover:translate-x-1 transition-transform"
+              />
+            </Link>
+          )}
         </div>
 
         {isLoading ? (
@@ -155,7 +157,8 @@ export default function HomePage() {
           </div>
         ) : trendingRecipes.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {trendingRecipes.map((item) => (
+            {/* ĐÃ SỬA: Chèn .slice(0, 4) vào để cắt đúng 4 món lên Trang chủ */}
+            {trendingRecipes.slice(0, 4).map((item) => (
               <RecipeCard key={item.id} item={item} />
             ))}
           </div>
@@ -194,13 +197,13 @@ export default function HomePage() {
                   </h2>
                 </div>
 
-                {/* Nút Xem thêm dẫn tới trang lọc của đúng danh mục này */}
+                {/* Nút Xem tất cả dẫn tới trang lọc của đúng danh mục này */}
                 {recipesInCategory.length > 4 && (
                   <Link
                     to={`/recipes?category=${cat.CategoryID}`}
                     className="text-orange-500 font-bold hover:underline underline-offset-8 flex items-center group text-sm"
                   >
-                    Xem thêm
+                    Xem tất cả
                     <FontAwesomeIcon
                       icon={faArrowRightLong}
                       className="ml-2 group-hover:translate-x-1 transition-transform"

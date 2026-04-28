@@ -1,19 +1,31 @@
 import { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom'; // ĐÃ THÊM: Để đọc tham số URL
+import { useSearchParams } from 'react-router-dom'; 
 import RecipeCard from '../components/RecipeCard';
 import defaultRecipeImg from "../assets/hero.png"; 
 
 export default function AllRecipes() {
   const [recipes, setRecipes] = useState([]);
-  const [categories, setCategories] = useState({}); // ĐÃ THÊM: Lưu danh mục để đổi tiêu đề
+  const [categories, setCategories] = useState({}); 
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState('newest'); 
   
-  const [searchParams] = useSearchParams(); // Bắt tham số từ thanh địa chỉ
-  const categoryIdParam = searchParams.get('category'); // Lấy ID danh mục (nếu có)
+  const [searchParams] = useSearchParams(); 
+  const categoryIdParam = searchParams.get('category'); 
+  const sortParam = searchParams.get('sort'); // ĐÃ THÊM: Bắt tham số sort từ URL
 
+  // ĐÃ SỬA: Nếu trên URL có sort=popular thì mặc định chọn 'top_rated' (Đánh giá cao)
+  const [sortBy, setSortBy] = useState(sortParam === 'popular' ? 'top_rated' : 'newest'); 
+  
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  // ĐÃ THÊM: Theo dõi nếu URL thay đổi (nhấn back/forward) thì tự cập nhật lại dropdown
+  useEffect(() => {
+    if (sortParam === 'popular') {
+      setSortBy('top_rated');
+    } else if (!sortParam && !categoryIdParam) {
+      setSortBy('newest'); // Trạng thái mặc định khi xem tất cả
+    }
+  }, [sortParam, categoryIdParam]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -42,7 +54,7 @@ export default function AllRecipes() {
             dynamicCategoryMap[cat.CategoryID] = cat.CategoryName;
           });
         }
-        setCategories(dynamicCategoryMap); // Lưu lại để dùng cho Tiêu đề trang
+        setCategories(dynamicCategoryMap); 
 
         const approvedRecipes = recipesData.filter(r => 
           !r.Status || 
@@ -55,7 +67,7 @@ export default function AllRecipes() {
           id: recipe.RecipeID,
           title: recipe.Title,
           category: dynamicCategoryMap[recipe.CategoryID] || "Khác", 
-          categoryId: recipe.CategoryID, // ĐÃ THÊM: Lưu lại ID để lọc
+          categoryId: recipe.CategoryID, 
           time: `${(recipe.PrepTime || 0) + (recipe.CookTime || 0)}p`,
           difficulty: recipe.Difficulty || 1,
           rating: recipe.AverageRating || 0, 
@@ -79,13 +91,21 @@ export default function AllRecipes() {
     ? recipes.filter(recipe => recipe.categoryId.toString() === categoryIdParam)
     : recipes;
 
-  // 2. Sắp xếp dữ liệu (Sau khi đã lọc)
-  const finalDisplayedRecipes = [...filteredByCategory].sort((a, b) => {
-    if (sortBy === 'newest') return b.id - a.id; 
-    if (sortBy === 'oldest') return a.id - b.id; 
-    if (sortBy === 'top_rated') return b.rating - a.rating; 
-    return 0;
-  });
+  // 2. Lọc và Sắp xếp dữ liệu
+  const finalDisplayedRecipes = [...filteredByCategory]
+    .filter(recipe => {
+      // Nếu đang vào từ link "Món nổi bật" thì chỉ hiện các món đó
+      if (sortParam === 'popular') {
+        return recipe.rating > 0; // Hoặc dùng recipe.reviews > 0 đều được
+      }
+      return true; // Xem bình thường thì vẫn hiện đủ món
+    })
+    .sort((a, b) => {
+      if (sortBy === 'newest') return b.id - a.id; 
+      if (sortBy === 'oldest') return a.id - b.id; 
+      if (sortBy === 'top_rated') return b.rating - a.rating; 
+      return 0;
+    });
 
   const sortOptions = [
     { value: 'newest', label: 'Mới nhất' },
@@ -93,10 +113,19 @@ export default function AllRecipes() {
     { value: 'top_rated', label: 'Đánh giá cao' }
   ];
 
-  // Đổi tiêu đề linh hoạt dựa vào việc người dùng đang xem cái gì
-  const pageTitle = categoryIdParam && categories[categoryIdParam] 
-    ? `Danh mục: ${categories[categoryIdParam]}`
-    : "Tất Cả Công Thức";
+  // ==========================================
+  // ĐÃ SỬA: Đổi tiêu đề cực xịn theo ngữ cảnh
+  // ==========================================
+  let pageTitle = "Tất Cả Công Thức";
+  let pageSubtitle = "Khám phá bộ sưu tập món ngon đa dạng từ cộng đồng.";
+
+  if (categoryIdParam && categories[categoryIdParam]) {
+    pageTitle = `Danh mục: ${categories[categoryIdParam]}`;
+    pageSubtitle = `Tuyển tập các công thức ${categories[categoryIdParam]} hấp dẫn nhất.`;
+  } else if (sortParam === 'popular') {
+    pageTitle = "Món Ăn Nổi Bật";
+    pageSubtitle = "Những công thức được yêu thích và đánh giá cao nhất.";
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pt-28 pb-20 font-sans text-gray-900">
@@ -104,12 +133,11 @@ export default function AllRecipes() {
         
         <div className="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
           <div>
-            {/* ĐÃ SỬA TIÊU ĐỀ */}
             <h1 className="text-3xl md:text-4xl font-black tracking-tight text-[#1c2b36] capitalize">
               {pageTitle}
             </h1>
             <p className="text-gray-500 mt-2 font-medium">
-              {categoryIdParam ? `Tuyển tập các công thức ${categories[categoryIdParam] || ''} hấp dẫn nhất.` : "Khám phá bộ sưu tập món ngon đa dạng từ cộng đồng."}
+              {pageSubtitle}
             </p>
           </div>
 
