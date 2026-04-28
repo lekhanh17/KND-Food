@@ -1,6 +1,37 @@
 import { Link } from "react-router-dom";
+import Swal from "sweetalert2";
+
+// ==============================================
+// CẤU HÌNH SWEETALERT DẠNG TOAST (HIỆN Ở GÓC, TỰ TẮT)
+// ==============================================
+const Toast = Swal.mixin({
+  toast: true,
+  position: "top-end",
+  showConfirmButton: false,
+  timer: 3000,
+  timerProgressBar: true,
+  didOpen: (toast) => {
+    toast.onmouseenter = Swal.stopTimer;
+    toast.onmouseleave = Swal.resumeTimer;
+  }
+});
 
 export default function Footer() {
+  // Hàm cuộn lên đầu trang mượt mà khi bấm chuyển trang
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Hàm xử lý nút chuyển ngôn ngữ
+  const handleLanguageChange = (lang) => {
+    if (lang === 'EN') {
+      Toast.fire({ 
+        icon: "info", 
+        title: "Tính năng Tiếng Anh đang được phát triển!" 
+      });
+    }
+  };
+
   return (
     <footer className="bg-gray-50 border-t border-gray-100 pt-16 pb-8 mt-auto font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -11,7 +42,6 @@ export default function Footer() {
           {/* CỘT 1: Logo & Thông tin liên hệ */}
           <div className="space-y-6">
             
-
             <div>
               <h4 className="text-gray-900 font-bold text-sm mb-2 uppercase tracking-wider">
                 Tổng đài hỗ trợ
@@ -19,9 +49,13 @@ export default function Footer() {
               <p className="flex items-center gap-2 text-sm text-gray-500 mb-1">
                 Thứ 2 - Chủ Nhật (8:00 - 23:00)
               </p>
-              <p className="text-[#f97316] font-black text-2xl tracking-wide">
+              {/* ĐÃ SỬA: Thêm href="tel:..." để bấm gọi được */}
+              <a 
+                href="tel:19000019" 
+                className="text-[#f97316] font-black text-2xl tracking-wide block hover:underline"
+              >
                 1900 0019
-              </p>
+              </a>
             </div>
 
             <div className="space-y-4">
@@ -29,17 +63,27 @@ export default function Footer() {
                 <span className="font-bold text-gray-700 text-sm block mb-1">
                   Email:
                 </span>
-                <span className="text-sm text-gray-500 block">
-                  lekhanhlux29gmail.com
-                </span>
+                {/* ĐÃ SỬA: Thêm href="mailto:..." để bấm gửi mail được */}
+                <a 
+                  href="mailto:lekhanhlux29@gmail.com" 
+                  className="text-sm text-gray-500 block hover:text-[#f97316] transition-colors"
+                >
+                  lekhanhlux29@gmail.com
+                </a>
               </div>
               <div>
                 <span className="font-bold text-gray-700 text-sm block mb-1">
                   Địa chỉ:
                 </span>
-                <span className="text-sm text-gray-500 leading-relaxed block max-w-xs">
+                {/* ĐÃ SỬA: Thêm link Google Maps để bấm vào xem bản đồ */}
+                <a 
+                  href="https://www.google.com/maps/search/?api=1&query=Tầng+17,+Tòa+nhà+LandMark+81+Skyview,+720A+Điện+Biên+Phủ,+Phường+Thạnh+Mỹ+Tây,+Hồ+Chí+Minh" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-gray-500 leading-relaxed block max-w-xs hover:text-[#f97316] transition-colors"
+                >
                   Tầng 17, Tòa nhà LandMark 81 Skyview, 720A Điện Biên Phủ, Phường Thạnh Mỹ Tây, Hồ Chí Minh
-                </span>
+                </a>
               </div>
             </div>
           </div>
@@ -51,17 +95,20 @@ export default function Footer() {
                 Dành cho Khách hàng
               </h4>
               <ul className="space-y-3">
+                {/* ĐÃ SỬA: Thêm onClick={scrollToTop} vào tất cả các thẻ Link */}
                 <li>
                   <Link
-                    to="/"
+                    to="/terms"
+                    onClick={scrollToTop}
                     className="text-sm text-gray-500 hover:text-[#f97316] transition-colors font-medium"
                   >
-                    Điều khoản sử dụng cho khách hàng
+                    Điều khoản áp dụng cho người dùng
                   </Link>
                 </li>
                 <li>
                   <Link
-                    to="/"
+                    to="/guide"
+                    onClick={scrollToTop}
                     className="text-sm text-gray-500 hover:text-[#f97316] transition-colors font-medium"
                   >
                     Hướng dẫn tìm kiếm công thức
@@ -76,7 +123,8 @@ export default function Footer() {
               <ul className="space-y-3">
                 <li>
                   <Link
-                    to="/"
+                    to="/author-rules"
+                    onClick={scrollToTop}
                     className="text-sm text-gray-500 hover:text-[#f97316] transition-colors font-medium"
                   >
                     Quy định chia sẻ công thức
@@ -84,7 +132,8 @@ export default function Footer() {
                 </li>
                 <li>
                   <Link
-                    to="/"
+                    to="/copyright"
+                    onClick={scrollToTop}
                     className="text-sm text-gray-500 hover:text-[#f97316] transition-colors font-medium"
                   >
                     Chính sách bản quyền hình ảnh
@@ -102,7 +151,8 @@ export default function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  to="/"
+                  to="/about"
+                  onClick={scrollToTop}
                   className="text-sm text-gray-500 hover:text-[#f97316] transition-colors font-medium"
                 >
                   Giới thiệu
@@ -110,7 +160,8 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  to="/"
+                  to="/privacy"
+                  onClick={scrollToTop}
                   className="text-sm text-gray-500 hover:text-[#f97316] transition-colors font-medium"
                 >
                   Chính sách bảo mật thông tin
@@ -118,7 +169,8 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  to="/"
+                  to="/complaints"
+                  onClick={scrollToTop}
                   className="text-sm text-gray-500 hover:text-[#f97316] transition-colors font-medium"
                 >
                   Cơ chế giải quyết khiếu nại
@@ -126,7 +178,8 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  to="/"
+                  to="/standards"
+                  onClick={scrollToTop}
                   className="text-sm text-gray-500 hover:text-[#f97316] transition-colors font-medium"
                 >
                   Tiêu chuẩn kiểm duyệt nội dung
@@ -155,12 +208,17 @@ export default function Footer() {
                 Ngôn ngữ:
               </span>
               <div className="flex items-center gap-3">
-                {/* Tiếng Việt (Đang chọn - màu cam) */}
-                <button className="text-sm font-black text-[#f97316] hover:scale-110 transition-transform">
+                {/* ĐÃ SỬA: Thêm sự kiện báo lỗi khi click */}
+                <button 
+                  onClick={() => handleLanguageChange('VN')}
+                  className="text-sm font-black text-[#f97316] hover:scale-110 transition-transform"
+                >
                   VN
                 </button>
-                {/* Tiếng Anh (Chưa chọn - màu xám nhạt) */}
-                <button className="text-sm font-bold text-gray-400 hover:text-[#f97316] hover:scale-110 transition-all">
+                <button 
+                  onClick={() => handleLanguageChange('EN')}
+                  className="text-sm font-bold text-gray-400 hover:text-[#f97316] hover:scale-110 transition-all"
+                >
                   EN
                 </button>
               </div>

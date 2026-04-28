@@ -22,9 +22,10 @@ import AdminRoute from "./components/AdminRoute";
 import AdminDashboard from "./pages/AdminDashboard"; 
 
 // ==============================================
-// ĐÃ THÊM: IMPORT COMPONENT SCROLL TO TOP
+// ĐÃ THÊM: IMPORT COMPONENT SCROLL TO TOP VÀ STATIC PAGE
 // ==============================================
 import ScrollToTop from "./components/ScrollToTop";
+import StaticPage from "./pages/StaticPage";
 
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -144,6 +145,19 @@ function AppContent() {
               </AdminRoute>
             } 
           />
+
+          {/* ==============================================
+              ĐÃ THÊM: CÁC ROUTE CHO TRANG TĨNH FOOTER
+              ============================================== */}
+          <Route path="/terms" element={<StaticPage title="Điều khoản áp dụng cho người dùng" pdfUrl="/pdfs/knd_food_dieu_khoan_ap_dung_voi_nguoi_dung.pdf" />} />
+          <Route path="/guide" element={<StaticPage title="Hướng dẫn tìm kiếm công thức" />} />
+          <Route path="/author-rules" element={<StaticPage title="Quy định chia sẻ công thức" />} />
+          <Route path="/copyright" element={<StaticPage title="Chính sách bản quyền hình ảnh" />} />
+          <Route path="/about" element={<StaticPage title="Giới thiệu KND Food" />} />
+          <Route path="/privacy" element={<StaticPage title="Chính sách bảo mật thông tin" />} />
+          <Route path="/complaints" element={<StaticPage title="Cơ chế giải quyết khiếu nại" />} />
+          <Route path="/standards" element={<StaticPage title="Tiêu chuẩn kiểm duyệt nội dung" />} />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
