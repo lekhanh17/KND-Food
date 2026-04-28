@@ -133,16 +133,22 @@ export default function UserPage() {
   }, [username, user]);
 
   // ==============================================
-  // KIỂM TRA TRẠNG THÁI FOLLOW KHI VÀO TRANG NGƯỜI KHÁC
+  // ĐÃ SỬA: KIỂM TRA TRẠNG THÁI FOLLOW (BỌC THÊM BẢO MẬT BIẾN)
   // ==============================================
   useEffect(() => {
     const checkFollowStatus = async () => {
-      if (user && profileUser && !isOwnProfile) {
+      // Ép lấy ID an toàn, phòng trường hợp local storage bị lệch tên biến
+      const currentFollowerId = user?.UserID || user?.id;
+      const currentFolloweeId = profileUser?.UserID || profileUser?.id;
+
+      if (currentFollowerId && currentFolloweeId && !isOwnProfile) {
         try {
-          const res = await fetch(`http://localhost:5000/api/users/check-follow?followerId=${user.UserID}&followeeId=${profileUser.UserID}`);
+          const res = await fetch(`http://localhost:5000/api/users/check-follow?followerId=${currentFollowerId}&followeeId=${currentFolloweeId}`);
           if (res.ok) {
             const data = await res.json();
             setIsFollowing(data.isFollowing);
+          } else {
+            console.error("Lỗi từ Backend khi check follow:", await res.text());
           }
         } catch (error) {
           console.error("Lỗi kiểm tra trạng thái theo dõi:", error);
@@ -225,8 +231,9 @@ export default function UserPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          FollowerID: user.UserID,
-          TargetUserID: profileUser.UserID
+          // Ép lấy ID an toàn
+          FollowerID: user?.UserID || user?.id,
+          TargetUserID: profileUser?.UserID || profileUser?.id
         })
       });
       const data = await res.json();
@@ -251,7 +258,7 @@ export default function UserPage() {
   };
 
   // ==============================================
-  // ĐÃ THÊM: HÀM MỞ POPUP DANH SÁCH THEO DÕI
+  // HÀM MỞ POPUP DANH SÁCH THEO DÕI
   // ==============================================
   const handleOpenFollowList = async (type) => {
     setFollowModalType(type);

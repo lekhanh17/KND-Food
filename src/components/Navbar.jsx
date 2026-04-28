@@ -46,6 +46,27 @@ export default function Navbar() {
     }
   };
 
+  // ==============================================
+  // ĐÃ THÊM: HÀM ĐÁNH DẤU ĐỌC 1 THÔNG BÁO CỤ THỂ
+  // ==============================================
+  const markSingleAsRead = async (id) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(`http://localhost:5000/api/notifications/read/${id}`, {
+        method: "PUT",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (response.ok) {
+        // Dùng prev để chắc chắn state luôn là mới nhất, bắt luôn trường hợp tên là id thay vì NotificationID
+        setNotifications(prev => prev.map(n => 
+          (n.NotificationID === id || n.id === id) ? { ...n, IsRead: 1 } : n
+        ));
+      }
+    } catch (error) {
+      console.error("Lỗi cập nhật trạng thái đã đọc:", error);
+    }
+  };
+
   const deleteReadNotifications = async () => {
     const token = localStorage.getItem("token");
     try {
@@ -126,22 +147,15 @@ export default function Navbar() {
     }
   };
 
-  // ==============================================
-  // HÀM TÍNH TOÁN THỜI GIAN TRÔI QUA
-  // ==============================================
   const timeAgo = (dateString) => {
     const now = new Date();
     let past = new Date(dateString);
 
-    // FIX TIMEZONE: Nếu thời gian từ DB bị tính thành tương lai (lệch +7 tiếng)
     if (past > now) {
-      // Ép nó lùi về 7 tiếng (7 * 60 phút * 60 giây * 1000 mili-giây)
       past = new Date(past.getTime() - 7 * 60 * 60 * 1000);
     }
 
     const diffInSeconds = Math.floor((now - past) / 1000);
-
-    // Đảm bảo không bị âm (nếu có độ trễ 1-2 giây của mạng)
     const safeDiff = diffInSeconds < 0 ? 0 : diffInSeconds;
 
     if (safeDiff < 60) return "Vừa xong";
@@ -280,7 +294,15 @@ export default function Navbar() {
                           <Link
                             to={n.Link || "#"}
                             key={n.NotificationID}
-                            onClick={() => setIsNotificationOpen(false)}
+                            // ==============================================
+                            // ĐÃ SỬA: GỌI HÀM markSingleAsRead KHI BẤM VÀO THÔNG BÁO
+                            // ==============================================
+                            onClick={() => {
+                              setIsNotificationOpen(false);
+                              if (!n.IsRead) {
+                                markSingleAsRead(n.NotificationID);
+                              }
+                            }}
                             className={`flex gap-3 p-4 border-b border-gray-50 hover:bg-orange-50/30 transition ${!n.IsRead ? "bg-orange-50/50" : ""}`}
                           >
                             <div className="mt-0.5">{getNotifyIcon(n.Type)}</div>
@@ -288,7 +310,6 @@ export default function Navbar() {
                               <p className={`text-xs leading-relaxed ${!n.IsRead ? "font-bold text-gray-900" : "text-gray-600"}`}>
                                 {n.Message}
                               </p>
-                              {/* ĐÃ SỬA: Gọi hàm timeAgo thay vì hiển thị ngày tháng khô khan */}
                               <span className="text-[9px] text-gray-400 font-bold uppercase mt-1 block">
                                 {timeAgo(n.CreatedAt)}
                               </span>
