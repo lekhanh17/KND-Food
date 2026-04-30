@@ -250,11 +250,7 @@ export default function RecipeDetail() {
   return (
     <div className="min-h-screen bg-gray-50 pt-28 pb-20 font-sans text-gray-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
-        <button onClick={() => navigate(-1)} className="inline-flex items-center gap-2 text-gray-500 hover:text-orange-500 font-bold mb-6 transition-colors text-sm">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
-          Quay lại
-        </button>
-
+        
         <div className="w-full h-[350px] md:h-[450px] mb-10 flex justify-center items-center">
           {recipe.VideoURL ? (
             recipe.VideoURL.includes("youtube.com") || recipe.VideoURL.includes("youtu.be") ? (

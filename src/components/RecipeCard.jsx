@@ -22,7 +22,7 @@ export default function RecipeCard({ item }) {
   return (
     <Link 
       to={`/recipe/${item.id || item.RecipeID}`}
-      className="group bg-white rounded-[2rem] border border-gray-100 overflow-hidden hover:shadow-2xl hover:shadow-orange-100 transition-all duration-500 flex flex-col block cursor-pointer outline-none"
+      className="group bg-white rounded-[2rem] border border-gray-100 overflow-hidden hover:shadow-2xl hover:shadow-orange-100 transition-all duration-500 flex-col block cursor-pointer outline-none"
     >
       
       {/* KHU VỰC ẢNH */}

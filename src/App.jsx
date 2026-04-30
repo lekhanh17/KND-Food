@@ -146,11 +146,9 @@ function AppContent() {
             } 
           />
 
-          {/* ==============================================
-              ĐÃ THÊM: CÁC ROUTE CHO TRANG TĨNH FOOTER
-              ============================================== */}
-          <Route path="/terms" element={<StaticPage title="Điều khoản áp dụng cho người dùng" pdfUrl="/pdfs/knd_food_dieu_khoan_ap_dung_voi_nguoi_dung.pdf" />} />
-          <Route path="/guide" element={<StaticPage title="Hướng dẫn tìm kiếm công thức" />} />
+          {/* CÁC ROUTE CHO TRANG TĨNH FOOTER */}
+          <Route path="/terms" element={<StaticPage title="Điều khoản áp dụng cho người dùng" pdfUrl="/pdfs/dieu_khoan_su_dung_ap_dung_cho_nguoi_dung_knd_food.pdf" />} />
+          <Route path="/guide" element={<StaticPage title="Hướng dẫn tìm kiếm công thức" pdfUrl="/pdfs/huong_dan_tim_kiem_cong_thuc_knd_food.pdf" />} />
           <Route path="/author-rules" element={<StaticPage title="Quy định chia sẻ công thức" />} />
           <Route path="/copyright" element={<StaticPage title="Chính sách bản quyền hình ảnh" />} />
           <Route path="/about" element={<StaticPage title="Giới thiệu KND Food" />} />

@@ -16,7 +16,7 @@ export default function StaticPage({ title, pdfUrl }) {
         
         {pdfUrl ? (
           // ==========================================
-          // HIỂN THỊ KHUNG ĐỌC PDF (GIỐNG TICKETBOX)
+          // HIỂN THỊ KHUNG ĐỌC PDF
           // ==========================================
           <iframe
             src={`${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1`}
@@ -25,17 +25,13 @@ export default function StaticPage({ title, pdfUrl }) {
           ></iframe>
         ) : (
           // ==========================================
-          // HIỂN THỊ THÔNG BÁO BẢO TRÌ (NẾU CHƯA CÓ PDF)
+          // HIỂN THỊ THÔNG BÁO BẢO TRÌ
           // ==========================================
           <div className="flex-grow flex flex-col items-center justify-center p-12 text-center">
-            <div className="text-6xl mb-6 animate-bounce">🚧</div>
             <p className="font-bold text-2xl text-gray-800 mb-2">Trang này đang được cập nhật</p>
             <p className="text-gray-500 max-w-md">
-              Nội dung chi tiết của chuyên mục <span className="font-bold text-orange-500">{title}</span> đang được biên soạn và sẽ sớm ra mắt. Xin lỗi bạn vì sự bất tiện này!
+              Nội dung chi tiết của chuyên mục <span className="font-bold text-orange-500">{title}</span> đang được biên soạn và sẽ sớm ra mắt. <br /> Xin lỗi bạn vì sự bất tiện này!
             </p>
-            
-            <div className="pt-8">
-            </div>
           </div>
         )}
 

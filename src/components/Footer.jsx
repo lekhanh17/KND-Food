@@ -63,7 +63,7 @@ export default function Footer() {
                 <span className="font-bold text-gray-700 text-sm block mb-1">
                   Email:
                 </span>
-                {/* ĐÃ SỬA: Thêm href="mailto:..." để bấm gửi mail được */}
+                {/* Thêm href="mailto:..." để bấm gửi mail được */}
                 <a 
                   href="mailto:lekhanhlux29@gmail.com" 
                   className="text-sm text-gray-500 block hover:text-[#f97316] transition-colors"
@@ -75,7 +75,7 @@ export default function Footer() {
                 <span className="font-bold text-gray-700 text-sm block mb-1">
                   Địa chỉ:
                 </span>
-                {/* ĐÃ SỬA: Thêm link Google Maps để bấm vào xem bản đồ */}
+                {/* Thêm link Google Maps để bấm vào xem bản đồ */}
                 <a 
                   href="https://www.google.com/maps/search/?api=1&query=Tầng+17,+Tòa+nhà+LandMark+81+Skyview,+720A+Điện+Biên+Phủ,+Phường+Thạnh+Mỹ+Tây,+Hồ+Chí+Minh" 
                   target="_blank" 
@@ -95,7 +95,7 @@ export default function Footer() {
                 Dành cho Khách hàng
               </h4>
               <ul className="space-y-3">
-                {/* ĐÃ SỬA: Thêm onClick={scrollToTop} vào tất cả các thẻ Link */}
+                {/* Thêm onClick={scrollToTop} vào tất cả các thẻ Link */}
                 <li>
                   <Link
                     to="/terms"
@@ -202,13 +202,13 @@ export default function Footer() {
           {/* Group: Ngôn ngữ + Mạng xã hội */}
           <div className="flex flex-wrap justify-center items-center gap-6 md:gap-8 order-1 md:order-2">
             
-            {/* THÊM MỚI: Phần Ngôn ngữ */}
+            {/* Phần Ngôn ngữ */}
             <div className="flex items-center gap-3">
               <span className="text-sm font-bold text-gray-700 uppercase tracking-wider hidden sm:block">
                 Ngôn ngữ:
               </span>
               <div className="flex items-center gap-3">
-                {/* ĐÃ SỬA: Thêm sự kiện báo lỗi khi click */}
+                {/* Thêm sự kiện báo lỗi khi click */}
                 <button 
                   onClick={() => handleLanguageChange('VN')}
                   className="text-sm font-black text-[#f97316] hover:scale-110 transition-transform"
