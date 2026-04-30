@@ -18,6 +18,8 @@ export default function RecipeDetail() {
   const [categories, setCategories] = useState({});
   const [recommendations, setRecommendations] = useState([]);
   const [loadingRecs, setLoadingRecs] = useState(true);
+  
+  const [showAllRecs, setShowAllRecs] = useState(false);
 
   const [currentServings, setCurrentServings] = useState(1);
 
@@ -298,8 +300,12 @@ export default function RecipeDetail() {
               </div>
             </div>
 
-            <div className="shrink-0 flex items-center gap-3 p-3 bg-gray-50 rounded-2xl border border-gray-100 min-w-[160px]">
-              <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden shrink-0 flex items-center justify-center">
+            {/* KHỐI TÁC GIẢ - ĐÃ CHUYỂN THÀNH LINK */}
+            <Link 
+              to={`/profile/${recipe.UserID}`} 
+              className="shrink-0 flex items-center gap-3 p-3 bg-gray-50 hover:bg-orange-50 rounded-2xl border border-gray-100 hover:border-orange-200 transition-all cursor-pointer min-w-[160px] group shadow-sm hover:shadow-md"
+            >
+              <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden shrink-0 flex items-center justify-center border-2 border-transparent group-hover:border-orange-400 transition-colors">
                 {recipe.Avatar ? (
                   <img src={recipe.Avatar} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
@@ -307,10 +313,10 @@ export default function RecipeDetail() {
                 )}
               </div>
               <div className="pr-2">
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Tác giả</p>
-                <p className="font-bold text-sm text-gray-900">{recipe.FullName}</p>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5 group-hover:text-orange-500 transition-colors">Tác giả</p>
+                <p className="font-bold text-sm text-gray-900 group-hover:text-orange-600 transition-colors">{recipe.FullName}</p>
               </div>
-            </div>
+            </Link>
           </div>
 
           <hr className="border-gray-100 mb-8" />
@@ -392,6 +398,7 @@ export default function RecipeDetail() {
 
         {!loading && recipe && (
           <div className="mt-16 mb-10 border-t border-gray-200 pt-10">
+            
             <h2 className="text-2xl font-black mb-8 flex items-center gap-3 text-[#1c2b36]">
               <span className="text-3xl animate-bounce">✨</span> Có thể bạn sẽ thích
               <span className="text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-md ml-2 uppercase tracking-wider">AI Gợi ý</span>
@@ -400,21 +407,34 @@ export default function RecipeDetail() {
             {loadingRecs ? (
               <div className="flex justify-center py-10"><div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>
             ) : recommendations.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {recommendations.map((item) => {
-                  const formattedItem = {
-                    id: item.RecipeID,
-                    title: item.Title,
-                    category: categories[item.CategoryID] || "Khác",
-                    time: `${(item.PrepTime || 0) + (item.CookTime || 0)}p`,
-                    difficulty: item.Difficulty || 1,
-                    rating: item.AverageRating || 0,
-                    reviews: item.ReviewCount || 0,
-                    image: item.ImageURL
-                  };
-                  return <RecipeCard key={formattedItem.id} item={formattedItem} />;
-                })}
-              </div>
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {(showAllRecs ? recommendations : recommendations.slice(0, 3)).map((item) => {
+                    const formattedItem = {
+                      id: item.RecipeID,
+                      title: item.Title,
+                      category: categories[item.CategoryID] || "Khác",
+                      time: `${(item.PrepTime || 0) + (item.CookTime || 0)}p`,
+                      difficulty: item.Difficulty || 1,
+                      rating: item.AverageRating || 0,
+                      reviews: item.ReviewCount || 0,
+                      image: item.ImageURL
+                    };
+                    return <RecipeCard key={formattedItem.id} item={formattedItem} />;
+                  })}
+                </div>
+                
+                {recommendations.length > 3 && (
+                  <div className="mt-10 flex justify-center">
+                    <button 
+                      onClick={() => setShowAllRecs(!showAllRecs)}
+                      className="text-orange-500 font-bold hover:text-white transition-colors text-sm bg-orange-50 hover:bg-orange-500 px-8 py-3.5 rounded-full border border-orange-200 hover:border-orange-500 shadow-sm active:scale-95"
+                    >
+                      {showAllRecs ? "Rút gọn" : "Xem tất cả gợi ý"}
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
               <p className="text-gray-500 italic text-center bg-gray-50 py-8 rounded-2xl">Hệ thống AI đang học hỏi thêm dữ liệu, hãy quay lại sau nhé!</p>
             )}

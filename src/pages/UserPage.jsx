@@ -21,7 +21,7 @@ const Toast = Swal.mixin({
 
 export default function UserPage() {
   // 1. LẤY TÊN TỪ URL (VD: khanh17)
-  const { username } = useParams();
+  const { username, id } = useParams(); // SỬA Ở ĐÂY: Thêm 'id' để hứng từ Link /profile/:id
 
   // 2. NGƯỜI ĐANG ĐĂNG NHẬP (Chỉ dùng để kiểm tra quyền)
   const [user, setUser] = useState(() => {
@@ -34,8 +34,14 @@ export default function UserPage() {
   const [isProfileLoading, setIsProfileLoading] = useState(true);
 
   // KIỂM TRA QUYỀN: Có phải đang xem trang của chính mình không?
-  const isOwnProfile =
-    !username || (user && profileUser && user.UserID === profileUser.UserID);
+  // SỬA Ở ĐÂY: Logic check quyền chặt chẽ hơn
+  const isOwnProfile = (() => {
+    if (!user) return false;
+    if (profileUser) return user.UserID === profileUser.UserID;
+    if (id) return user.UserID.toString() === id.toString();
+    if (username) return user.Username === username;
+    return true; // Truy cập /profile không kèm params
+  })();
 
   const fileInputRef = useRef(null);
   const modalFileInputRef = useRef(null);
@@ -93,47 +99,58 @@ export default function UserPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // --- TẢI DỮ LIỆU CHỦ NHÀ DỰA VÀO URL ---
+  // --- SỬA Ở ĐÂY: LOGIC TẢI DỮ LIỆU ĐÃ ĐƯỢC LÀM MỚI ---
   useEffect(() => {
     const fetchProfile = async () => {
       setIsProfileLoading(true);
-      if (username) {
+      
+      // Ưu tiên 1: Tải bằng ID trên URL (Từ trang RecipeDetail gọi sang)
+      if (id) {
         try {
-          const res = await fetch(
-            `http://localhost:5000/api/users/profile/${username}`,
-          );
+          const res = await fetch(`http://localhost:5000/api/users/profile/${id}`);
           const data = await res.json();
-          if (res.ok) {
-            setProfileUser(data);
-          } else {
-            setProfileUser(null);
-          }
+          if (res.ok) setProfileUser(data);
+          else setProfileUser(null);
         } catch {
           setProfileUser(null);
         }
-      } else {
-        // Cập nhật lại thông tin user từ API để lấy 3 con số thống kê thay vì lấy từ LocalStorage cũ rích
-        if (user) {
-          try {
-            const res = await fetch(`http://localhost:5000/api/users/profile/${user.Username || user.UserID}`);
-            const data = await res.json();
-            if (res.ok) setProfileUser(data);
-            else setProfileUser(user);
-          } catch {
-            setProfileUser(user);
-          }
-        } else {
-            setProfileUser(null);
+      } 
+      // Ưu tiên 2: Tải bằng Username trên URL
+      else if (username) {
+        try {
+          const res = await fetch(`http://localhost:5000/api/users/profile/${username}`);
+          const data = await res.json();
+          if (res.ok) setProfileUser(data);
+          else setProfileUser(null);
+        } catch {
+          setProfileUser(null);
         }
+      } 
+      // Ưu tiên 3: Không có params trên link -> Xem nhà của mình
+      else if (user) {
+        try {
+          // Lấy ID thật sự của bản thân để gọi API
+          const realId = user.Username || user.UserID; 
+          const res = await fetch(`http://localhost:5000/api/users/profile/${realId}`);
+          const data = await res.json();
+          if (res.ok) setProfileUser(data);
+          else setProfileUser(user);
+        } catch {
+          setProfileUser(user);
+        }
+      } else {
+        setProfileUser(null);
       }
+      
       setIsProfileLoading(false);
     };
 
     fetchProfile();
-  }, [username, user]);
+  // THÊM 'id' vào dependency array
+  }, [username, id, user]);
 
   // ==============================================
-  // ĐÃ SỬA: KIỂM TRA TRẠNG THÁI FOLLOW (BỌC THÊM BẢO MẬT BIẾN)
+  // KIỂM TRA TRẠNG THÁI FOLLOW (BỌC THÊM BẢO MẬT BIẾN)
   // ==============================================
   useEffect(() => {
     const checkFollowStatus = async () => {

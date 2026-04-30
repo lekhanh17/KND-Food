@@ -130,8 +130,13 @@ function AppContent() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/register" element={<RegisterPage />} />
+          
+          {/* CÁC ROUTE LIÊN QUAN ĐẾN USER PROFILE */}
           <Route path="/profile" element={<UserPage />} />
+          {/* Thêm route này để hứng click từ trang RecipeDetail */}
+          <Route path="/profile/:id" element={<UserPage />} /> 
           <Route path="/user/:username" element={<UserPage />} />
+          
           <Route path="/create-recipe" element={<CreateRecipe />} />
           <Route path="/recipe/:id" element={<RecipeDetail />} />
           <Route path="/edit-recipe/:id" element={<EditRecipe />} />

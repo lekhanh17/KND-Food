@@ -16,7 +16,11 @@ const toastConfig = {
 };
 
 function formatCommentTime(createdAt) {
-  let dateString = typeof createdAt === 'string' && createdAt.endsWith('Z') ? createdAt.slice(0, -1) : createdAt;
+  let dateString = createdAt;
+  if (typeof dateString === 'string' && dateString.endsWith('Z')) {
+    dateString = dateString.slice(0, -1);
+  }
+
   const commentDate = new Date(dateString);
   if (Number.isNaN(commentDate.getTime())) return "Vừa xong";
 
@@ -107,7 +111,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
   useEffect(() => {
     if (!recipeId) return;
     fetchComments();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recipeId]);
 
   const totalCommentsLabel = useMemo(() => {
@@ -226,7 +230,6 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
 
           if (response.ok) {
             setComments((prev) => prev.filter((c) => c.id !== commentId));
-            // Đã xóa toast thông báo ở đây theo ý sếp
           } else {
             const data = await response.json();
             toast.error(`❌ ${data.message}`, toastConfig);
@@ -255,16 +258,29 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
       ) : (
         <form onSubmit={handleSubmitComment} className="mb-8">
           <div className="rounded-[28px] border border-orange-100 bg-gradient-to-br from-orange-50/70 via-white to-white p-5 shadow-[0_10px_30px_rgba(249,115,22,0.08)]">
+            
             <div className="flex items-center gap-4 mb-4 pb-4 border-b border-orange-100/50">
               <span className="text-sm font-bold text-gray-700">Chất lượng công thức:</span>
               <div className="flex items-center gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
-                  <button type="button" key={star} className={`text-2xl transition-colors duration-200 ${star <= (hoverRating || rating) ? "text-yellow-400" : "text-gray-300"} hover:scale-110 active:scale-95`} onClick={() => setRating(star)} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} disabled={!loggedInUser || isSubmitting}>
+                  <button
+                    type="button"
+                    key={star}
+                    className={`text-2xl transition-colors duration-200 ${star <= (hoverRating || rating) ? "text-yellow-400" : "text-gray-300"} hover:scale-110 active:scale-95`}
+                    onClick={() => setRating(star)}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                    disabled={!loggedInUser || isSubmitting}
+                  >
                     <FontAwesomeIcon icon={faStar} />
                   </button>
                 ))}
               </div>
-              {rating > 0 && <span className="text-sm font-bold text-yellow-500 ml-2 animate-in fade-in zoom-in duration-300">{getRatingText(rating)}</span>}
+              {rating > 0 && (
+                <span className="text-sm font-bold text-yellow-500 ml-2 animate-in fade-in zoom-in duration-300">
+                  {getRatingText(rating)}
+                </span>
+              )}
             </div>
 
             <div className="flex items-start gap-4">
@@ -272,14 +288,23 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                 {loggedInUser?.Avatar ? <img src={loggedInUser.Avatar} alt="Avt" className="w-full h-full object-cover rounded-2xl" /> : (loggedInUser?.FullName?.charAt(0) || "?")}
               </div>
               <div className="flex-1">
-                <textarea rows="3" maxLength={300} value={commentText} onChange={(e) => setCommentText(e.target.value)} placeholder={loggedInUser ? "Chia sẻ cảm nhận của bạn về món ăn này..." : "Đăng nhập để viết đánh giá..."} disabled={!loggedInUser || isSubmitting} className="w-full resize-none rounded-3xl border border-white bg-white px-5 py-4 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 disabled:bg-gray-50" />
+                <textarea
+                  rows="3" maxLength={300} value={commentText} onChange={(e) => setCommentText(e.target.value)}
+                  placeholder={loggedInUser ? "Chia sẻ cảm nhận của bạn về món ăn này..." : "Đăng nhập để viết đánh giá..."}
+                  disabled={!loggedInUser || isSubmitting}
+                  className="w-full resize-none rounded-3xl border border-white bg-white px-5 py-4 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 disabled:bg-gray-50"
+                />
                 
                 {imagePreviews.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-3">
                     {imagePreviews.map((preview, index) => (
                       <div key={index} className="relative inline-block">
                         <img src={preview} alt={`Preview ${index}`} className="h-24 w-24 object-cover rounded-2xl border border-gray-200 shadow-sm" />
-                        <button type="button" onClick={() => removeImage(index)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow-md">
+                        <button 
+                          type="button" 
+                          onClick={() => removeImage(index)} 
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors shadow-md"
+                        >
                           <FontAwesomeIcon icon={faTimes} />
                         </button>
                       </div>
@@ -289,11 +314,31 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
 
                 <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex items-center gap-4">
-                    <input type="file" accept="image/*" multiple className="hidden" ref={fileInputRef} onChange={handleImageChange} disabled={!loggedInUser || isSubmitting || selectedImages.length >= 3} />
-                    <button type="button" onClick={() => fileInputRef.current?.click()} disabled={!loggedInUser || isSubmitting || selectedImages.length >= 3} className="text-gray-400 hover:text-orange-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Đính kèm ảnh thành quả">
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      multiple
+                      className="hidden" 
+                      ref={fileInputRef} 
+                      onChange={handleImageChange} 
+                      disabled={!loggedInUser || isSubmitting || selectedImages.length >= 3}
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => fileInputRef.current?.click()} 
+                      disabled={!loggedInUser || isSubmitting || selectedImages.length >= 3}
+                      className="text-gray-400 hover:text-orange-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Đính kèm ảnh thành quả"
+                    >
                       <FontAwesomeIcon icon={faCamera} className="text-xl" />
                     </button>
-                    <p className="text-xs text-gray-400">{selectedImages.length}/3 ảnh đính kèm (Tối đa 300 ký tự)</p>
+                    {/* SỬA Ở ĐÂY: BỘ ĐẾM KÝ TỰ REAL-TIME */}
+                    <p className="text-xs text-gray-400 font-medium">
+                      {selectedImages.length}/3 ảnh đính kèm <span className="mx-1">•</span> 
+                      <span className={`transition-colors duration-300 ${commentText.length >= 300 ? "text-red-500 font-bold" : ""}`}>
+                        {commentText.length}/300 ký tự
+                      </span>
+                    </p>
                   </div>
                   
                   {loggedInUser ? (
@@ -316,7 +361,9 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
         ) : commentsError ? (
           <div className="rounded-3xl border border-dashed border-red-200 bg-red-50/70 px-6 py-10 text-center">
             <p className="text-sm font-semibold text-red-500">{commentsError}</p>
-            <button onClick={fetchComments} className="mt-4 inline-flex items-center justify-center rounded-2xl bg-white px-4 py-2 text-sm font-bold text-red-500 border border-red-200 transition hover:bg-red-50">Thử tải lại</button>
+            <button onClick={fetchComments} className="mt-4 inline-flex items-center justify-center rounded-2xl bg-white px-4 py-2 text-sm font-bold text-red-500 border border-red-200 transition hover:bg-red-50">
+              Thử tải lại
+            </button>
           </div>
         ) : comments.length > 0 ? (
           comments.map((comment) => (
@@ -331,7 +378,11 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                       <h3 className="text-sm font-black text-gray-900 truncate">{comment.authorName}</h3>
                       <div className="flex items-center gap-1 mt-0.5">
                         {[1, 2, 3, 4, 5].map((star) => (
-                          <FontAwesomeIcon key={star} icon={faStar} className={`text-[10px] ${star <= comment.rating ? "text-yellow-400" : "text-gray-300"}`} />
+                          <FontAwesomeIcon 
+                            key={star} 
+                            icon={faStar} 
+                            className={`text-[10px] ${star <= comment.rating ? "text-yellow-400" : "text-gray-300"}`} 
+                          />
                         ))}
                       </div>
                     </div>
@@ -344,7 +395,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                       )}
                     </div>
                   </div>
-                  <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap mt-2">{comment.content}</p>
+                  <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap break-all mt-2">{comment.content}</p>
                   
                   {comment.images && comment.images.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">

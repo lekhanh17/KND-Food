@@ -16,7 +16,7 @@ def recommend(req: RecommendRequest):
     df = pd.DataFrame(req.all_recipes)
 
     # 2. Chuẩn hóa và gộp đặc trưng
-    df['combined_features'] = df['Title'].astype(str) + " " + df['CategoryName'].astype(str) + " " + df['IngredientsText'].astype(str)
+    df['combined_features'] = df['Title'].astype(str) + " " + (df['CategoryName'].astype(str) + " ") * 3 + df['IngredientsText'].astype(str)
 
     # 3. Tính toán TF-IDF
     tfidf = TfidfVectorizer()
@@ -48,12 +48,12 @@ def recommend(req: RecommendRequest):
         recipe_name = df.iloc[i]['Title']
         print(f" -> Món: '{recipe_name}' | Điểm giống nhau: {score:.4f}")
     # ==========================================
-    # Chỉ lấy những món có độ tương đồng trên 0.30 (tương đương 30%)
+    # Chỉ lấy những món có độ tương đồng trên 0.20 (tương đương 20%)
     # x[0] là index, x[1] là score. Ta bỏ qua phần tử đầu tiên vì là chính nó.
-    threshold = 0.30
+    threshold = 0.20
     valid_recommendations = [x for x in sim_scores[1:] if x[1] > threshold]
 
-    # Nếu không có món nào đủ "giống", trả về rỗng ngay lập tức
+    # Nếu không có món nào đủ giống, trả về rỗng
     if not valid_recommendations:
         return {"recommended_ids": []}
 
