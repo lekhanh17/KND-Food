@@ -1,46 +1,39 @@
 ﻿import { useState, useRef, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
-import Swal from "sweetalert2"; // ĐÃ THAY ĐỔI: Sử dụng SweetAlert2
-// 1. IMPORT RECIPECARD VÀO ĐỂ TÁI SỬ DỤNG CHO TAB YÊU THÍCH
+// ĐÃ THAY ĐỔI: Dùng lại react-toastify thay vì SweetAlert2 cho Toast để đồng bộ
+import { toast } from "react-toastify";
 import RecipeCard from "../components/RecipeCard";
 
 // ==============================================
-// CẤU HÌNH SWEETALERT DẠNG TOAST (HIỆN Ở GÓC, TỰ TẮT)
+// CẤU HÌNH TOAST ĐỒNG BỘ (TRẮNG, CĂN GIỮA)
 // ==============================================
-const Toast = Swal.mixin({
-  toast: true,
-  position: "top-end",
-  showConfirmButton: false,
-  timer: 3000,
-  timerProgressBar: true,
-  didOpen: (toast) => {
-    toast.onmouseenter = Swal.stopTimer;
-    toast.onmouseleave = Swal.resumeTimer;
-  }
-});
+const whiteToastConfig = {
+  position: "top-center",
+  autoClose: 2000,
+  hideProgressBar: true,
+  theme: "light",
+  closeButton: true,
+  className: "!bg-white !text-gray-800 !rounded-[16px] !shadow-xl !border !border-gray-100 !px-4 !py-3 !w-max !min-w-[300px] !mx-auto !mt-4 !flex !justify-between !items-center",
+  bodyClassName: "!text-sm !font-bold !p-0 !m-0 !flex !items-center !gap-2",
+};
 
 export default function UserPage() {
-  // 1. LẤY TÊN TỪ URL (VD: khanh17)
-  const { username, id } = useParams(); // SỬA Ở ĐÂY: Thêm 'id' để hứng từ Link /profile/:id
+  const { username, id } = useParams();
 
-  // 2. NGƯỜI ĐANG ĐĂNG NHẬP (Chỉ dùng để kiểm tra quyền)
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem("loggedInUser");
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  // 3. NGƯỜI ĐANG ĐƯỢC XEM (Chủ nhân của cái trang này)
   const [profileUser, setProfileUser] = useState(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
 
-  // KIỂM TRA QUYỀN: Có phải đang xem trang của chính mình không?
-  // SỬA Ở ĐÂY: Logic check quyền chặt chẽ hơn
   const isOwnProfile = (() => {
     if (!user) return false;
     if (profileUser) return user.UserID === profileUser.UserID;
     if (id) return user.UserID.toString() === id.toString();
     if (username) return user.Username === username;
-    return true; // Truy cập /profile không kèm params
+    return true; 
   })();
 
   const fileInputRef = useRef(null);
@@ -65,27 +58,17 @@ export default function UserPage() {
   const [myRecipes, setMyRecipes] = useState([]);
   const [isLoadingRecipes, setIsLoadingRecipes] = useState(true);
 
-  // ==============================================
-  // THÊM STATE CHO TAB YÊU THÍCH
-  // ==============================================
   const [favoriteRecipes, setFavoriteRecipes] = useState([]);
   const [isFetchingFav, setIsFetchingFav] = useState(false);
 
-  // ==============================================
-  // STATE CHO NÚT THEO DÕI
-  // ==============================================
   const [isFollowing, setIsFollowing] = useState(false);
   const [isTogglingFollow, setIsTogglingFollow] = useState(false);
 
-  // ==============================================
-  // ĐÃ THÊM: STATE CHO POPUP DANH SÁCH FOLLOW
-  // ==============================================
   const [isFollowModalOpen, setIsFollowModalOpen] = useState(false);
-  const [followModalType, setFollowModalType] = useState(""); // "followers" hoặc "following"
+  const [followModalType, setFollowModalType] = useState(""); 
   const [followList, setFollowList] = useState([]);
   const [isLoadingFollowList, setIsLoadingFollowList] = useState(false);
 
-  // Đóng menu cài đặt khi click ra ngoài
   useEffect(() => {
     function handleClickOutside(event) {
       if (
@@ -99,12 +82,10 @@ export default function UserPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // --- SỬA Ở ĐÂY: LOGIC TẢI DỮ LIỆU ĐÃ ĐƯỢC LÀM MỚI ---
   useEffect(() => {
     const fetchProfile = async () => {
       setIsProfileLoading(true);
       
-      // Ưu tiên 1: Tải bằng ID trên URL (Từ trang RecipeDetail gọi sang)
       if (id) {
         try {
           const res = await fetch(`http://localhost:5000/api/users/profile/${id}`);
@@ -115,7 +96,6 @@ export default function UserPage() {
           setProfileUser(null);
         }
       } 
-      // Ưu tiên 2: Tải bằng Username trên URL
       else if (username) {
         try {
           const res = await fetch(`http://localhost:5000/api/users/profile/${username}`);
@@ -126,10 +106,8 @@ export default function UserPage() {
           setProfileUser(null);
         }
       } 
-      // Ưu tiên 3: Không có params trên link -> Xem nhà của mình
       else if (user) {
         try {
-          // Lấy ID thật sự của bản thân để gọi API
           const realId = user.Username || user.UserID; 
           const res = await fetch(`http://localhost:5000/api/users/profile/${realId}`);
           const data = await res.json();
@@ -146,15 +124,10 @@ export default function UserPage() {
     };
 
     fetchProfile();
-  // THÊM 'id' vào dependency array
   }, [username, id, user]);
 
-  // ==============================================
-  // KIỂM TRA TRẠNG THÁI FOLLOW (BỌC THÊM BẢO MẬT BIẾN)
-  // ==============================================
   useEffect(() => {
     const checkFollowStatus = async () => {
-      // Ép lấy ID an toàn, phòng trường hợp local storage bị lệch tên biến
       const currentFollowerId = user?.UserID || user?.id;
       const currentFolloweeId = profileUser?.UserID || profileUser?.id;
 
@@ -175,7 +148,6 @@ export default function UserPage() {
     checkFollowStatus();
   }, [user, profileUser, isOwnProfile]);
 
-  // Đồng bộ dữ liệu vào Form mỗi khi có dữ liệu chủ nhà (để sửa)
   useEffect(() => {
     if (profileUser && isOwnProfile) {
       setFormFullName(profileUser.FullName || "");
@@ -184,7 +156,6 @@ export default function UserPage() {
     }
   }, [profileUser, isOwnProfile]);
 
-  // --- TẢI DANH SÁCH BÀI ĐĂNG CỦA CHỦ NHÀ ---
   useEffect(() => {
     const fetchRecipes = async () => {
       setIsLoadingRecipes(true);
@@ -205,9 +176,6 @@ export default function UserPage() {
     if (profileUser?.UserID) fetchRecipes();
   }, [profileUser]);
 
-  // ==============================================
-  // TẢI DANH SÁCH MÓN ĂN YÊU THÍCH KHI MỞ TAB
-  // ==============================================
   useEffect(() => {
     if (activeTab === "Yêu thích" && isOwnProfile) {
       const fetchMyFavorites = async () => {
@@ -234,12 +202,10 @@ export default function UserPage() {
     }
   }, [activeTab, isOwnProfile]);
 
-  // ==============================================
-  // HÀM XỬ LÝ KHI BẤM NÚT THEO DÕI
-  // ==============================================
   const handleFollowToggle = async () => {
     if (!user) {
-      Toast.fire({ icon: "warning", title: "Vui lòng đăng nhập để theo dõi!" });
+      // ĐÃ THAY ĐỔI: Gọi react-toastify
+      toast.warning("Vui lòng đăng nhập để theo dõi!", whiteToastConfig);
       return;
     }
     setIsTogglingFollow(true);
@@ -248,7 +214,6 @@ export default function UserPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          // Ép lấy ID an toàn
           FollowerID: user?.UserID || user?.id,
           TargetUserID: profileUser?.UserID || profileUser?.id
         })
@@ -257,7 +222,6 @@ export default function UserPage() {
       if (res.ok) {
         setIsFollowing(data.isFollowing);
         
-        // Ép kiểu để tránh lỗi undefined + 1 = NaN
         setProfileUser(prev => {
           const currentCount = prev.FollowerCount || 0;
           return {
@@ -274,9 +238,6 @@ export default function UserPage() {
     }
   };
 
-  // ==============================================
-  // HÀM MỞ POPUP DANH SÁCH THEO DÕI
-  // ==============================================
   const handleOpenFollowList = async (type) => {
     setFollowModalType(type);
     setIsFollowModalOpen(true);
@@ -291,7 +252,8 @@ export default function UserPage() {
       }
     } catch (error) {
       console.error(error);
-      Toast.fire({ icon: "error", title: "Không thể lấy danh sách!" });
+      // ĐÃ THAY ĐỔI: Gọi react-toastify
+      toast.error("Không thể lấy danh sách!", whiteToastConfig);
     } finally {
       setIsLoadingFollowList(false);
     }
@@ -339,7 +301,8 @@ export default function UserPage() {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      Toast.fire({ icon: "error", title: "Vui lòng chọn file hình ảnh!" });
+      // ĐÃ THAY ĐỔI
+      toast.error("Vui lòng chọn file hình ảnh!", whiteToastConfig);
       return;
     }
 
@@ -362,13 +325,14 @@ export default function UserPage() {
         setUser(updatedUser);
         setProfileUser(prev => ({...prev, Avatar: data.avatarUrl})); 
         window.dispatchEvent(new Event("user-changed"));
-        Toast.fire({ icon: "success", title: "Cập nhật ảnh hồ sơ thành công!" });
+        // ĐÃ THAY ĐỔI
+        toast.success("Cập nhật ảnh hồ sơ thành công!", whiteToastConfig);
       } else {
-        Toast.fire({ icon: "error", title: data.message });
+        toast.error(data.message, whiteToastConfig);
       }
     } catch (error) {
       console.error(error);
-      Toast.fire({ icon: "error", title: "Lỗi kết nối Server!" });
+      toast.error("Lỗi kết nối Server!", whiteToastConfig);
     }
   };
 
@@ -379,7 +343,7 @@ export default function UserPage() {
     const trimmedBio = formBio.trim();
 
     if (!trimmedName) {
-      Toast.fire({ icon: "warning", title: "Vui lòng điền họ tên." });
+      toast.warning("Vui lòng điền họ tên.", whiteToastConfig);
       return;
     }
 
@@ -409,25 +373,25 @@ export default function UserPage() {
         window.dispatchEvent(new Event("user-changed"));
 
         setIsEditingProfile(false);
-        Toast.fire({ icon: "success", title: "Cập nhật hồ sơ thành công!" });
+        toast.success("Cập nhật hồ sơ thành công!", whiteToastConfig);
       } else {
         const data = await response.json();
-        Toast.fire({ icon: "error", title: data.message });
+        toast.error(data.message, whiteToastConfig);
       }
     } catch (error) {
       console.error(error);
-      Toast.fire({ icon: "error", title: "Lỗi kết nối Server!" });
+      toast.error("Lỗi kết nối Server!", whiteToastConfig);
     }
   };
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
     if (newPassword !== confirmNewPassword) {
-      Toast.fire({ icon: "error", title: "Mật khẩu mới không khớp!" });
+      toast.error("Mật khẩu mới không khớp!", whiteToastConfig);
       return;
     }
     if (newPassword.length < 6) {
-      Toast.fire({ icon: "warning", title: "Mật khẩu ít nhất 6 ký tự!" });
+      toast.warning("Mật khẩu ít nhất 6 ký tự!", whiteToastConfig);
       return;
     }
 
@@ -447,21 +411,20 @@ export default function UserPage() {
 
       const data = await response.json();
       if (response.ok) {
-        Toast.fire({ icon: "success", title: data.message });
+        toast.success(data.message, whiteToastConfig);
         setIsChangePasswordOpen(false);
         setCurrentPassword("");
         setNewPassword("");
         setConfirmNewPassword("");
       } else {
-        Toast.fire({ icon: "error", title: data.message });
+        toast.error(data.message, whiteToastConfig);
       }
     } catch (error) {
       console.error(error);
-      Toast.fire({ icon: "error", title: "Lỗi kết nối Server!" });
+      toast.error("Lỗi kết nối Server!", whiteToastConfig);
     }
   };
 
-  // --- XỬ LÝ GIAO DIỆN CHỜ HOẶC LỖI ---
   if (isProfileLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 pt-20">
@@ -489,7 +452,6 @@ export default function UserPage() {
     );
   }
 
-  // --- GIAO DIỆN CHÍNH THỨC ---
   return (
     <div className="min-h-screen bg-white pt-24 pb-14 text-gray-900 font-sans">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -513,7 +475,6 @@ export default function UserPage() {
               )}
             </div>
 
-            {/* Chỉ hiện lớp phủ mờ đổi ảnh nếu là chủ nhà */}
             {isOwnProfile && (
               <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
                 <svg
@@ -556,7 +517,6 @@ export default function UserPage() {
               </p>
             )}
 
-            {/* CHUYỂN ĐỔI NÚT DỰA VÀO VIỆC CÓ PHẢI CHỦ NHÀ KHÔNG */}
             {isOwnProfile ? (
               <div className="flex items-center gap-2 mt-4">
                 <button
@@ -626,7 +586,6 @@ export default function UserPage() {
               </div>
             )}
 
-            {/* HIỂN THỊ CÁC CON SỐ THẬT TỪ DATABASE CÓ CLICK */}
             <div className="flex gap-6 mt-5 text-sm">
               <div className="flex gap-1.5 cursor-pointer hover:underline text-gray-500 group" onClick={() => handleOpenFollowList('following')}>
                 <span className="font-bold text-gray-900 group-hover:text-orange-500">{profileUser.FollowingCount || 0}</span> Đang follow
@@ -667,7 +626,6 @@ export default function UserPage() {
 
         {/* --- KHU VỰC NỘI DUNG TABS --- */}
         <div className="py-8">
-          {/* TAB: BÀI ĐĂNG CỦA TÔI */}
           {activeTab === "Bài đăng của tôi" ? (
             isLoadingRecipes ? (
               <div className="flex flex-col items-center justify-center py-20 text-gray-400">
@@ -776,16 +734,12 @@ export default function UserPage() {
               </div>
             )
           ) : activeTab === "Yêu thích" ? (
-            /* ==============================================
-               TAB: YÊU THÍCH
-               ============================================== */
             !isOwnProfile ? (
               <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-in fade-in">
-                <div className="text-4xl mb-3">🤫</div>
                 <h3 className="text-lg font-bold text-gray-800">
-                  Danh sách yêu thích là mục riêng tư
+                  Đây là mục riêng tư
                 </h3>
-                <p className="text-sm mt-1">Chỉ chủ nhân của tài khoản này mới có thể xem.</p>
+                <p className="text-sm mt-1">Chỉ chủ tài khoản mới có thể xem!</p>
               </div>
             ) : isFetchingFav ? (
               <div className="flex flex-col items-center justify-center py-20 text-gray-400">
@@ -818,7 +772,6 @@ export default function UserPage() {
               </div>
             )
           ) : (
-            /* TAB KHÁC (FALLBACK) */
             <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-in fade-in">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -842,9 +795,6 @@ export default function UserPage() {
         </div>
       </div>
 
-      {/* ==============================================
-          MODAL HIỂN THỊ DANH SÁCH FOLLOW
-          ============================================== */}
       {isFollowModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-[24px] w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col overflow-hidden max-h-[80vh]">
@@ -887,7 +837,6 @@ export default function UserPage() {
         </div>
       )}
 
-      {/* MODAL EDIT PROFILE (CHỈ RENDER NẾU LÀ CHỦ NHÀ) */}
       {isOwnProfile && isEditingProfile && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-[24px] w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
@@ -1024,7 +973,6 @@ export default function UserPage() {
         </div>
       )}
 
-      {/* MODAL ĐỔI MẬT KHẨU */}
       {isOwnProfile && isChangePasswordOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl animate-in zoom-in-95 duration-200">

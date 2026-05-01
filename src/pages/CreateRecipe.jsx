@@ -1,9 +1,26 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { toast } from 'react-toastify';
 
 export default function CreateRecipe() {
   const navigate = useNavigate();
+
+  // ==========================================
+  // BẪY BẢO VỆ: KIỂM TRA ĐĂNG NHẬP NGAY LÚC LOAD TRANG
+  // ==========================================
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.warning("Bạn cần đăng nhập để chia sẻ công thức nhé!", {
+        position: "top-center",
+        autoClose: 2000,
+        theme: "light",
+        className: "!bg-white !text-gray-800 !rounded-[16px] !shadow-xl !border !border-gray-100 !font-bold !text-sm"
+      });
+      navigate('/login'); 
+    }
+  }, [navigate]);
 
   const [user] = useState(() => {
     const savedUser = localStorage.getItem('loggedInUser');

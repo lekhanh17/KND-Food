@@ -23,6 +23,14 @@ export default function LoginPage() {
       className: "rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 mt-4",
     };
 
+    // 🛑 CHẶN MẬT KHẨU NGẮN (LỚP KHIÊN REACT)
+    if (password.length < 8) {
+      setIsLoading(false); // Tắt loading đi để user còn nhập lại
+      setError("Mật khẩu phải từ 8 ký tự trở lên!");
+      toast.error("Sai định dạng mật khẩu!", toastConfig);
+      return; 
+    }
+
     try {
       const response = await fetch('http://localhost:5000/api/login', {
         method: 'POST',
@@ -102,6 +110,7 @@ export default function LoginPage() {
                 <input
                   type="password"
                   required
+                  minLength={8} // 🛑 LỚP KHIÊN HTML5
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white transition-all"
                   placeholder="••••••••"
                 />

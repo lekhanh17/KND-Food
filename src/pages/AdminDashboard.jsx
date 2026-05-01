@@ -11,14 +11,89 @@ import {
   faCheck,
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
-import Swal from "sweetalert2";
+
+// ==========================================
+// CẤU HÌNH ÉP TOAST SANG MÀU TRẮNG (DÙNG ! ĐỂ ĐÈ APP.JSX)
+// ==========================================
+const whiteToastConfig = {
+  position: "top-center",
+  autoClose: 2000,
+  hideProgressBar: true,
+  theme: "light",
+  closeButton: true,
+  className: "!bg-white !text-gray-800 !rounded-[16px] !shadow-xl !border !border-gray-100 !px-4 !py-3 !w-max !min-w-[300px] !mx-auto !mt-4 !flex !justify-between !items-center",
+  bodyClassName: "!text-sm !font-bold !p-0 !m-0 !flex !items-center !gap-2",
+};
+
+// ==========================================
+// COMPONENT: DROPDOWN CHỌN VAI TRÒ SIÊU ĐẸP
+// ==========================================
+const CustomRoleDropdown = ({ currentRole, onRoleChange, disabled }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const roles = ["User", "Staff", "Admin"];
+
+  // Bộ màu sắc riêng cho từng Role để nhìn phát biết ngay
+  const roleColors = {
+    Admin: "bg-red-50 text-red-600 border-red-200 hover:bg-red-100",
+    Staff: "bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100",
+    User: "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100",
+  };
+
+  return (
+    <div className="relative inline-block text-left w-28">
+      {/* Nút bấm hiển thị Role hiện tại */}
+      <button
+        type="button"
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`flex items-center justify-between w-full px-3 py-2 rounded-xl border text-[11px] font-black uppercase tracking-wider transition-all ${
+          roleColors[currentRole || "User"]
+        } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer shadow-sm hover:shadow"}`}
+      >
+        {currentRole || "User"}
+        <svg
+          className={`w-3 h-3 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {/* Khung Dropdown xổ xuống */}
+      {isOpen && !disabled && (
+        <>
+          {/* Lớp phủ tàng hình để click ra ngoài thì tự đóng menu */}
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)}></div>
+          
+          <div className="absolute z-50 w-full mt-1.5 bg-white border border-gray-100 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {roles.map((role) => (
+              <div
+                key={role}
+                onClick={() => {
+                  onRoleChange(role);
+                  setIsOpen(false);
+                }}
+                className={`px-3 py-2.5 text-[11px] font-black uppercase tracking-wider cursor-pointer transition-colors ${
+                  currentRole === role
+                    ? "bg-orange-50 text-orange-600"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                }`}
+              >
+                {role}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
-  const [pendingRecipes, setPendingRecipes] = useState([]); // Chứa danh sách bài chờ duyệt
+  const [pendingRecipes, setPendingRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // THÊM: Biến quản lý Tab đang mở ('users' hoặc 'recipes')
   const [activeTab, setActiveTab] = useState("users");
 
   const navigate = useNavigate();
@@ -26,7 +101,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchUsers();
-    fetchPendingRecipes(); // Gọi thêm hàm lấy bài chờ duyệt
+    fetchPendingRecipes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -48,13 +123,13 @@ export default function AdminDashboard() {
       setUsers(data);
     } catch (error) {
       console.error("Lỗi chi tiết:", error);
-      toast.error("Có lỗi xảy ra!");
+      toast.error("Có lỗi xảy ra!", whiteToastConfig);
     } finally {
       setLoading(false);
     }
   };
 
-  // --- API LẤY BÀI CHỜ DUYỆT (MỚI) ---
+  // --- API LẤY BÀI CHỜ DUYỆT ---
   const fetchPendingRecipes = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -73,18 +148,8 @@ export default function AdminDashboard() {
     }
   };
 
-  // --- API DUYỆT BÀI (MỚI) ---
+  // --- API DUYỆT BÀI ---
   const handleApproveRecipe = async (id) => {
-    // 1. Khai báo cấu hình giao diện cho Toast (Màu trắng, bo góc đẹp)
-    const toastConfig = {
-      position: "top-center",
-      autoClose: 2000,
-      hideProgressBar: true,
-      theme: "light",
-      className:
-        "rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 mt-4",
-    };
-
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
@@ -96,75 +161,47 @@ export default function AdminDashboard() {
       );
 
       if (response.ok) {
-        // 2. Ép cái config vào hàm toast
-        toast.success("Đã duyệt món ăn!", toastConfig);
+        toast.success("Đã duyệt món ăn!", whiteToastConfig);
         setPendingRecipes(pendingRecipes.filter((r) => r.RecipeID !== id));
       } else {
-        toast.error("Lỗi duyệt bài!", toastConfig);
+        toast.error("Lỗi duyệt bài!", whiteToastConfig);
       }
     } catch (error) {
       console.error("Lỗi chi tiết:", error);
-      toast.error("Có lỗi xảy ra!");
+      toast.error("Có lỗi xảy ra!", whiteToastConfig);
     }
   };
 
-  // --- API TỪ CHỐI BÀI (MỚI) ---
+  // --- API TỪ CHỐI BÀI ---
   const handleRejectRecipe = async (id) => {
-    // 1. Cấu hình Toast giao diện chuẩn KND Food
-    const toastConfig = {
-      position: "top-center",
-      autoClose: 1500,
-      hideProgressBar: true,
-      theme: "light",
-      className:
-        "rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 mt-4",
-    };
+    const isConfirm = window.confirm(
+      "Xác nhận từ chối? Bài đăng này sẽ bị xóa vĩnh viễn!"
+    );
+    if (!isConfirm) return;
 
-    // 2. Dùng SweetAlert2 để hỏi xác nhận thay cho window.confirm
-    Swal.fire({
-      title: "Xác nhận từ chối?",
-      text: "Bài đăng này sẽ bị xóa vĩnh viễn và tác giả sẽ nhận được thông báo. Bạn chắc chắn chứ?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#ef4444", // Màu đỏ cho nút Xóa
-      cancelButtonColor: "#9ca3af", // Màu xám cho nút Hủy
-      confirmButtonText: "Xác nhận",
-      cancelButtonText: "Hủy",
-      borderRadius: "20px",
-      customClass: {
-        popup: "rounded-3xl shadow-2xl border border-gray-100",
-      },
-    }).then(async (result) => {
-      // Nếu người dùng bấm xác nhận
-      if (result.isConfirmed) {
-        try {
-          const token = localStorage.getItem("token");
-          const response = await fetch(
-            `http://localhost:5000/api/admin/reject-recipe/${id}`,
-            {
-              method: "DELETE",
-              headers: { Authorization: `Bearer ${token}` },
-            },
-          );
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:5000/api/admin/reject-recipe/${id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
-          if (response.ok) {
-            // Cập nhật giao diện: Xóa bài đó khỏi danh sách chờ duyệt
-            setPendingRecipes(pendingRecipes.filter((r) => r.RecipeID !== id));
-
-            // Thông báo thành công với giao diện mới
-            toast.success("Đã từ chối bài đăng!", toastConfig);
-          } else {
-            toast.error("❌ Có lỗi xảy ra khi thực hiện!", toastConfig);
-          }
-        } catch (error) {
-          console.error(error);
-          toast.error("❌ Lỗi kết nối đến máy chủ!", toastConfig);
-        }
+      if (response.ok) {
+        setPendingRecipes(pendingRecipes.filter((r) => r.RecipeID !== id));
+        toast.success("Đã từ chối bài đăng!", whiteToastConfig);
+      } else {
+        toast.error("Có lỗi xảy ra khi thực hiện!", whiteToastConfig);
       }
-    });
+    } catch (error) {
+      console.error(error);
+      toast.error("Lỗi kết nối đến máy chủ!", whiteToastConfig);
+    }
   };
 
-  // --- CÁC HÀM CŨ GIỮ NGUYÊN ---
+  // --- CHUYỂN VAI TRÒ ---
   const handleRoleChange = async (userId, newRole) => {
     try {
       const token = localStorage.getItem("token");
@@ -181,22 +218,23 @@ export default function AdminDashboard() {
       );
 
       if (response.ok) {
-        toast.success(`Đã chuyển vai trò thành ${newRole}!`);
+        toast.success(`Đã chuyển vai trò thành ${newRole}!`, whiteToastConfig);
         setUsers(
           users.map((u) => (u.UserID === userId ? { ...u, Role: newRole } : u)),
         );
       } else {
-        toast.error("Lỗi cập nhật!");
+        toast.error("Lỗi cập nhật!", whiteToastConfig);
       }
     } catch (error) {
       console.error("Lỗi chi tiết:", error);
-      toast.error("Có lỗi xảy ra!");
+      toast.error("Có lỗi xảy ra!", whiteToastConfig);
     }
   };
 
+  // --- XÓA USER ---
   const handleDeleteUser = async (id) => {
     const isConfirm = window.confirm(
-      "⚠️ Xóa thành viên này? Hành động này không thể hoàn tác!",
+      "⚠️ Xóa thành viên này? Hành động này không thể hoàn tác!"
     );
     if (!isConfirm) return;
 
@@ -208,15 +246,15 @@ export default function AdminDashboard() {
       });
 
       if (response.ok) {
-        toast.success("Đã xóa người dùng!");
+        toast.success("Đã xóa người dùng!", whiteToastConfig);
         setUsers(users.filter((user) => user.UserID !== id));
       } else {
         const data = await response.json();
-        toast.error(data.message || "Xóa thất bại!");
+        toast.error(data.message || "Xóa thất bại!", whiteToastConfig);
       }
     } catch (error) {
       console.error("Lỗi chi tiết:", error);
-      toast.error("Có lỗi xảy ra!");
+      toast.error("Có lỗi xảy ra!", whiteToastConfig);
     }
   };
 
@@ -307,21 +345,15 @@ export default function AdminDashboard() {
                           </td>
                           <td className="py-5 px-4 text-gray-600">{u.Email}</td>
                           <td className="py-5 px-4">
-                            <select
-                              value={u.Role || "User"}
-                              onChange={(e) =>
-                                handleRoleChange(u.UserID, e.target.value)
-                              }
-                              disabled={currentUser?.Role !== "Admin"} // KHÓA LẠI NẾU LÀ STAFF
-                              className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase ${currentUser?.Role !== "Admin" ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-                            >
-                              <option value="User">User</option>
-                              <option value="Staff">Staff</option>
-                              <option value="Admin">Admin</option>
-                            </select>
+                            {/* DÙNG CUSTOM COMPONENT Ở ĐÂY ĐỂ ĐẸP HƠN */}
+                            <CustomRoleDropdown
+                              currentRole={u.Role || "User"}
+                              onRoleChange={(newRole) => handleRoleChange(u.UserID, newRole)}
+                              disabled={currentUser?.Role !== "Admin"}
+                            />
                           </td>
                           <td className="py-5 px-4 text-center">
-                            {currentUser?.Role === "Admin" && ( // CHỈ ADMIN THẤY NÚT XÓA
+                            {currentUser?.Role === "Admin" && (
                               <button
                                 onClick={() => handleDeleteUser(u.UserID)}
                                 className="text-red-400 hover:text-red-600"
