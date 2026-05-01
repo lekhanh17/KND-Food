@@ -317,7 +317,7 @@ export default function Navbar() {
                   <div className="absolute top-full right-0 w-48 sm:w-56 bg-white shadow-2xl rounded-3xl p-3 border border-gray-50 mt-0.2 animate-in fade-in slide-in-from-top-2 duration-200 z-[60]">
                     <Link to="/profile" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-500 rounded-2xl transition font-bold group">
                       <FontAwesomeIcon icon={faUser} className="w-4 text-gray-400 group-hover:text-orange-500" />
-                      Hồ sơ
+                      Hồ sơ cá nhân
                     </Link>
                     <div className="my-1 border-t border-gray-100"></div>
                     <button onClick={handleLogout} className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50 rounded-2xl transition font-bold group">

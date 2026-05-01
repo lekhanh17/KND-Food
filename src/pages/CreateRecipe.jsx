@@ -85,7 +85,7 @@ export default function CreateRecipe() {
 
   const showWarning = (text) => {
     Swal.fire({
-      title: 'Khoan đã!',
+      title: 'Cảnh báo!',
       text: text,
       icon: 'warning',
       confirmButtonText: 'Đã hiểu',
@@ -168,8 +168,15 @@ export default function CreateRecipe() {
       return;
     }
 
-    if (!title.trim() || !imageFile) {
-      return showWarning('Vui lòng nhập tên món và chọn ảnh đại diện!');
+    // ==========================================
+    // Cảnh báo bắt buộc nhập Tên và Ảnh
+    // ==========================================
+    if (!title.trim()) {
+      return showWarning('Vui lòng nhập tên món ăn!');
+    }
+
+    if (!imageFile) {
+      return showWarning('Vui lòng thêm ảnh đại diện cho món ăn!');
     }
 
     const validIngredients = ingredients.filter(i => i.name.trim() !== '');
@@ -271,7 +278,7 @@ export default function CreateRecipe() {
           <p className="text-gray-500 mt-2 font-medium">Chia sẻ công thức nấu ăn của bạn tới cộng đồng.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-8" noValidate>
           
           <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
@@ -328,11 +335,12 @@ export default function CreateRecipe() {
                 <div>
                   <div className="flex justify-between items-center mb-2">
                     <label className="block text-sm font-bold text-gray-700">Độ khó</label>
-                    <span className="text-xs font-black text-orange-600 bg-orange-50 px-3 py-1 rounded-lg uppercase tracking-wider">
+                    <span className="text-xs font-black text-orange-600 bg-orange-50 px-3 py-1 rounded-lg tracking-wider">
                       {difficultyLabels[difficulty]}
                     </span>
                   </div>
                   <div className="relative pt-2 pb-6">
+                    {/* ĐÃ THÊM LẠI: style linear-gradient vào thanh input range và bỏ bg-gray-200 để hiển thị vạch màu cam */}
                     <input 
                       type="range" 
                       min="1" 
@@ -340,14 +348,17 @@ export default function CreateRecipe() {
                       step="1"
                       value={difficulty} 
                       onChange={(e) => setDifficulty(parseInt(e.target.value))} 
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-orange-500 hover:accent-orange-600 transition-all relative z-10"
+                      className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-orange-500 hover:accent-orange-600 transition-all relative z-10"
+                      style={{
+                        background: `linear-gradient(to right, #f97316 ${((difficulty - 1) / 4) * 100}%, #e5e7eb ${((difficulty - 1) / 4) * 100}%)`
+                      }}
                     />
                     <div className="absolute top-7 left-0 w-full text-[10px] font-black text-gray-400">
-                      <span className="absolute left-0">RẤT DỄ</span>
-                      <span className="absolute left-1/4 -translate-x-1/2">DỄ</span>
-                      <span className="absolute left-1/2 -translate-x-1/2">VỪA</span>
-                      <span className="absolute left-3/4 -translate-x-1/2">KHÓ</span>
-                      <span className="absolute right-0">RẤT KHÓ</span>
+                      <span className="absolute left-0">Rất Dễ</span>
+                      <span className="absolute left-1/4 -translate-x-1/2">Dễ</span>
+                      <span className="absolute left-1/2 -translate-x-1/2">Trung Bình</span>
+                      <span className="absolute left-3/4 -translate-x-1/2">Khó</span>
+                      <span className="absolute right-0">Rất Khó</span>
                     </div>
                   </div>
                 </div>
