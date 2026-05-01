@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTrash,
   faUserShield,
   faUsers,
-  faArrowLeft,
   faUtensils,
   faCheck,
   faTimes,
@@ -32,7 +31,6 @@ const CustomRoleDropdown = ({ currentRole, onRoleChange, disabled }) => {
   const [isOpen, setIsOpen] = useState(false);
   const roles = ["User", "Staff", "Admin"];
 
-  // Bộ màu sắc riêng cho từng Role để nhìn phát biết ngay
   const roleColors = {
     Admin: "bg-red-50 text-red-600 border-red-200 hover:bg-red-100",
     Staff: "bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100",
@@ -40,18 +38,18 @@ const CustomRoleDropdown = ({ currentRole, onRoleChange, disabled }) => {
   };
 
   return (
-    <div className="relative inline-block text-left w-28">
+    <div className="relative inline-block text-left w-24 sm:w-28">
       {/* Nút bấm hiển thị Role hiện tại */}
       <button
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
-        className={`flex items-center justify-between w-full px-3 py-2 rounded-xl border text-[11px] font-black uppercase tracking-wider transition-all ${
+        className={`flex items-center justify-between w-full px-2 py-1.5 sm:px-3 sm:py-2 rounded-xl border text-[9px] sm:text-[11px] font-black uppercase tracking-wider transition-all ${
           roleColors[currentRole || "User"]
         } ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer shadow-sm hover:shadow"}`}
       >
         {currentRole || "User"}
         <svg
-          className={`w-3 h-3 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+          className={`w-2 h-2 sm:w-3 sm:h-3 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -74,7 +72,7 @@ const CustomRoleDropdown = ({ currentRole, onRoleChange, disabled }) => {
                   onRoleChange(role);
                   setIsOpen(false);
                 }}
-                className={`px-3 py-2.5 text-[11px] font-black uppercase tracking-wider cursor-pointer transition-colors ${
+                className={`px-3 py-2 sm:py-2.5 text-[9px] sm:text-[11px] font-black uppercase tracking-wider cursor-pointer transition-colors ${
                   currentRole === role
                     ? "bg-orange-50 text-orange-600"
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
@@ -260,104 +258,83 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 pt-20 pb-14 text-gray-900">
-      <div className="container mx-auto px-4 lg:px-10">
-        {/* Header Section */}
-        <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden mb-8">
-          <div className="bg-gradient-to-r from-red-600 to-orange-500 px-10 py-12 flex justify-between items-center text-white">
-            <div>
-              <h1 className="text-3xl font-black uppercase tracking-tighter flex items-center gap-3">
-                <FontAwesomeIcon icon={faUserShield} />{" "}
-                {currentUser?.Role === "Admin"
-                  ? "Quản Trị Hệ Thống"
-                  : "Khu Vực Nhân Viên"}
+      <div className="container mx-auto px-2 sm:px-4 lg:px-10">
+        
+        {/* Header Section - ĐÃ XÓA nút quay lại, tối ưu font Mobile */}
+        <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden mb-4 sm:mb-8">
+          <div className="bg-gradient-to-r from-red-600 to-orange-500 px-5 py-8 sm:px-10 sm:py-12 flex items-center text-white">
+            <div className="flex-1">
+              <h1 className="text-xl sm:text-3xl font-black uppercase tracking-tighter flex items-center gap-2 sm:gap-3">
+                <FontAwesomeIcon icon={faUserShield} className="text-lg sm:text-2xl" />{" "}
+                <span className="leading-tight">
+                  {currentUser?.Role === "Admin" ? "Quản Trị Hệ Thống" : "Khu Vực Nhân Viên"}
+                </span>
               </h1>
-              <p className="text-red-100 mt-2 font-medium opacity-90">
+              <p className="text-[10px] sm:text-base text-red-100 mt-1 font-medium opacity-90">
                 Xin chào, {currentUser?.FullName}
               </p>
             </div>
-            <Link
-              to="/"
-              className="px-6 py-3 bg-white/20 hover:bg-white/30 rounded-2xl font-bold backdrop-blur-md transition-all flex items-center gap-2"
-            >
-              <FontAwesomeIcon icon={faArrowLeft} /> Về trang chủ
-            </Link>
           </div>
 
-          {/* TAB CHUYỂN ĐỔI CHỨC NĂNG */}
+          {/* TAB CHUYỂN ĐỔI */}
           <div className="flex border-b border-gray-100">
             <button
               onClick={() => setActiveTab("users")}
-              className={`flex-1 py-5 text-sm font-black uppercase tracking-widest transition-all ${activeTab === "users" ? "text-orange-600 border-b-4 border-orange-500 bg-orange-50/50" : "text-gray-400 hover:bg-gray-50"}`}
+              className={`flex-1 py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-[10px] sm:text-sm font-black uppercase tracking-widest transition-all ${activeTab === "users" ? "text-orange-600 border-b-4 border-orange-500 bg-orange-50/50" : "text-gray-400 hover:bg-gray-50"}`}
             >
-              <FontAwesomeIcon icon={faUsers} className="mr-2" /> Quản lý thành
-              viên ({users.length})
+              <FontAwesomeIcon icon={faUsers} />
+              <span className="text-center">Thành viên ({users.length})</span>
             </button>
             <button
               onClick={() => setActiveTab("recipes")}
-              className={`flex-1 py-5 text-sm font-black uppercase tracking-widest transition-all ${activeTab === "recipes" ? "text-orange-600 border-b-4 border-orange-500 bg-orange-50/50" : "text-gray-400 hover:bg-gray-50"}`}
+              className={`flex-1 py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-[10px] sm:text-sm font-black uppercase tracking-widest transition-all ${activeTab === "recipes" ? "text-orange-600 border-b-4 border-orange-500 bg-orange-50/50" : "text-gray-400 hover:bg-gray-50"}`}
             >
-              <FontAwesomeIcon icon={faUtensils} className="mr-2" /> Duyệt công
-              thức ({pendingRecipes.length})
+              <FontAwesomeIcon icon={faUtensils} />
+              <span className="text-center">Duyệt bài ({pendingRecipes.length})</span>
               {pendingRecipes.length > 0 && (
-                <span className="ml-2 w-2 h-2 bg-red-500 inline-block rounded-full animate-ping"></span>
+                <span className="sm:ml-2 w-1.5 h-1.5 bg-red-500 inline-block rounded-full animate-ping"></span>
               )}
             </button>
           </div>
         </div>
 
         {/* Nội dung TAB */}
-        <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 min-h-[400px]">
-          {/* TAB 1: THÀNH VIÊN */}
+        <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-sm border border-gray-100 p-4 sm:p-8 min-h-[400px]">
+          
           {activeTab === "users" && (
             <>
-              <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tighter mb-8 px-2">
+              <h2 className="text-lg sm:text-2xl font-black text-gray-800 uppercase tracking-tighter mb-4 sm:mb-8 px-2">
                 Danh sách thành viên
               </h2>
-              <div className="overflow-x-auto">
+              {/* ĐÃ SỬA: pb-40 để menu Role hiện thoải mái không bị bảng nuốt mất */}
+              <div className="overflow-x-auto pb-40 -mx-2 sm:mx-0 px-2 sm:px-0">
                 {loading ? (
-                  <div className="py-20 text-center">Đang tải...</div>
+                  <div className="py-20 text-center font-bold text-gray-400">Đang tải...</div>
                 ) : (
-                  <table className="w-full text-left border-collapse">
+                  <table className="w-full text-left border-collapse min-w-[500px]">
                     <thead>
                       <tr className="border-b border-gray-100">
-                        <th className="py-4 px-4 text-xs font-black text-gray-400 uppercase">
-                          Thành viên
-                        </th>
-                        <th className="py-4 px-4 text-xs font-black text-gray-400 uppercase">
-                          Email
-                        </th>
-                        <th className="py-4 px-4 text-xs font-black text-gray-400 uppercase">
-                          Vai trò
-                        </th>
-                        <th className="py-4 px-4 text-xs font-black text-gray-400 uppercase text-center">
-                          Thao tác
-                        </th>
+                        <th className="py-4 px-2 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase">Thành viên</th>
+                        <th className="py-4 px-2 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase">Email</th>
+                        <th className="py-4 px-2 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase">Vai trò</th>
+                        <th className="py-4 px-2 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase text-center">Xóa</th>
                       </tr>
                     </thead>
                     <tbody>
                       {users.map((u) => (
-                        <tr
-                          key={u.UserID}
-                          className="border-b border-gray-50 hover:bg-gray-50"
-                        >
-                          <td className="py-5 px-4 font-bold text-gray-800">
-                            {u.FullName}
-                          </td>
-                          <td className="py-5 px-4 text-gray-600">{u.Email}</td>
-                          <td className="py-5 px-4">
-                            {/* DÙNG CUSTOM COMPONENT Ở ĐÂY ĐỂ ĐẸP HƠN */}
+                        <tr key={u.UserID} className="border-b border-gray-50 hover:bg-gray-50">
+                          <td className="py-4 px-2 sm:px-4 font-bold text-gray-800 text-xs sm:text-sm">{u.FullName}</td>
+                          <td className="py-4 px-2 sm:px-4 text-gray-600 text-[10px] sm:text-sm truncate max-w-[120px] sm:max-w-none">{u.Email}</td>
+                          <td className="py-4 px-2 sm:px-4">
                             <CustomRoleDropdown
                               currentRole={u.Role || "User"}
                               onRoleChange={(newRole) => handleRoleChange(u.UserID, newRole)}
                               disabled={currentUser?.Role !== "Admin"}
                             />
                           </td>
-                          <td className="py-5 px-4 text-center">
+                          <td className="py-4 px-2 sm:px-4 text-center">
                             {currentUser?.Role === "Admin" && (
-                              <button
-                                onClick={() => handleDeleteUser(u.UserID)}
-                                className="text-red-400 hover:text-red-600"
-                              >
+                              <button onClick={() => handleDeleteUser(u.UserID)} className="text-red-300 hover:text-red-600 transition-colors">
                                 <FontAwesomeIcon icon={faTrash} />
                               </button>
                             )}
@@ -371,52 +348,34 @@ export default function AdminDashboard() {
             </>
           )}
 
-          {/* TAB 2: DUYỆT BÀI */}
           {activeTab === "recipes" && (
             <>
-              <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tighter mb-8 px-2">
+              <h2 className="text-lg sm:text-2xl font-black text-gray-800 uppercase tracking-tighter mb-4 sm:mb-8 px-2">
                 Công thức chờ duyệt
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {pendingRecipes.length === 0 ? (
-                  <div className="col-span-full py-20 text-center text-gray-500 font-bold">
-                    Không có món ăn nào cần duyệt!
+                  <div className="col-span-full py-20 text-center text-gray-400 font-bold uppercase tracking-widest">
+                    Không có công thức chờ duyệt!
                   </div>
                 ) : (
                   pendingRecipes.map((recipe) => (
-                    <div
-                      key={recipe.RecipeID}
-                      className="border border-gray-100 rounded-3xl p-4 shadow-sm hover:shadow-md transition bg-white"
-                    >
+                    <div key={recipe.RecipeID} className="border border-gray-100 rounded-3xl p-4 shadow-sm hover:shadow-md transition bg-white flex flex-col">
                       <img
-                        src={
-                          recipe.ImageURL || "https://via.placeholder.com/300"
-                        }
+                        src={recipe.ImageURL || "https://via.placeholder.com/300"}
                         alt={recipe.Title}
-                        className="w-full h-40 object-cover rounded-2xl mb-4"
+                        className="w-full h-32 sm:h-40 object-cover rounded-2xl mb-4"
                       />
-                      <h3 className="font-black text-lg text-gray-800 line-clamp-1">
-                        {recipe.Title}
-                      </h3>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Tác giả:{" "}
-                        <span className="font-bold">{recipe.FullName}</span>
+                      <h3 className="font-black text-base sm:text-lg text-gray-800 line-clamp-1">{recipe.Title}</h3>
+                      <p className="text-[10px] sm:text-sm text-gray-500 mt-1 flex-grow">
+                        Tác giả: <span className="font-bold text-gray-700">{recipe.FullName}</span>
                       </p>
-
                       <div className="flex gap-2 mt-4">
-                        <button
-                          onClick={() => handleApproveRecipe(recipe.RecipeID)}
-                          className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-xl font-bold text-sm transition"
-                        >
-                          <FontAwesomeIcon icon={faCheck} className="mr-1" />{" "}
-                          Duyệt
+                        <button onClick={() => handleApproveRecipe(recipe.RecipeID)} className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-xl font-bold text-[11px] sm:text-sm transition">
+                          <FontAwesomeIcon icon={faCheck} className="mr-1" /> Duyệt
                         </button>
-                        <button
-                          onClick={() => handleRejectRecipe(recipe.RecipeID)}
-                          className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 py-2 rounded-xl font-bold text-sm transition"
-                        >
-                          <FontAwesomeIcon icon={faTimes} className="mr-1" /> Từ
-                          chối
+                        <button onClick={() => handleRejectRecipe(recipe.RecipeID)} className="flex-1 bg-red-100 hover:bg-red-200 text-red-600 py-2 rounded-xl font-bold text-[11px] sm:text-sm transition">
+                          <FontAwesomeIcon icon={faTimes} className="mr-1" /> Từ chối
                         </button>
                       </div>
                     </div>

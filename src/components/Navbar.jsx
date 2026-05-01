@@ -46,9 +46,6 @@ export default function Navbar() {
     }
   };
 
-  // ==============================================
-  // ĐÃ THÊM: HÀM ĐÁNH DẤU ĐỌC 1 THÔNG BÁO CỤ THỂ
-  // ==============================================
   const markSingleAsRead = async (id) => {
     const token = localStorage.getItem("token");
     try {
@@ -57,7 +54,6 @@ export default function Navbar() {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (response.ok) {
-        // Dùng prev để chắc chắn state luôn là mới nhất, bắt luôn trường hợp tên là id thay vì NotificationID
         setNotifications(prev => prev.map(n => 
           (n.NotificationID === id || n.id === id) ? { ...n, IsRead: 1 } : n
         ));
@@ -178,14 +174,14 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100 shadow-sm transition-all duration-300">
-      <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-8">
+      <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-2 sm:gap-8">
         
         {/* LOGO */}
-        <Link to="/" className="flex items-center gap-3 -ml-2 shrink-0 group">
-          <div className="w-11 h-11 bg-orange-500 rounded-2xl flex items-center justify-center text-white text-xl shadow-lg shadow-orange-200 group-hover:rotate-12 transition-transform duration-300">
+        <Link to="/" className="flex items-center gap-2 shrink-0 group">
+          <div className="w-10 h-10 sm:w-11 sm:h-11 bg-orange-500 rounded-2xl flex items-center justify-center text-white text-lg sm:text-xl shadow-lg shadow-orange-200 group-hover:rotate-12 transition-transform duration-300">
             <FontAwesomeIcon icon={faBreadSlice} />
           </div>
-          <span className="text-2xl font-black text-gray-800 tracking-tighter uppercase leading-none">
+          <span className="text-lg sm:text-2xl font-black text-gray-800 tracking-tighter uppercase leading-none">
             KND <span className="text-orange-500">Food</span>
           </span>
         </Link>
@@ -196,7 +192,7 @@ export default function Navbar() {
         </div>
 
         {/* ĐIỀU HƯỚNG & USER */}
-        <div className="flex items-center gap-5 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-5 shrink-0">
           
           <div className="hidden xl:flex items-center gap-6 text-gray-600 font-bold text-sm">
             <Link to="/recipes" className="hover:text-orange-500 transition-colors">
@@ -231,33 +227,36 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* NÚT QUẢN TRỊ */}
+          {/* NÚT QUẢN TRỊ - ĐÃ SỬA: Hiện icon trên mobile, hiện chữ trên máy tính */}
           {user && (user.Role === 'Admin' || user.Role === 'Staff') && (
             <Link 
               to="/admin" 
-              className="hidden sm:flex items-center gap-2 text-red-600 bg-red-50 px-5 py-2.5 rounded-2xl hover:bg-red-600 hover:text-white transition-all duration-300 font-black text-xs uppercase tracking-wider border border-red-100 shadow-sm active:scale-95"
+              className="flex items-center justify-center w-10 h-10 sm:w-auto sm:px-5 sm:py-2.5 text-red-600 bg-red-50 rounded-2xl hover:bg-red-600 hover:text-white transition-all duration-300 font-black text-xs uppercase tracking-wider border border-red-100 shadow-sm active:scale-95"
+              title="Quản trị"
             >
-              <FontAwesomeIcon icon={faUserShield} className="text-xs" />
-              Quản trị
+              <FontAwesomeIcon icon={faUserShield} className="text-sm sm:text-xs" />
+              <span className="hidden sm:inline ml-2">Quản trị</span>
             </Link>
           )}
 
+          {/* NÚT CHIA SẺ - ĐÃ SỬA: Hiện icon trên mobile, hiện chữ trên máy tính */}
           <Link
             to="/create-recipe"
-            className="hidden sm:flex items-center gap-2 text-orange-600 bg-orange-50 px-5 py-2.5 rounded-2xl hover:bg-orange-600 hover:text-white transition-all duration-300 whitespace-nowrap font-black text-xs uppercase tracking-wider border border-orange-100 shadow-sm active:scale-95"
+            className="flex items-center justify-center w-10 h-10 sm:w-auto sm:px-5 sm:py-2.5 text-orange-600 bg-orange-50 rounded-2xl hover:bg-orange-600 hover:text-white transition-all duration-300 whitespace-nowrap font-black text-xs uppercase tracking-wider border border-orange-100 shadow-sm active:scale-95"
+            title="Chia sẻ"
           >
-            <FontAwesomeIcon icon={faUtensils} className="text-xs" />
-            Chia sẻ
+            <FontAwesomeIcon icon={faUtensils} className="text-sm sm:text-xs" />
+            <span className="hidden sm:inline ml-2">Chia sẻ</span>
           </Link>
 
           {user ? (
-            <div className="flex items-center gap-4 border-l border-gray-100 pl-4 ml-1">
+            <div className="flex items-center gap-2 sm:gap-4 border-l border-gray-100 pl-2 sm:pl-4">
               
               {/* CHUÔNG THÔNG BÁO */}
               <div className="relative">
                 <button
                   onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                  className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all border ${unreadCount > 0 ? "bg-orange-500 text-white shadow-lg shadow-orange-200 border-orange-400" : "bg-gray-50 text-gray-500 hover:bg-orange-50 hover:text-orange-500 border-gray-100"}`}
+                  className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center transition-all border ${unreadCount > 0 ? "bg-orange-500 text-white shadow-lg shadow-orange-200 border-orange-400" : "bg-gray-50 text-gray-500 hover:bg-orange-50 hover:text-orange-500 border-gray-100"}`}
                 >
                   <FontAwesomeIcon icon={faBell} className={unreadCount > 0 ? "animate-tada" : ""} />
                   {unreadCount > 0 && (
@@ -268,25 +267,13 @@ export default function Navbar() {
                 </button>
 
                 {isNotificationOpen && (
-                  <div className="absolute top-full right-0 w-80 bg-white shadow-2xl rounded-3xl border border-gray-50 mt-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                  <div className="fixed left-4 right-4 sm:absolute sm:left-auto sm:right-0 sm:w-80 bg-white shadow-2xl rounded-3xl border border-gray-50 mt-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-[60]">
                     <div className="p-5 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
                       <h3 className="font-black text-gray-800 text-sm uppercase">Thông báo</h3>
-                      
                       <div className="flex gap-3">
-                        <button
-                          onClick={markAllAsRead}
-                          className="text-[10px] text-orange-500 font-bold uppercase hover:underline"
-                        >
-                          Đọc hết
-                        </button>
-                        <button
-                          onClick={deleteReadNotifications}
-                          className="text-[10px] text-red-400 font-bold uppercase hover:text-red-600 transition-colors"
-                        >
-                          Xóa thông báo đã đọc
-                        </button>
+                        <button onClick={markAllAsRead} className="text-[10px] text-orange-500 font-bold uppercase hover:underline">Đọc hết</button>
+                        <button onClick={deleteReadNotifications} className="text-[10px] text-red-400 font-bold uppercase hover:text-red-600 transition-colors">Xóa</button>
                       </div>
-                      
                     </div>
                     <div className="max-h-72 overflow-y-auto">
                       {notifications.length > 0 ? (
@@ -294,25 +281,16 @@ export default function Navbar() {
                           <Link
                             to={n.Link || "#"}
                             key={n.NotificationID}
-                            // ==============================================
-                            // ĐÃ SỬA: GỌI HÀM markSingleAsRead KHI BẤM VÀO THÔNG BÁO
-                            // ==============================================
                             onClick={() => {
                               setIsNotificationOpen(false);
-                              if (!n.IsRead) {
-                                markSingleAsRead(n.NotificationID);
-                              }
+                              if (!n.IsRead) markSingleAsRead(n.NotificationID);
                             }}
                             className={`flex gap-3 p-4 border-b border-gray-50 hover:bg-orange-50/30 transition ${!n.IsRead ? "bg-orange-50/50" : ""}`}
                           >
                             <div className="mt-0.5">{getNotifyIcon(n.Type)}</div>
                             <div>
-                              <p className={`text-xs leading-relaxed ${!n.IsRead ? "font-bold text-gray-900" : "text-gray-600"}`}>
-                                {n.Message}
-                              </p>
-                              <span className="text-[9px] text-gray-400 font-bold uppercase mt-1 block">
-                                {timeAgo(n.CreatedAt)}
-                              </span>
+                              <p className={`text-xs leading-relaxed ${!n.IsRead ? "font-bold text-gray-900" : "text-gray-600"}`}>{n.Message}</p>
+                              <span className="text-[9px] text-gray-400 font-bold uppercase mt-1 block">{timeAgo(n.CreatedAt)}</span>
                             </div>
                           </Link>
                         ))
@@ -325,41 +303,24 @@ export default function Navbar() {
               </div>
 
               {/* User Dropdown */}
-              <div
-                className="relative py-2"
-                onMouseEnter={() => setIsUserMenuOpen(true)}
-                onMouseLeave={() => setIsUserMenuOpen(false)}
-              >
-                <button className="flex items-center gap-3 p-1.5 pr-4 bg-gray-50 hover:bg-gray-100 rounded-full transition-all border border-gray-100 group">
-                  <div className="w-9 h-9 bg-orange-500 text-white rounded-full flex items-center justify-center font-black shadow-md shadow-orange-200 uppercase overflow-hidden">
-                    {user.Avatar ? (
-                      <img src={user.Avatar} alt="nav-avt" className="w-full h-full object-cover" />
-                    ) : (
-                      user.FullName ? user.FullName.charAt(0) : "U"
-                    )}
+              <div className="relative py-2" onMouseEnter={() => setIsUserMenuOpen(true)} onMouseLeave={() => setIsUserMenuOpen(false)}>
+                <button className="flex items-center gap-2 sm:gap-3 p-1 sm:p-1.5 sm:pr-4 bg-gray-50 hover:bg-gray-100 rounded-full transition-all border border-gray-100 group">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-orange-500 text-white rounded-full flex items-center justify-center font-black shadow-md shadow-orange-200 uppercase overflow-hidden">
+                    {user.Avatar ? <img src={user.Avatar} alt="avt" className="w-full h-full object-cover" /> : (user.FullName ? user.FullName.charAt(0) : "U")}
                   </div>
-
-                  <span className="text-sm font-bold text-gray-700">
+                  <span className="hidden sm:block text-sm font-bold text-gray-700">
                     {user.FullName ? user.FullName.split(" ")[0] : "Bạn"}
                   </span>
                 </button>
 
                 {isUserMenuOpen && (
-                  <div className="absolute top-full right-0 w-56 bg-white shadow-2xl rounded-3xl p-3 border border-gray-50 mt-0.2 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <Link
-                      to="/profile"
-                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-500 rounded-2xl transition font-bold group"
-                    >
+                  <div className="absolute top-full right-0 w-48 sm:w-56 bg-white shadow-2xl rounded-3xl p-3 border border-gray-50 mt-0.2 animate-in fade-in slide-in-from-top-2 duration-200 z-[60]">
+                    <Link to="/profile" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-500 rounded-2xl transition font-bold group">
                       <FontAwesomeIcon icon={faUser} className="w-4 text-gray-400 group-hover:text-orange-500" />
-                      Hồ sơ cá nhân
+                      Hồ sơ
                     </Link>
-
                     <div className="my-1 border-t border-gray-100"></div>
-
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50 rounded-2xl transition font-bold group"
-                    >
+                    <button onClick={handleLogout} className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50 rounded-2xl transition font-bold group">
                       <FontAwesomeIcon icon={faSignOutAlt} className="w-4 text-red-400 group-hover:text-red-500" />
                       Đăng xuất
                     </button>
@@ -368,13 +329,9 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-3">
-              <Link to="/login" className="text-gray-700 font-bold px-4 py-2 text-sm hover:text-orange-500 transition">
-                Đăng nhập
-              </Link>
-              <Link to="/register" className="bg-orange-500 text-white px-6 py-2.5 rounded-full font-bold text-sm shadow-lg shadow-orange-100 hover:bg-orange-600 transition-all active:scale-95">
-                Đăng ký
-              </Link>
+            <div className="flex items-center gap-2">
+              <Link to="/login" className="text-gray-700 font-bold px-3 py-2 text-xs sm:text-sm hover:text-orange-500 transition">Đăng nhập</Link>
+              <Link to="/register" className="bg-orange-500 text-white px-4 py-2 sm:px-6 rounded-full font-bold text-xs sm:text-sm shadow-lg shadow-orange-100 hover:bg-orange-600 transition-all active:scale-95">Đăng ký</Link>
             </div>
           )}
         </div>

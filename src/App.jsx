@@ -111,7 +111,7 @@ function AppContent() {
   const shouldHideLayout = hideLayoutPaths.includes(location.pathname);
 
   return (
-    // Thêm flex flex-col min-h-screen để ép Footer xuống đáy màn hình
+    // ĐÃ SỬA: Gỡ bỏ overflow-x-hidden ở đây để cho phép trang lướt dọc tự do
     <div className="min-h-screen bg-white flex flex-col">
       
       {/* ==============================================
