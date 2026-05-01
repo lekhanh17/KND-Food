@@ -900,7 +900,7 @@ export default function UserPage() {
 
                 <div className="flex flex-col sm:flex-row gap-4 border-b border-gray-100 pb-6">
                   <div className="w-full sm:w-1/4 text-sm font-bold text-gray-800 pt-3">
-                    Tên người dùng
+                    Id người dùng
                   </div>
                   <div className="w-full sm:w-3/4">
                     <input

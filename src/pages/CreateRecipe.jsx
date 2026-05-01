@@ -334,7 +334,7 @@ export default function CreateRecipe() {
                 
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label className="block text-sm font-bold text-gray-700">Độ khó</label>
+                    <label className="block text-sm font-bold text-gray-700">Mức độ</label>
                     <span className="text-xs font-black text-orange-600 bg-orange-50 px-3 py-1 rounded-lg tracking-wider">
                       {difficultyLabels[difficulty]}
                     </span>

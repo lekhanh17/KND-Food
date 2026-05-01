@@ -7,6 +7,20 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart } from "@fortawesome/free-solid-svg-icons";
 import RecipeCard from "../components/RecipeCard";
 
+// ==========================================
+// HÀM CHUYỂN ĐỔI SỐ SANG CHỮ CHO ĐỘ KHÓ
+// ==========================================
+const getDifficultyLabel = (level) => {
+  const labels = {
+    1: 'Rất dễ',
+    2: 'Dễ',
+    3: 'Trung bình',
+    4: 'Khó',
+    5: 'Rất khó'
+  };
+  return labels[level] || 'Không xác định';
+};
+
 export default function RecipeDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -276,7 +290,10 @@ export default function RecipeDetail() {
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-4">
                 <span className="px-3 py-1 bg-orange-50 text-orange-600 rounded-lg text-xs font-bold tracking-wide uppercase">{categories[recipe.CategoryID] || "Khác"}</span>
-                <span className="px-3 py-1 bg-yellow-50 text-yellow-600 rounded-lg text-xs font-bold tracking-wide">★ Độ khó: {recipe.Difficulty}/5</span>
+                {/* ĐÃ SỬA: Hiển thị chữ cho độ khó thay vì 2/5 */}
+                <span className="px-3 py-1 bg-yellow-50 text-yellow-600 rounded-lg text-xs font-bold tracking-wide">
+                Mức độ: {getDifficultyLabel(recipe.Difficulty)}
+                </span>
               </div>
               <h1 className="text-4xl md:text-5xl font-black text-[#1c2b36] tracking-tight leading-tight mb-4">{recipe.Title}</h1>
               {recipe.Description && <p className="text-gray-500 text-base leading-relaxed">{recipe.Description}</p>}

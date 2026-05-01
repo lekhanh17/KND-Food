@@ -48,9 +48,9 @@ def recommend(req: RecommendRequest):
         recipe_name = df.iloc[i]['Title']
         print(f" -> Món: '{recipe_name}' | Điểm giống nhau: {score:.4f}")
     # ==========================================
-    # Chỉ lấy những món có độ tương đồng trên 0.20 (tương đương 20%)
+    # Chỉ lấy những món có độ tương đồng trên 0.30 (tương đương 30%)
     # x[0] là index, x[1] là score. Ta bỏ qua phần tử đầu tiên vì là chính nó.
-    threshold = 0.20
+    threshold = 0.30
     valid_recommendations = [x for x in sim_scores[1:] if x[1] > threshold]
 
     # Nếu không có món nào đủ giống, trả về rỗng
