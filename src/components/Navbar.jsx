@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -18,6 +18,9 @@ export default function Navbar() {
   });
 
   const [notifications, setNotifications] = useState([]);
+  
+  // ĐÃ THÊM: Tạo Ref để nhận diện vùng menu User
+  const userMenuRef = useRef(null);
 
   const unreadCount = useMemo(() => {
     return notifications.filter((n) => !n.IsRead).length;
@@ -132,6 +135,17 @@ export default function Navbar() {
     };
   }, [user]);
 
+  // ĐÃ THÊM: Sự kiện click ra ngoài để tự động đóng menu User
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const getNotifyIcon = (type) => {
     switch (type) {
       case 'Approve': return <FontAwesomeIcon icon={faCheckCircle} className="text-green-500 text-lg" />;
@@ -227,7 +241,7 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* NÚT QUẢN TRỊ - ĐÃ SỬA: Hiện icon trên mobile, hiện chữ trên máy tính */}
+          {/* NÚT QUẢN TRỊ */}
           {user && (user.Role === 'Admin' || user.Role === 'Staff') && (
             <Link 
               to="/admin" 
@@ -239,7 +253,7 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* NÚT CHIA SẺ - ĐÃ SỬA: Hiện icon trên mobile, hiện chữ trên máy tính */}
+          {/* NÚT CHIA SẺ */}
           <Link
             to="/create-recipe"
             className="flex items-center justify-center w-10 h-10 sm:w-auto sm:px-5 sm:py-2.5 text-orange-600 bg-orange-50 rounded-2xl hover:bg-orange-600 hover:text-white transition-all duration-300 whitespace-nowrap font-black text-xs uppercase tracking-wider border border-orange-100 shadow-sm active:scale-95"
@@ -302,9 +316,12 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* User Dropdown */}
-              <div className="relative py-2" onMouseEnter={() => setIsUserMenuOpen(true)} onMouseLeave={() => setIsUserMenuOpen(false)}>
-                <button className="flex items-center gap-2 sm:gap-3 p-1 sm:p-1.5 sm:pr-4 bg-gray-50 hover:bg-gray-100 rounded-full transition-all border border-gray-100 group">
+              {/* USER DROPDOWN - ĐÃ SỬA: Bỏ hover, chuyển sang Click và gắn thêm ref để nhận diện */}
+              <div className="relative py-2" ref={userMenuRef}>
+                <button 
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center gap-2 sm:gap-3 p-1 sm:p-1.5 sm:pr-4 bg-gray-50 hover:bg-gray-100 rounded-full transition-all border border-gray-100 group"
+                >
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-orange-500 text-white rounded-full flex items-center justify-center font-black shadow-md shadow-orange-200 uppercase overflow-hidden">
                     {user.Avatar ? <img src={user.Avatar} alt="avt" className="w-full h-full object-cover" /> : (user.FullName ? user.FullName.charAt(0) : "U")}
                   </div>
@@ -315,12 +332,19 @@ export default function Navbar() {
 
                 {isUserMenuOpen && (
                   <div className="absolute top-full right-0 w-48 sm:w-56 bg-white shadow-2xl rounded-3xl p-3 border border-gray-50 mt-0.2 animate-in fade-in slide-in-from-top-2 duration-200 z-[60]">
-                    <Link to="/profile" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-500 rounded-2xl transition font-bold group">
+                    <Link 
+                      to="/profile" 
+                      onClick={() => setIsUserMenuOpen(false)} // Tự đóng khi bấm vào link
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-500 rounded-2xl transition font-bold group"
+                    >
                       <FontAwesomeIcon icon={faUser} className="w-4 text-gray-400 group-hover:text-orange-500" />
                       Hồ sơ cá nhân
                     </Link>
                     <div className="my-1 border-t border-gray-100"></div>
-                    <button onClick={handleLogout} className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50 rounded-2xl transition font-bold group">
+                    <button 
+                      onClick={handleLogout} 
+                      className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-red-50 rounded-2xl transition font-bold group"
+                    >
                       <FontAwesomeIcon icon={faSignOutAlt} className="w-4 text-red-400 group-hover:text-red-500" />
                       Đăng xuất
                     </button>

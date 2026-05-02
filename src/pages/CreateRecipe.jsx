@@ -509,7 +509,7 @@ export default function CreateRecipe() {
           </div>
 
           <div className="flex justify-end gap-4 pt-4">
-            <button type="button" onClick={() => navigate('/profile')} className="px-8 py-4 bg-white border border-gray-300 text-gray-700 rounded-2xl font-bold hover:bg-gray-50 transition active:scale-95">Hủy bỏ</button>
+            <button type="button" onClick={() => navigate(-1)} className="px-8 py-4 bg-white border border-gray-300 text-gray-700 rounded-2xl font-bold hover:bg-gray-50 transition active:scale-95">Hủy bỏ</button>
             <button type="submit" className="px-10 py-4 bg-orange-500 text-white rounded-2xl font-black hover:bg-orange-600 shadow-lg shadow-orange-500/30 transition active:scale-95 tracking-wide">Đăng Công Thức</button>
           </div>
         </form>
