@@ -232,7 +232,7 @@ export default function AdminDashboard() {
   // --- XÓA USER ---
   const handleDeleteUser = async (id) => {
     const isConfirm = window.confirm(
-      "⚠️ Xóa thành viên này? Hành động này không thể hoàn tác!"
+      "Xóa người dùng này? Hành động này không thể hoàn tác!"
     );
     if (!isConfirm) return;
 
@@ -260,7 +260,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50 pt-20 pb-14 text-gray-900">
       <div className="container mx-auto px-2 sm:px-4 lg:px-10">
         
-        {/* Header Section - ĐÃ XÓA nút quay lại, tối ưu font Mobile */}
+        {/* Header Section - tối ưu font Mobile */}
         <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden mb-4 sm:mb-8">
           <div className="bg-gradient-to-r from-red-600 to-orange-500 px-5 py-8 sm:px-10 sm:py-12 flex items-center text-white">
             <div className="flex-1">
@@ -314,10 +314,9 @@ export default function AdminDashboard() {
                   <table className="w-full text-left border-collapse min-w-[500px]">
                     <thead>
                       <tr className="border-b border-gray-100">
-                        <th className="py-4 px-2 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase">Thành viên</th>
+                        <th className="py-4 px-2 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase">Người dùng</th>
                         <th className="py-4 px-2 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase">Email</th>
-                        <th className="py-4 px-2 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase">Vai trò</th>
-                        <th className="py-4 px-2 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase text-center">Xóa</th>
+                        <th className="py-4 px-2 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase">Vai trò</th> 
                       </tr>
                     </thead>
                     <tbody>

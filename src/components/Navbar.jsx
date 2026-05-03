@@ -10,6 +10,9 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
+  // ĐÃ SỬA: Đặt tab mặc định là 'interact' (Tương tác) thay vì 'all'
+  const [activeNotifTab, setActiveNotifTab] = useState('interact'); 
+
   const [categories, setCategories] = useState([]);
 
   const [user, setUser] = useState(() => {
@@ -19,12 +22,20 @@ export default function Navbar() {
 
   const [notifications, setNotifications] = useState([]);
   
-  // ĐÃ THÊM: Tạo Ref để nhận diện vùng menu User
   const userMenuRef = useRef(null);
+  const notifMenuRef = useRef(null);
 
   const unreadCount = useMemo(() => {
     return notifications.filter((n) => !n.IsRead).length;
   }, [notifications]);
+
+  // ĐÃ SỬA: Xóa logic của tab 'all'
+  const filteredNotifications = useMemo(() => {
+    if (activeNotifTab === 'follow') return notifications.filter(n => n.Type === 'Follow');
+    if (activeNotifTab === 'interact') return notifications.filter(n => ['Favorite', 'Comment'].includes(n.Type));
+    if (activeNotifTab === 'admin') return notifications.filter(n => ['Approve', 'Reject'].includes(n.Type));
+    return notifications;
+  }, [notifications, activeNotifTab]);
 
   const handleLogout = () => {
     localStorage.removeItem("loggedInUser");
@@ -32,21 +43,6 @@ export default function Navbar() {
     setUser(null);
     navigate("/");
     window.location.reload(); 
-  };
-
-  const markAllAsRead = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch("http://localhost:5000/api/notifications/read-all", {
-        method: "PUT",
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      if (response.ok) {
-        setNotifications(notifications.map(n => ({ ...n, IsRead: 1 })));
-      }
-    } catch (error) {
-      console.error("Lỗi cập nhật trạng thái đã đọc:", error);
-    }
   };
 
   const markSingleAsRead = async (id) => {
@@ -135,11 +131,13 @@ export default function Navbar() {
     };
   }, [user]);
 
-  // ĐÃ THÊM: Sự kiện click ra ngoài để tự động đóng menu User
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setIsUserMenuOpen(false);
+      }
+      if (notifMenuRef.current && !notifMenuRef.current.contains(event.target)) {
+        setIsNotificationOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -150,10 +148,10 @@ export default function Navbar() {
     switch (type) {
       case 'Approve': return <FontAwesomeIcon icon={faCheckCircle} className="text-green-500 text-lg" />;
       case 'Reject': return <FontAwesomeIcon icon={faTimesCircle} className="text-red-500 text-lg" />;
-      case 'Follow': return <FontAwesomeIcon icon={faUserPlus} className="text-blue-500 text-lg" />;
-      case 'Favorite': return <FontAwesomeIcon icon={faHeart} className="text-pink-500 text-lg animate-pulse" />;
-      case 'Comment': return <FontAwesomeIcon icon={faStar} className="text-yellow-400 text-lg" />;
-      default: return <FontAwesomeIcon icon={faInfoCircle} className="text-gray-400 text-lg" />;
+      case 'Follow': return <div className="w-10 h-10 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center"><FontAwesomeIcon icon={faUserPlus} /></div>;
+      case 'Favorite': return <div className="w-10 h-10 bg-pink-50 text-pink-500 rounded-full flex items-center justify-center"><FontAwesomeIcon icon={faHeart} /></div>;
+      case 'Comment': return <div className="w-10 h-10 bg-yellow-50 text-yellow-500 rounded-full flex items-center justify-center"><FontAwesomeIcon icon={faStar} /></div>;
+      default: return <div className="w-10 h-10 bg-gray-100 text-gray-500 rounded-full flex items-center justify-center"><FontAwesomeIcon icon={faInfoCircle} /></div>;
     }
   };
 
@@ -185,6 +183,39 @@ export default function Navbar() {
     const diffInYears = Math.floor(diffInDays / 365);
     return `${diffInYears} năm trước`;
   };
+
+  // ĐÃ SỬA: Xóa tab "Tất cả"
+  const notifTabs = [
+    { id: 'interact', label: 'Tương tác' },
+    { id: 'follow', label: 'Người theo dõi' }
+  ];
+  if (user && (user.Role === 'Admin' || user.Role === 'Staff')) {
+    notifTabs.push({ id: 'admin', label: 'Duyệt bài' });
+  }
+
+  const renderNotifItem = (n) => (
+    <Link
+      to={n.Link || "#"}
+      key={n.NotificationID || n.id}
+      onClick={() => {
+        setIsNotificationOpen(false);
+        if (!n.IsRead) markSingleAsRead(n.NotificationID || n.id);
+      }}
+      className="relative flex items-start gap-4 p-4 hover:bg-gray-50 transition-colors"
+    >
+      <div className="shrink-0">{getNotifyIcon(n.Type)}</div>
+      <div className="flex-1 pr-6">
+        <p className={`text-[13px] leading-snug ${!n.IsRead ? "font-bold text-gray-900" : "font-medium text-gray-600"}`}>
+          {n.Message}
+        </p>
+        <span className="text-[11px] text-gray-400 font-medium mt-1.5 block">{timeAgo(n.CreatedAt)}</span>
+      </div>
+      
+      {!n.IsRead && (
+        <div className="absolute right-5 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm shadow-blue-200"></div>
+      )}
+    </Link>
+  );
 
   return (
     <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100 shadow-sm transition-all duration-300">
@@ -267,7 +298,7 @@ export default function Navbar() {
             <div className="flex items-center gap-2 sm:gap-4 border-l border-gray-100 pl-2 sm:pl-4">
               
               {/* CHUÔNG THÔNG BÁO */}
-              <div className="relative">
+              <div className="relative" ref={notifMenuRef}>
                 <button
                   onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                   className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center transition-all border ${unreadCount > 0 ? "bg-orange-500 text-white shadow-lg shadow-orange-200 border-orange-400" : "bg-gray-50 text-gray-500 hover:bg-orange-50 hover:text-orange-500 border-gray-100"}`}
@@ -281,42 +312,48 @@ export default function Navbar() {
                 </button>
 
                 {isNotificationOpen && (
-                  <div className="fixed left-4 right-4 sm:absolute sm:left-auto sm:right-0 sm:w-80 bg-white shadow-2xl rounded-3xl border border-gray-50 mt-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-[60]">
-                    <div className="p-5 border-b border-gray-50 bg-gray-50/50 flex items-center justify-between">
-                      <h3 className="font-black text-gray-800 text-sm uppercase">Thông báo</h3>
-                      <div className="flex gap-3">
-                        <button onClick={markAllAsRead} className="text-[10px] text-orange-500 font-bold uppercase hover:underline">Đọc hết</button>
-                        <button onClick={deleteReadNotifications} className="text-[10px] text-red-400 font-bold uppercase hover:text-red-600 transition-colors">Xóa</button>
+                  <div className="fixed left-4 right-4 sm:absolute sm:left-auto sm:right-0 sm:w-[420px] bg-white shadow-2xl rounded-3xl border border-gray-50 mt-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-[60] flex flex-col max-h-[calc(100vh-100px)]">
+                    
+                    {/* Header Notification (ĐÃ SỬA: Bỏ nút đọc hết) */}
+                    <div className="p-5 pb-3 flex items-center justify-between shrink-0">
+                      <h3 className="font-black text-gray-900 text-lg">Thông báo</h3>
+                      <div className="flex gap-4">
+                        <button onClick={deleteReadNotifications} className="text-xs text-gray-500 font-bold hover:text-red-500 transition-colors">Xóa thông báo đã đọc</button>
                       </div>
                     </div>
-                    <div className="max-h-72 overflow-y-auto">
-                      {notifications.length > 0 ? (
-                        notifications.map((n) => (
-                          <Link
-                            to={n.Link || "#"}
-                            key={n.NotificationID}
-                            onClick={() => {
-                              setIsNotificationOpen(false);
-                              if (!n.IsRead) markSingleAsRead(n.NotificationID);
-                            }}
-                            className={`flex gap-3 p-4 border-b border-gray-50 hover:bg-orange-50/30 transition ${!n.IsRead ? "bg-orange-50/50" : ""}`}
-                          >
-                            <div className="mt-0.5">{getNotifyIcon(n.Type)}</div>
-                            <div>
-                              <p className={`text-xs leading-relaxed ${!n.IsRead ? "font-bold text-gray-900" : "text-gray-600"}`}>{n.Message}</p>
-                              <span className="text-[9px] text-gray-400 font-bold uppercase mt-1 block">{timeAgo(n.CreatedAt)}</span>
-                            </div>
-                          </Link>
-                        ))
+
+                    {/* TIKTOK STYLE PILLS */}
+                    <div className="px-4 pb-3 flex flex-wrap gap-2 border-b border-gray-100 shrink-0">
+                      {notifTabs.map(tab => (
+                        <button 
+                          key={tab.id}
+                          onClick={() => setActiveNotifTab(tab.id)}
+                          className={`px-4 py-1.5 rounded-full text-[13px] font-bold transition-all duration-200 ${
+                            activeNotifTab === tab.id 
+                              ? 'bg-gray-800 text-white shadow-md shadow-gray-200' 
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Danh sách List thông báo */}
+                    <div className="flex-1 overflow-y-auto">
+                      {filteredNotifications.length > 0 ? (
+                        filteredNotifications.map(renderNotifItem)
                       ) : (
-                        <div className="p-12 text-center text-gray-400 text-xs font-bold">Không có thông báo mới</div>
+                        <div className="py-16 text-center text-gray-400 flex flex-col items-center">
+                          <span className="text-sm font-bold text-gray-500">Không có thông báo!</span>
+                        </div>
                       )}
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* USER DROPDOWN - ĐÃ SỬA: Bỏ hover, chuyển sang Click và gắn thêm ref để nhận diện */}
+              {/* USER DROPDOWN */}
               <div className="relative py-2" ref={userMenuRef}>
                 <button 
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}

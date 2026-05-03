@@ -55,9 +55,9 @@ export default function LoginPage() {
           const userRole = data.user.Role.toUpperCase();
           
           if (userRole === 'ADMIN' || userRole === 'STAFF') {
-            navigate('/admin'); // Admin và Nhân viên đều vào trang quản trị
+            navigate('/'); // Admin và Nhân viên đều vào trang chủ
           } else {
-            navigate('/'); // User bình thường về trang chủ
+            navigate('/'); // User về trang chủ
           }
         }, 2000);
 

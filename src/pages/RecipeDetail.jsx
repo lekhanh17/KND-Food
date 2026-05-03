@@ -413,48 +413,70 @@ export default function RecipeDetail() {
           </div>
         </div>
 
+        {/* ĐÃ SỬA: Biến khu vực AI Gợi ý thành một "Khối ma thuật" nổi bật */}
         {!loading && recipe && (
-          <div className="mt-16 mb-10 border-t border-gray-200 pt-10">
+          <div className="mt-16 mb-10 relative overflow-hidden bg-gradient-to-br from-[#f8f5ff] via-white to-[#fff0f5] rounded-[2.5rem] p-6 md:p-10 border border-purple-100 shadow-[0_8px_30px_rgb(168,85,247,0.06)] group">
             
-            <h2 className="text-2xl font-black mb-8 flex items-center gap-3 text-[#1c2b36]">
-              <span className="text-3xl animate-bounce">✨</span> Có thể bạn sẽ thích
-              <span className="text-xs font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-1 rounded-md ml-2 uppercase tracking-wider">AI Gợi ý</span>
-            </h2>
+            {/* Hiệu ứng ánh sáng mờ (Glow) tàng hình phía sau */}
+            <div className="absolute top-0 right-0 w-72 h-72 bg-purple-300/30 rounded-full mix-blend-multiply filter blur-[60px] opacity-70 group-hover:animate-pulse transition-all duration-700"></div>
+            <div className="absolute -bottom-10 -left-10 w-72 h-72 bg-pink-300/30 rounded-full mix-blend-multiply filter blur-[60px] opacity-70 group-hover:animate-pulse transition-all duration-700" style={{ animationDelay: '1s' }}></div>
 
-            {loadingRecs ? (
-              <div className="flex justify-center py-10"><div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div></div>
-            ) : recommendations.length > 0 ? (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {(showAllRecs ? recommendations : recommendations.slice(0, 3)).map((item) => {
-                    const formattedItem = {
-                      id: item.RecipeID,
-                      title: item.Title,
-                      category: categories[item.CategoryID] || "Khác",
-                      time: `${(item.PrepTime || 0) + (item.CookTime || 0)}p`,
-                      difficulty: item.Difficulty || 1,
-                      rating: item.AverageRating || 0,
-                      reviews: item.ReviewCount || 0,
-                      image: item.ImageURL
-                    };
-                    return <RecipeCard key={formattedItem.id} item={formattedItem} />;
-                  })}
-                </div>
+            <div className="relative z-10">
+              <h2 className="text-2xl md:text-3xl font-black mb-8 flex items-center gap-2 sm:gap-3 text-[#1c2b36]">
+                Có thể bạn sẽ thích!
                 
-                {recommendations.length > 3 && (
-                  <div className="mt-10 flex justify-center">
-                    <button 
-                      onClick={() => setShowAllRecs(!showAllRecs)}
-                      className="text-orange-500 font-bold hover:text-white transition-colors text-sm bg-orange-50 hover:bg-orange-500 px-8 py-3.5 rounded-full border border-orange-200 hover:border-orange-500 shadow-sm active:scale-95"
-                    >
-                      {showAllRecs ? "Rút gọn" : "Xem tất cả gợi ý"}
-                    </button>
+                {/* Badge AI Gợi ý phiên bản Pro */}
+                <div className="flex items-center gap-1.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1.5 rounded-xl ml-1 sm:ml-2 shadow-lg shadow-purple-200/50">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin-slow">
+                    <path fillRule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5zM16.5 15a.75.75 0 01.712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 010 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 01-1.422 0l-.395-1.183a1.5 1.5 0 00-.948-.948l-1.183-.395a.75.75 0 010-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0116.5 15z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest">AI Gợi ý</span>
+                </div>
+              </h2>
+
+              {loadingRecs ? (
+                <div className="flex justify-center py-10">
+                  <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : recommendations.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {(showAllRecs ? recommendations : recommendations.slice(0, 3)).map((item) => {
+                      const formattedItem = {
+                        id: item.RecipeID,
+                        title: item.Title,
+                        category: categories[item.CategoryID] || "Khác",
+                        time: `${(item.PrepTime || 0) + (item.CookTime || 0)}p`,
+                        difficulty: item.Difficulty || 1,
+                        rating: item.AverageRating || 0,
+                        reviews: item.ReviewCount || 0,
+                        image: item.ImageURL
+                      };
+                      return (
+                        <div key={formattedItem.id} className="hover:-translate-y-2 transition-transform duration-300">
+                          <RecipeCard item={formattedItem} />
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
-              </>
-            ) : (
-              <p className="text-gray-500 italic text-center bg-gray-50 py-8 rounded-2xl">Hệ thống AI đang học hỏi thêm dữ liệu, hãy quay lại sau nhé!</p>
-            )}
+                  
+                  {recommendations.length > 3 && (
+                    <div className="mt-10 flex justify-center relative z-20">
+                      <button 
+                        onClick={() => setShowAllRecs(!showAllRecs)}
+                        className="text-purple-600 font-bold hover:text-white transition-all text-sm bg-white hover:bg-gradient-to-r hover:from-purple-500 hover:to-pink-500 px-8 py-3.5 rounded-full border border-purple-200 hover:border-transparent shadow-sm hover:shadow-lg hover:shadow-purple-200 active:scale-95"
+                      >
+                        {showAllRecs ? "Rút gọn gợi ý" : "Khám phá thêm"}
+                      </button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-gray-500 italic text-center bg-white/60 backdrop-blur-sm border border-gray-100 py-10 rounded-3xl font-medium">
+                  Hệ thống AI đang học hỏi thêm dữ liệu, hãy quay lại sau nhé! 🤖
+                </p>
+              )}
+            </div>
           </div>
         )}
 
