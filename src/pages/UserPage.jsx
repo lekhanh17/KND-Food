@@ -12,7 +12,8 @@ const whiteToastConfig = {
   hideProgressBar: true,
   theme: "light",
   closeButton: true,
-  className: "!bg-white !text-gray-800 !rounded-[16px] !shadow-xl !border !border-gray-100 !px-4 !py-3 !w-max !min-w-[300px] !mx-auto !mt-4 !flex !justify-between !items-center",
+  className:
+    "!bg-white !text-gray-800 !rounded-[16px] !shadow-xl !border !border-gray-100 !px-4 !py-3 !w-max !min-w-[300px] !mx-auto !mt-4 !flex !justify-between !items-center",
   bodyClassName: "!text-sm !font-bold !p-0 !m-0 !flex !items-center !gap-2",
 };
 
@@ -32,7 +33,7 @@ export default function UserPage() {
     if (profileUser) return user.UserID === profileUser.UserID;
     if (id) return user.UserID.toString() === id.toString();
     if (username) return user.Username === username;
-    return true; 
+    return true;
   })();
 
   const fileInputRef = useRef(null);
@@ -64,7 +65,7 @@ export default function UserPage() {
   const [isTogglingFollow, setIsTogglingFollow] = useState(false);
 
   const [isFollowModalOpen, setIsFollowModalOpen] = useState(false);
-  const [followModalType, setFollowModalType] = useState(""); 
+  const [followModalType, setFollowModalType] = useState("");
   const [followList, setFollowList] = useState([]);
   const [isLoadingFollowList, setIsLoadingFollowList] = useState(false);
 
@@ -84,31 +85,35 @@ export default function UserPage() {
   useEffect(() => {
     const fetchProfile = async () => {
       setIsProfileLoading(true);
-      
+
       if (id) {
         try {
-          const res = await fetch(`http://localhost:5000/api/users/profile/${id}`);
+          const res = await fetch(
+            `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/profile/${id}`,
+          );
           const data = await res.json();
           if (res.ok) setProfileUser(data);
           else setProfileUser(null);
         } catch {
           setProfileUser(null);
         }
-      } 
-      else if (username) {
+      } else if (username) {
         try {
-          const res = await fetch(`http://localhost:5000/api/users/profile/${username}`);
+          const res = await fetch(
+            `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/profile/${username}`,
+          );
           const data = await res.json();
           if (res.ok) setProfileUser(data);
           else setProfileUser(null);
         } catch {
           setProfileUser(null);
         }
-      } 
-      else if (user) {
+      } else if (user) {
         try {
-          const realId = user.Username || user.UserID; 
-          const res = await fetch(`http://localhost:5000/api/users/profile/${realId}`);
+          const realId = user.Username || user.UserID;
+          const res = await fetch(
+            `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/profile/${realId}`,
+          );
           const data = await res.json();
           if (res.ok) setProfileUser(data);
           else setProfileUser(user);
@@ -118,7 +123,7 @@ export default function UserPage() {
       } else {
         setProfileUser(null);
       }
-      
+
       setIsProfileLoading(false);
     };
 
@@ -132,7 +137,9 @@ export default function UserPage() {
 
       if (currentFollowerId && currentFolloweeId && !isOwnProfile) {
         try {
-          const res = await fetch(`http://localhost:5000/api/users/check-follow?followerId=${currentFollowerId}&followeeId=${currentFolloweeId}`);
+          const res = await fetch(
+            `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/check-follow?followerId=${currentFollowerId}&followeeId=${currentFolloweeId}`,
+          );
           if (res.ok) {
             const data = await res.json();
             setIsFollowing(data.isFollowing);
@@ -160,7 +167,7 @@ export default function UserPage() {
       setIsLoadingRecipes(true);
       try {
         const res = await fetch(
-          `http://localhost:5000/api/recipes/user/${profileUser.UserID}`,
+          `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/recipes/user/${profileUser.UserID}`,
         );
         const data = await res.json();
         if (Array.isArray(data)) setMyRecipes(data);
@@ -181,9 +188,12 @@ export default function UserPage() {
         setIsFetchingFav(true);
         try {
           const token = localStorage.getItem("token");
-          const response = await fetch("http://localhost:5000/api/favorites/my-favorites", {
-            headers: { "Authorization": `Bearer ${token}` }
-          });
+          const response = await fetch(
+            "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/favorites/my-favorites",
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          );
           if (response.ok) {
             const data = await response.json();
             setFavoriteRecipes(data);
@@ -208,26 +218,30 @@ export default function UserPage() {
     }
     setIsTogglingFollow(true);
     try {
-      const res = await fetch("http://localhost:5000/api/users/follow", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          FollowerID: user?.UserID || user?.id,
-          TargetUserID: profileUser?.UserID || profileUser?.id
-        })
-      });
+      const res = await fetch(
+        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/follow",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            FollowerID: user?.UserID || user?.id,
+            TargetUserID: profileUser?.UserID || profileUser?.id,
+          }),
+        },
+      );
       const data = await res.json();
       if (res.ok) {
         setIsFollowing(data.isFollowing);
-        
-        setProfileUser(prev => {
+
+        setProfileUser((prev) => {
           const currentCount = prev.FollowerCount || 0;
           return {
             ...prev,
-            FollowerCount: data.isFollowing ? currentCount + 1 : Math.max(0, currentCount - 1)
+            FollowerCount: data.isFollowing
+              ? currentCount + 1
+              : Math.max(0, currentCount - 1),
           };
         });
-        
       }
     } catch (error) {
       console.error("Lỗi xử lý follow", error);
@@ -243,12 +257,17 @@ export default function UserPage() {
     setFollowList([]);
 
     try {
-      const res = await fetch(`http://localhost:5000/api/users/${profileUser.UserID}/${type}`);
+      const res = await fetch(
+        `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/${profileUser.UserID}/${type}`,
+      );
       if (res.ok) {
         const data = await res.json();
         // ĐÃ THÊM: Gắn cờ isFollowing = true cho tất cả người trong danh sách "Đang theo dõi" của mình
-        if (type === 'following' && isOwnProfile) {
-          const enhancedData = data.map(item => ({ ...item, isFollowing: true }));
+        if (type === "following" && isOwnProfile) {
+          const enhancedData = data.map((item) => ({
+            ...item,
+            isFollowing: true,
+          }));
           setFollowList(enhancedData);
         } else {
           setFollowList(data);
@@ -266,28 +285,35 @@ export default function UserPage() {
   const handleUnfollowFromList = async (targetUserId) => {
     if (!user) return;
     try {
-      const res = await fetch("http://localhost:5000/api/users/follow", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          FollowerID: user?.UserID || user?.id,
-          TargetUserID: targetUserId
-        })
-      });
+      const res = await fetch(
+        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/follow",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            FollowerID: user?.UserID || user?.id,
+            TargetUserID: targetUserId,
+          }),
+        },
+      );
       const data = await res.json();
       if (res.ok) {
         // Cập nhật lại UI trong danh sách
-        setFollowList(prevList => 
-          prevList.map(item => 
-            item.UserID === targetUserId ? { ...item, isFollowing: data.isFollowing } : item
-          )
+        setFollowList((prevList) =>
+          prevList.map((item) =>
+            item.UserID === targetUserId
+              ? { ...item, isFollowing: data.isFollowing }
+              : item,
+          ),
         );
         // Cập nhật lại số đếm ở ngoài Profile
-        if (followModalType === 'following' && isOwnProfile) {
-           setProfileUser(prev => ({
-             ...prev,
-             FollowingCount: data.isFollowing ? (prev.FollowingCount + 1) : Math.max(0, prev.FollowingCount - 1)
-           }));
+        if (followModalType === "following" && isOwnProfile) {
+          setProfileUser((prev) => ({
+            ...prev,
+            FollowingCount: data.isFollowing
+              ? prev.FollowingCount + 1
+              : Math.max(0, prev.FollowingCount - 1),
+          }));
         }
       }
     } catch (error) {
@@ -299,22 +325,40 @@ export default function UserPage() {
   const getDifficultyUI = (level) => {
     switch (Number(level)) {
       case 1:
-        return { label: "Rất dễ", color: "text-green-700 bg-green-50 border-green-200" };
+        return {
+          label: "Rất dễ",
+          color: "text-green-700 bg-green-50 border-green-200",
+        };
       case 2:
-        return { label: "Dễ", color: "text-teal-700 bg-teal-50 border-teal-200" };
+        return {
+          label: "Dễ",
+          color: "text-teal-700 bg-teal-50 border-teal-200",
+        };
       case 3:
-        return { label: "Trung bình", color: "text-yellow-700 bg-yellow-50 border-yellow-200" };
+        return {
+          label: "Trung bình",
+          color: "text-yellow-700 bg-yellow-50 border-yellow-200",
+        };
       case 4:
-        return { label: "Khó", color: "text-orange-700 bg-orange-50 border-orange-200" };
+        return {
+          label: "Khó",
+          color: "text-orange-700 bg-orange-50 border-orange-200",
+        };
       case 5:
-        return { label: "Rất khó", color: "text-red-700 bg-red-50 border-red-200" };
+        return {
+          label: "Rất khó",
+          color: "text-red-700 bg-red-50 border-red-200",
+        };
       default:
-        return { label: "Cơ bản", color: "text-gray-700 bg-gray-50 border-gray-200" };
+        return {
+          label: "Cơ bản",
+          color: "text-gray-700 bg-gray-50 border-gray-200",
+        };
     }
   };
 
   const handleAvatarChange = async (e) => {
-    if (!isOwnProfile) return; 
+    if (!isOwnProfile) return;
 
     const file = e.target.files[0];
     if (!file) return;
@@ -330,7 +374,7 @@ export default function UserPage() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/users/upload-avatar",
+        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/upload-avatar",
         {
           method: "POST",
           body: formData,
@@ -341,7 +385,7 @@ export default function UserPage() {
         const updatedUser = { ...user, Avatar: data.avatarUrl };
         localStorage.setItem("loggedInUser", JSON.stringify(updatedUser));
         setUser(updatedUser);
-        setProfileUser(prev => ({...prev, Avatar: data.avatarUrl})); 
+        setProfileUser((prev) => ({ ...prev, Avatar: data.avatarUrl }));
         window.dispatchEvent(new Event("user-changed"));
         toast.success("Cập nhật ảnh hồ sơ thành công!", whiteToastConfig);
       } else {
@@ -365,17 +409,20 @@ export default function UserPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/users/update", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          UserID: user.UserID,
-          FullName: trimmedName,
-          Email: user.Email,
-          Username: trimmedUsername,
-          Bio: trimmedBio,
-        }),
-      });
+      const response = await fetch(
+        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/update",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            UserID: user.UserID,
+            FullName: trimmedName,
+            Email: user.Email,
+            Username: trimmedUsername,
+            Bio: trimmedBio,
+          }),
+        },
+      );
 
       if (response.ok) {
         const updatedUser = {
@@ -386,7 +433,12 @@ export default function UserPage() {
         };
         localStorage.setItem("loggedInUser", JSON.stringify(updatedUser));
         setUser(updatedUser);
-        setProfileUser(prev => ({...prev, FullName: trimmedName, Username: trimmedUsername, Bio: trimmedBio})); 
+        setProfileUser((prev) => ({
+          ...prev,
+          FullName: trimmedName,
+          Username: trimmedUsername,
+          Bio: trimmedBio,
+        }));
         window.dispatchEvent(new Event("user-changed"));
 
         setIsEditingProfile(false);
@@ -414,7 +466,7 @@ export default function UserPage() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/users/change-password",
+        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/change-password",
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -502,8 +554,16 @@ export default function UserPage() {
                   stroke="currentColor"
                   className="w-8 h-8 text-white"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"
+                  />
                 </svg>
               </div>
             )}
@@ -532,7 +592,12 @@ export default function UserPage() {
                   onClick={() => setIsEditingProfile(true)}
                   className="px-6 py-2 bg-[#f97316] hover:bg-[#ea580c] text-white text-sm font-bold rounded-lg transition-all active:scale-95 flex items-center gap-2"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className="w-4 h-4"
+                  >
                     <path d="M2.695 14.763l-1.262 3.152a.5.5 0 00.65.65l3.152-1.262a4 4 0 001.343-.885L17.5 5.5a2.121 2.121 0 00-3-3L3.58 13.42a4 4 0 00-.885 1.343z" />
                   </svg>
                   Chỉnh sửa hồ sơ
@@ -543,8 +608,19 @@ export default function UserPage() {
                     onClick={() => setIsSettingsMenuOpen(!isSettingsMenuOpen)}
                     className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-all active:scale-95"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                      className="w-5 h-5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75"
+                      />
                     </svg>
                   </button>
 
@@ -569,8 +645,8 @@ export default function UserPage() {
                   onClick={handleFollowToggle}
                   disabled={isTogglingFollow}
                   className={`px-8 py-2 text-sm font-bold rounded-lg transition-all active:scale-95 flex items-center gap-2 ${
-                    isFollowing 
-                      ? "bg-gray-100 hover:bg-red-50 text-gray-800 hover:text-red-500 border border-gray-200 hover:border-red-200" 
+                    isFollowing
+                      ? "bg-gray-100 hover:bg-red-50 text-gray-800 hover:text-red-500 border border-gray-200 hover:border-red-200"
                       : "bg-[#f97316] hover:bg-[#ea580c] text-white"
                   }`}
                 >
@@ -580,14 +656,29 @@ export default function UserPage() {
             )}
 
             <div className="flex gap-6 mt-5 text-sm">
-              <div className="flex gap-1.5 cursor-pointer hover:underline text-gray-500 group" onClick={() => handleOpenFollowList('following')}>
-                <span className="font-bold text-gray-900 group-hover:text-orange-500">{profileUser.FollowingCount || 0}</span> Đang follow
+              <div
+                className="flex gap-1.5 cursor-pointer hover:underline text-gray-500 group"
+                onClick={() => handleOpenFollowList("following")}
+              >
+                <span className="font-bold text-gray-900 group-hover:text-orange-500">
+                  {profileUser.FollowingCount || 0}
+                </span>{" "}
+                Đang follow
               </div>
-              <div className="flex gap-1.5 cursor-pointer hover:underline text-gray-500 group" onClick={() => handleOpenFollowList('followers')}>
-                <span className="font-bold text-gray-900 group-hover:text-orange-500">{profileUser.FollowerCount || 0}</span> Follower
+              <div
+                className="flex gap-1.5 cursor-pointer hover:underline text-gray-500 group"
+                onClick={() => handleOpenFollowList("followers")}
+              >
+                <span className="font-bold text-gray-900 group-hover:text-orange-500">
+                  {profileUser.FollowerCount || 0}
+                </span>{" "}
+                Follower
               </div>
               <div className="flex gap-1.5 text-gray-500 cursor-default">
-                <span className="font-bold text-gray-900">{profileUser.TotalLikes || 0}</span> Thích
+                <span className="font-bold text-gray-900">
+                  {profileUser.TotalLikes || 0}
+                </span>{" "}
+                Thích
               </div>
             </div>
 
@@ -636,7 +727,7 @@ export default function UserPage() {
                       className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group cursor-pointer block"
                     >
                       <div className="aspect-[4/3] overflow-hidden relative bg-gray-100">
-                        {recipe.Status === 'Pending' && (
+                        {recipe.Status === "Pending" && (
                           <div className="absolute top-3 right-3 z-10 px-3 py-1.5 bg-yellow-500/90 backdrop-blur-md text-white text-[10px] font-black tracking-widest rounded-xl shadow-lg border border-yellow-400">
                             <span className="flex items-center gap-1.5">
                               <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
@@ -645,7 +736,8 @@ export default function UserPage() {
                           </div>
                         )}
 
-                        {(recipe.Status === 'Approved' || recipe.Status === 'Published') && (
+                        {(recipe.Status === "Approved" ||
+                          recipe.Status === "Published") && (
                           <div className="absolute top-3 right-3 z-10 px-3 py-1.5 bg-green-500/90 backdrop-blur-md text-white text-[10px] font-black tracking-widest rounded-xl shadow-lg">
                             Đã duyệt
                           </div>
@@ -656,7 +748,9 @@ export default function UserPage() {
                             src={recipe.ImageURL}
                             alt={recipe.Title}
                             className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
-                              recipe.Status === 'Pending' ? 'grayscale-[0.5] opacity-80' : ''
+                              recipe.Status === "Pending"
+                                ? "grayscale-[0.5] opacity-80"
+                                : ""
                             }`}
                           />
                         ) : (
@@ -664,7 +758,7 @@ export default function UserPage() {
                             No Image
                           </div>
                         )}
-                        
+
                         <div
                           className={`absolute top-3 left-3 px-3 py-1.5 rounded-lg border text-xs font-black shadow-sm z-10 ${difficultyUI.color}`}
                         >
@@ -678,8 +772,19 @@ export default function UserPage() {
                         </h3>
                         <div className="flex items-center text-sm text-gray-500 font-medium gap-4">
                           <span className="flex items-center gap-1.5">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              strokeWidth={2}
+                              stroke="currentColor"
+                              className="w-4 h-4"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
                             </svg>
                             {recipe.PrepTime + recipe.CookTime} phút
                           </span>
@@ -691,9 +796,24 @@ export default function UserPage() {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-in fade-in">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-20 h-20 mb-4 opacity-50">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1}
+                  stroke="currentColor"
+                  className="w-20 h-20 mb-4 opacity-50"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"
+                  />
                 </svg>
                 <h3 className="text-lg font-bold text-gray-800">
                   Chưa có bài đăng nào.
@@ -706,7 +826,9 @@ export default function UserPage() {
                 <h3 className="text-lg font-bold text-gray-800">
                   Đây là mục riêng tư
                 </h3>
-                <p className="text-sm mt-1">Chỉ chủ tài khoản mới có thể xem!</p>
+                <p className="text-sm mt-1">
+                  Chỉ chủ tài khoản mới có thể xem!
+                </p>
               </div>
             ) : isFetchingFav ? (
               <div className="flex flex-col items-center justify-center py-20 text-gray-400">
@@ -720,21 +842,46 @@ export default function UserPage() {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-in fade-in">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-20 h-20 mb-4 opacity-50 text-red-300">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1}
+                  stroke="currentColor"
+                  className="w-20 h-20 mb-4 opacity-50 text-red-300"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+                  />
                 </svg>
                 <h3 className="text-lg font-bold text-gray-800">
                   Bạn chưa lưu món ăn nào
                 </h3>
-                <Link to="/" className="mt-3 px-6 py-2 bg-red-50 text-red-500 font-bold rounded-lg hover:bg-red-100 transition">
+                <Link
+                  to="/"
+                  className="mt-3 px-6 py-2 bg-red-50 text-red-500 font-bold rounded-lg hover:bg-red-100 transition"
+                >
                   Khám phá ngay
                 </Link>
               </div>
             )
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-gray-400 animate-in fade-in">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-20 h-20 mb-4 opacity-50">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1}
+                stroke="currentColor"
+                className="w-20 h-20 mb-4 opacity-50"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"
+                />
               </svg>
               <h3 className="text-lg font-bold text-gray-800">
                 Chưa có {activeTab.toLowerCase()} nào
@@ -750,53 +897,78 @@ export default function UserPage() {
           <div className="bg-white rounded-[24px] w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col overflow-hidden max-h-[80vh]">
             <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 shrink-0">
               <h3 className="text-xl font-black text-gray-900">
-                {followModalType === 'followers' ? 'Người theo dõi' : 'Đang theo dõi'}
+                {followModalType === "followers"
+                  ? "Người theo dõi"
+                  : "Đang theo dõi"}
               </h3>
-              <button onClick={() => setIsFollowModalOpen(false)} className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-full transition font-bold">✕</button>
+              <button
+                onClick={() => setIsFollowModalOpen(false)}
+                className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-500 rounded-full transition font-bold"
+              >
+                ✕
+              </button>
             </div>
-            
+
             <div className="p-0 overflow-y-auto">
               {isLoadingFollowList ? (
-                <div className="flex justify-center py-10"><div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div></div>
+                <div className="flex justify-center py-10">
+                  <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
               ) : followList.length > 0 ? (
-                followList.map(item => (
-                  <div key={item.UserID} className="flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                    <Link 
+                followList.map((item) => (
+                  <div
+                    key={item.UserID}
+                    className="flex items-center justify-between p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors"
+                  >
+                    <Link
                       to={`/profile/${item.Username || item.UserID}`}
                       onClick={() => setIsFollowModalOpen(false)}
                       className="flex items-center gap-4 flex-1 overflow-hidden"
                     >
                       <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center border border-gray-200">
                         {item.Avatar ? (
-                          <img src={item.Avatar} className="w-full h-full object-cover" />
+                          <img
+                            src={item.Avatar}
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
-                          <span className="text-xl font-bold text-orange-500 uppercase">{item.FullName?.charAt(0)}</span>
+                          <span className="text-xl font-bold text-orange-500 uppercase">
+                            {item.FullName?.charAt(0)}
+                          </span>
                         )}
                       </div>
                       <div className="flex-1 overflow-hidden pr-4">
-                        <div className="font-bold text-gray-900 truncate">{item.FullName}</div>
-                        <div className="text-xs text-gray-500 truncate">@{item.Username}</div>
+                        <div className="font-bold text-gray-900 truncate">
+                          {item.FullName}
+                        </div>
+                        <div className="text-xs text-gray-500 truncate">
+                          @{item.Username}
+                        </div>
                       </div>
                     </Link>
 
                     {/* Nút Follow/Unfollow siêu nhanh trong Modal */}
-                    {isOwnProfile && followModalType === 'following' && (
-                      <button 
+                    {isOwnProfile && followModalType === "following" && (
+                      <button
                         onClick={() => handleUnfollowFromList(item.UserID)}
                         className={`shrink-0 px-4 py-1.5 text-xs font-bold rounded-lg transition-colors border ${
-                          item.isFollowing === false 
-                            ? "bg-orange-500 text-white border-orange-500 hover:bg-orange-600" 
+                          item.isFollowing === false
+                            ? "bg-orange-500 text-white border-orange-500 hover:bg-orange-600"
                             : "bg-gray-100 text-gray-700 border-gray-200 hover:bg-red-50 hover:text-red-500 hover:border-red-200"
                         }`}
                       >
-                        {item.isFollowing === false ? "Theo dõi" : "Đang theo dõi"}
+                        {item.isFollowing === false
+                          ? "Theo dõi"
+                          : "Đang theo dõi"}
                       </button>
                     )}
                   </div>
                 ))
               ) : (
                 <div className="text-center py-12">
-                  <div className="text-gray-400 font-bold">Danh sách trống.</div>
+                  <div className="text-gray-400 font-bold">
+                    Danh sách trống.
+                  </div>
                 </div>
               )}
             </div>

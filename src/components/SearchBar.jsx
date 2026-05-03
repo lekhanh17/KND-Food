@@ -34,7 +34,7 @@ export default function SearchBar() {
       setIsSearching(true);
       try {
         const response = await fetch(
-          `http://localhost:5000/api/search?q=${searchTerm}`,
+          `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/search?q=${searchTerm}`,
         );
         const data = await response.json();
 

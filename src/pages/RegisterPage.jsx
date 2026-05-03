@@ -16,7 +16,8 @@ export default function RegisterPage() {
       autoClose: 1500,
       hideProgressBar: true,
       theme: "light",
-      className: "rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 mt-4",
+      className:
+        "rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 mt-4",
     };
 
     // Lấy dữ liệu từ form
@@ -44,16 +45,19 @@ export default function RegisterPage() {
       const userData = {
         FullName: fullName,
         Email: email,
-        Password: password
+        Password: password,
       };
 
-      const response = await fetch('http://localhost:5000/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userData),
         },
-        body: JSON.stringify(userData)
-      });
+      );
 
       const data = await response.json();
 
@@ -77,11 +81,8 @@ export default function RegisterPage() {
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 p-4">
       <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md w-full border border-gray-100">
-        
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-orange-500 mb-2">
-            Đăng ký
-          </h2>
+          <h2 className="text-3xl font-bold text-orange-500 mb-2">Đăng ký</h2>
         </div>
 
         <form className="space-y-4" onSubmit={handleRegister}>
@@ -126,17 +127,19 @@ export default function RegisterPage() {
             <label className="block text-gray-700 mb-1 font-medium text-sm">
               Nhập lại mật khẩu
             </label>
-            <input 
-              type="password" 
-              required 
+            <input
+              type="password"
+              required
               minLength={8}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white transition-all" 
-              placeholder="••••••••" 
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white transition-all"
+              placeholder="••••••••"
             />
           </div>
 
           {/* Hiển thị lỗi văn bản đỏ ngay trên nút bấm */}
-          {error && <p className="text-red-500 text-xs font-bold mt-1">{error}</p>}
+          {error && (
+            <p className="text-red-500 text-xs font-bold mt-1">{error}</p>
+          )}
 
           <button
             type="submit"
@@ -149,7 +152,10 @@ export default function RegisterPage() {
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500">
             Đã có tài khoản?{" "}
-            <Link to="/login" className="text-orange-500 font-bold hover:underline">
+            <Link
+              to="/login"
+              className="text-orange-500 font-bold hover:underline"
+            >
               Đăng nhập
             </Link>
           </p>

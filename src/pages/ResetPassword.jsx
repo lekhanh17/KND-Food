@@ -15,7 +15,7 @@ export default function ResetPassword() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (password !== confirmPassword) {
       setMessage("Mật khẩu xác nhận không khớp!");
       setStatus("error");
@@ -33,25 +33,28 @@ export default function ResetPassword() {
 
     try {
       // GỌI API THẬT ĐỂ ĐỔI MẬT KHẨU
-      const response = await fetch('http://localhost:5000/api/reset-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/reset-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // Gửi 3 thông tin cần thiết lên Node.js
+          body: JSON.stringify({
+            email: email,
+            token: token,
+            newPassword: password,
+          }),
         },
-        // Gửi 3 thông tin cần thiết lên Node.js
-        body: JSON.stringify({ 
-          email: email, 
-          token: token, 
-          newPassword: password 
-        }) 
-      });
+      );
 
       const data = await response.json();
 
       if (response.ok) {
         setStatus("success");
         setMessage("Đổi mật khẩu thành công! Đang chuyển hướng...");
-        
+
         // Đợi 2 giây cho người dùng đọc chữ Thành công rồi mới đá về trang Login
         setTimeout(() => {
           navigate("/login");
@@ -71,7 +74,9 @@ export default function ResetPassword() {
   if (!token || !email) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <h2 className="text-red-500 font-bold text-xl">Đường dẫn không hợp lệ hoặc đã hết hạn!</h2>
+        <h2 className="text-red-500 font-bold text-xl">
+          Đường dẫn không hợp lệ hoặc đã hết hạn!
+        </h2>
       </div>
     );
   }
@@ -80,20 +85,25 @@ export default function ResetPassword() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4 font-sans">
       <div className="max-w-md w-full bg-white rounded-[2rem] p-8 shadow-sm border border-gray-100">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-black text-[#f97316] mb-3">Tạo mật khẩu mới</h1>
+          <h1 className="text-3xl font-black text-[#f97316] mb-3">
+            Tạo mật khẩu mới
+          </h1>
           <p className="text-gray-500 text-sm">
-            Vui lòng nhập mật khẩu mới cho tài khoản <br/><span className="font-bold text-gray-700">{email}</span>
+            Vui lòng nhập mật khẩu mới cho tài khoản <br />
+            <span className="font-bold text-gray-700">{email}</span>
           </p>
         </div>
 
         {status === "success" ? (
           <div className="bg-green-50 border border-green-200 rounded-2xl p-6 text-center animate-fade-in">
-             <h3 className="text-green-800 font-bold text-lg">{message}</h3>
+            <h3 className="text-green-800 font-bold text-lg">{message}</h3>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Mật khẩu mới</label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Mật khẩu mới
+              </label>
               <input
                 type="password"
                 value={password}
@@ -104,7 +114,9 @@ export default function ResetPassword() {
               />
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Xác nhận mật khẩu</label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Xác nhận mật khẩu
+              </label>
               <input
                 type="password"
                 value={confirmPassword}
@@ -113,7 +125,11 @@ export default function ResetPassword() {
                 className="w-full px-4 py-3 rounded-xl border bg-gray-50 focus:bg-white transition-all outline-none border-gray-200 focus:border-[#f97316] focus:ring-4 focus:ring-orange-500/20"
                 required
               />
-              {status === "error" && <p className="text-red-500 text-xs font-bold mt-2 ml-1">{message}</p>}
+              {status === "error" && (
+                <p className="text-red-500 text-xs font-bold mt-2 ml-1">
+                  {message}
+                </p>
+              )}
             </div>
 
             <button
