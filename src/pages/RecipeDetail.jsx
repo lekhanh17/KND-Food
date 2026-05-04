@@ -311,7 +311,7 @@ export default function RecipeDetail() {
             )
           ) : (
             <img
-              src={recipe.ImageURL}
+              src={`${import.meta.env.VITE_API_URL}/${recipe.ImageURL}`}
               alt={recipe.Title}
               className="max-w-full max-h-full object-contain rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] bg-white/50"
             />
