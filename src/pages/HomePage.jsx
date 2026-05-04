@@ -20,15 +20,9 @@ export default function HomePage() {
       try {
         // ĐÃ SỬA: Gọi thêm API featured để lấy top món ăn nổi bật (đã có đánh giá)
         const [recipesRes, categoriesRes, featuredRes] = await Promise.all([
-          fetch(
-            "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/recipes",
-          ),
-          fetch(
-            "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/categories",
-          ),
-          fetch(
-            "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/recipes/featured",
-          ),
+          fetch("http://localhost:5000/api/recipes"),
+          fetch("http://localhost:5000/api/categories"),
+          fetch("http://localhost:5000/api/recipes/featured"),
         ]);
 
         const recipesData = await recipesRes.json();

@@ -89,7 +89,7 @@ export default function UserPage() {
       if (id) {
         try {
           const res = await fetch(
-            `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/profile/${id}`,
+            `http://localhost:5000/api/users/profile/${id}`,
           );
           const data = await res.json();
           if (res.ok) setProfileUser(data);
@@ -100,7 +100,7 @@ export default function UserPage() {
       } else if (username) {
         try {
           const res = await fetch(
-            `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/profile/${username}`,
+            `http://localhost:5000/api/users/profile/${username}`,
           );
           const data = await res.json();
           if (res.ok) setProfileUser(data);
@@ -112,7 +112,7 @@ export default function UserPage() {
         try {
           const realId = user.Username || user.UserID;
           const res = await fetch(
-            `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/profile/${realId}`,
+            `http://localhost:5000/api/users/profile/${realId}`,
           );
           const data = await res.json();
           if (res.ok) setProfileUser(data);
@@ -138,7 +138,7 @@ export default function UserPage() {
       if (currentFollowerId && currentFolloweeId && !isOwnProfile) {
         try {
           const res = await fetch(
-            `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/check-follow?followerId=${currentFollowerId}&followeeId=${currentFolloweeId}`,
+            `http://localhost:5000/api/users/check-follow?followerId=${currentFollowerId}&followeeId=${currentFolloweeId}`,
           );
           if (res.ok) {
             const data = await res.json();
@@ -167,7 +167,7 @@ export default function UserPage() {
       setIsLoadingRecipes(true);
       try {
         const res = await fetch(
-          `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/recipes/user/${profileUser.UserID}`,
+          `http://localhost:5000/api/recipes/user/${profileUser.UserID}`,
         );
         const data = await res.json();
         if (Array.isArray(data)) setMyRecipes(data);
@@ -189,7 +189,7 @@ export default function UserPage() {
         try {
           const token = localStorage.getItem("token");
           const response = await fetch(
-            "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/favorites/my-favorites",
+            "http://localhost:5000/api/favorites/my-favorites",
             {
               headers: { Authorization: `Bearer ${token}` },
             },
@@ -218,17 +218,14 @@ export default function UserPage() {
     }
     setIsTogglingFollow(true);
     try {
-      const res = await fetch(
-        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/follow",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            FollowerID: user?.UserID || user?.id,
-            TargetUserID: profileUser?.UserID || profileUser?.id,
-          }),
-        },
-      );
+      const res = await fetch("http://localhost:5000/api/users/follow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          FollowerID: user?.UserID || user?.id,
+          TargetUserID: profileUser?.UserID || profileUser?.id,
+        }),
+      });
       const data = await res.json();
       if (res.ok) {
         setIsFollowing(data.isFollowing);
@@ -258,7 +255,7 @@ export default function UserPage() {
 
     try {
       const res = await fetch(
-        `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/${profileUser.UserID}/${type}`,
+        `http://localhost:5000/api/users/${profileUser.UserID}/${type}`,
       );
       if (res.ok) {
         const data = await res.json();
@@ -285,17 +282,14 @@ export default function UserPage() {
   const handleUnfollowFromList = async (targetUserId) => {
     if (!user) return;
     try {
-      const res = await fetch(
-        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/follow",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            FollowerID: user?.UserID || user?.id,
-            TargetUserID: targetUserId,
-          }),
-        },
-      );
+      const res = await fetch("http://localhost:5000/api/users/follow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          FollowerID: user?.UserID || user?.id,
+          TargetUserID: targetUserId,
+        }),
+      });
       const data = await res.json();
       if (res.ok) {
         // Cập nhật lại UI trong danh sách
@@ -374,7 +368,7 @@ export default function UserPage() {
 
     try {
       const response = await fetch(
-        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/upload-avatar",
+        "http://localhost:5000/api/users/upload-avatar",
         {
           method: "POST",
           body: formData,
@@ -409,20 +403,17 @@ export default function UserPage() {
     }
 
     try {
-      const response = await fetch(
-        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/update",
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            UserID: user.UserID,
-            FullName: trimmedName,
-            Email: user.Email,
-            Username: trimmedUsername,
-            Bio: trimmedBio,
-          }),
-        },
-      );
+      const response = await fetch("http://localhost:5000/api/users/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          UserID: user.UserID,
+          FullName: trimmedName,
+          Email: user.Email,
+          Username: trimmedUsername,
+          Bio: trimmedBio,
+        }),
+      });
 
       if (response.ok) {
         const updatedUser = {
@@ -466,7 +457,7 @@ export default function UserPage() {
 
     try {
       const response = await fetch(
-        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/change-password",
+        "http://localhost:5000/api/users/change-password",
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

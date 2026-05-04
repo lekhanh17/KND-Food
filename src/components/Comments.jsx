@@ -10,8 +10,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
 
-const API_BASE_URL =
-  "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api";
+const API_BASE_URL = "http://localhost:5000/api";
 
 const toastConfig = {
   position: "top-center",
@@ -531,7 +530,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                       {comment.images.map((imgUrl, idx) => {
                         const imgFullUrl = imgUrl.startsWith("http")
                           ? imgUrl
-                          : `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/${imgUrl.replace(/\\/g, "/")}`;
+                          : `http://localhost:5000/${imgUrl.replace(/\\/g, "/")}`;
                         return (
                           <img
                             key={idx}

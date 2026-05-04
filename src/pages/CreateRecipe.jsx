@@ -67,9 +67,7 @@ export default function CreateRecipe() {
   ]);
 
   useEffect(() => {
-    fetch(
-      "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/categories",
-    )
+    fetch("http://localhost:5000/api/categories")
       .then((res) => res.json())
       .then((data) => {
         setCategories(data);
@@ -243,13 +241,10 @@ export default function CreateRecipe() {
     });
 
     try {
-      const response = await fetch(
-        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/recipes/create",
-        {
-          method: "POST",
-          body: formData,
-        },
-      );
+      const response = await fetch("http://localhost:5000/api/recipes/create", {
+        method: "POST",
+        body: formData,
+      });
 
       const data = await response.json();
 

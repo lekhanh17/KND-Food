@@ -48,16 +48,13 @@ export default function RegisterPage() {
         Password: password,
       };
 
-      const response = await fetch(
-        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/register",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(userData),
+      const response = await fetch("http://localhost:5000/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify(userData),
+      });
 
       const data = await response.json();
 

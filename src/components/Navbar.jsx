@@ -70,7 +70,7 @@ export default function Navbar() {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/notifications/read/${id}`,
+        `http://localhost:5000/api/notifications/read/${id}`,
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${token}` },
@@ -92,7 +92,7 @@ export default function Navbar() {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/notifications/delete-read",
+        "http://localhost:5000/api/notifications/delete-read",
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
@@ -107,9 +107,7 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    fetch(
-      "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/categories",
-    )
+    fetch("http://localhost:5000/api/categories")
       .then((res) => res.json())
       .then((data) => {
         const formattedCategories = data.map((item) => ({
@@ -128,7 +126,7 @@ export default function Navbar() {
 
       try {
         const response = await fetch(
-          "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/notifications",
+          "http://localhost:5000/api/notifications",
           {
             headers: { Authorization: `Bearer ${token}` },
           },

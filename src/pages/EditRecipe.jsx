@@ -67,9 +67,7 @@ export default function EditRecipe() {
   };
 
   useEffect(() => {
-    fetch(
-      "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/categories",
-    )
+    fetch("http://localhost:5000/api/categories")
       .then((res) => res.json())
       .then((data) => setCategories(data))
       .catch((err) => console.error("Lỗi lấy danh mục:", err));
@@ -88,9 +86,7 @@ export default function EditRecipe() {
       return;
     }
 
-    fetch(
-      `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/recipes/detail/${id}`,
-    )
+    fetch(`http://localhost:5000/api/recipes/detail/${id}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.message) {
@@ -189,7 +185,7 @@ export default function EditRecipe() {
 
     try {
       const response = await fetch(
-        `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/recipes/update/${id}`,
+        `http://localhost:5000/api/recipes/update/${id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

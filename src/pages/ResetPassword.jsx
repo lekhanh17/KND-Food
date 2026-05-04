@@ -33,21 +33,18 @@ export default function ResetPassword() {
 
     try {
       // GỌI API THẬT ĐỂ ĐỔI MẬT KHẨU
-      const response = await fetch(
-        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/reset-password",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          // Gửi 3 thông tin cần thiết lên Node.js
-          body: JSON.stringify({
-            email: email,
-            token: token,
-            newPassword: password,
-          }),
+      const response = await fetch("http://localhost:5000/api/reset-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        // Gửi 3 thông tin cần thiết lên Node.js
+        body: JSON.stringify({
+          email: email,
+          token: token,
+          newPassword: password,
+        }),
+      });
 
       const data = await response.json();
 

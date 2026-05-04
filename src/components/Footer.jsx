@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
+import qrCodeImage from "../assets/qr_web_knd_food.jpg"; 
 
 // ==============================================
 // CẤU HÌNH SWEETALERT DẠNG TOAST (HIỆN Ở GÓC, TỰ TẮT)
@@ -37,7 +38,8 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* NỬA TRÊN: THÔNG TIN LIÊN HỆ & CHÍNH SÁCH */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-10">
+        {/* ĐÃ SỬA: Đổi từ md:grid-cols-3 thành md:grid-cols-4 để thêm cột QR Code */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-10">
           
           {/* CỘT 1: Logo & Thông tin liên hệ */}
           <div className="space-y-6">
@@ -187,6 +189,24 @@ export default function Footer() {
               </li>
             </ul>
           </div>
+
+          {/* CỘT 4: MÃ QR */}
+          <div>
+            <h4 className="text-gray-900 font-bold text-sm mb-4 uppercase tracking-wider">
+              Vào bếp cùng KND FOOD
+            </h4>
+            <div className="bg-white p-2 inline-block rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+              <img 
+                src={qrCodeImage} 
+                alt="KND Food QR Code" 
+                className="w-28 h-28 object-contain"
+              />
+            </div>
+            <p className="text-sm text-gray-500 mt-3 font-medium leading-relaxed">
+              Quét mã để mở web trên điện thoại!
+            </p>
+          </div>
+
         </div>
 
         <hr className="border-gray-200 my-8" />

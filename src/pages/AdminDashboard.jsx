@@ -121,12 +121,9 @@ export default function AdminDashboard() {
         return;
       }
 
-      const response = await fetch(
-        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      const response = await fetch("http://localhost:5000/api/users", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (!response.ok) throw new Error("Lỗi mạng");
       const data = await response.json();
@@ -144,7 +141,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/admin/pending-recipes",
+        "http://localhost:5000/api/admin/pending-recipes",
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -163,7 +160,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/admin/approve-recipe/${id}`,
+        `http://localhost:5000/api/admin/approve-recipe/${id}`,
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${token}` },
@@ -192,7 +189,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/admin/reject-recipe/${id}`,
+        `http://localhost:5000/api/admin/reject-recipe/${id}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
@@ -216,7 +213,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/admin/update-role`,
+        `http://localhost:5000/api/admin/update-role`,
         {
           method: "PUT",
           headers: {
@@ -250,13 +247,10 @@ export default function AdminDashboard() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/users/${id}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        },
-      );
+      const response = await fetch(`http://localhost:5000/api/users/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       if (response.ok) {
         toast.success("Đã xóa người dùng!", whiteToastConfig);

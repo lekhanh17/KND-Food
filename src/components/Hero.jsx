@@ -25,12 +25,8 @@ export default function Hero() {
     const fetchHeroData = async () => {
       try {
         const [recipesRes, categoriesRes] = await Promise.all([
-          fetch(
-            "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/recipes",
-          ),
-          fetch(
-            "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/categories",
-          ),
+          fetch("http://localhost:5000/api/recipes"),
+          fetch("http://localhost:5000/api/categories"),
         ]);
 
         if (!recipesRes.ok) return;

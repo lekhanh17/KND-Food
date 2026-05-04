@@ -52,9 +52,7 @@ export default function RecipeDetail() {
   };
 
   useEffect(() => {
-    fetch(
-      "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/categories",
-    )
+    fetch("http://localhost:5000/api/categories")
       .then((res) => res.json())
       .then((data) => {
         const map = {};
@@ -69,9 +67,7 @@ export default function RecipeDetail() {
   }, []);
 
   useEffect(() => {
-    fetch(
-      `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/recipes/detail/${id}`,
-    )
+    fetch(`http://localhost:5000/api/recipes/detail/${id}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.message) {
@@ -94,7 +90,7 @@ export default function RecipeDetail() {
       try {
         const token = localStorage.getItem("token");
         const res = await fetch(
-          `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/favorites/check/${id}`,
+          `http://localhost:5000/api/favorites/check/${id}`,
           { headers: { Authorization: `Bearer ${token}` } },
         );
         if (res.ok) {
@@ -114,7 +110,7 @@ export default function RecipeDetail() {
       setLoadingRecs(true);
       try {
         const res = await fetch(
-          `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/recipes/recommend/${id}`,
+          `http://localhost:5000/api/recipes/recommend/${id}`,
         );
         if (res.ok) {
           const data = await res.json();
@@ -147,17 +143,14 @@ export default function RecipeDetail() {
     setIsSaving(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(
-        "[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/favorites/toggle",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ RecipeID: id }),
+      const res = await fetch("http://localhost:5000/api/favorites/toggle", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: JSON.stringify({ RecipeID: id }),
+      });
 
       if (!res.ok) throw new Error("Lỗi mạng");
       const data = await res.json();
@@ -187,7 +180,7 @@ export default function RecipeDetail() {
         try {
           const token = localStorage.getItem("token");
           const response = await fetch(
-            `[https://knd-food-be.onrender.com](https://knd-food-be.onrender.com)/api/recipes/delete/${id}`,
+            `http://localhost:5000/api/recipes/delete/${id}`,
             { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
           );
 
@@ -660,7 +653,6 @@ export default function RecipeDetail() {
               ) : (
                 <p className="text-gray-500 italic text-center bg-white/60 backdrop-blur-sm border border-gray-100 py-10 rounded-3xl font-medium">
                   Hệ thống AI đang học hỏi thêm dữ liệu, hãy quay lại sau nhé!
-                  🤖
                 </p>
               )}
             </div>
