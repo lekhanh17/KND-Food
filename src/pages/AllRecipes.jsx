@@ -43,8 +43,8 @@ export default function AllRecipes() {
     const fetchData = async () => {
       try {
         const [recipesRes, categoriesRes] = await Promise.all([
-          fetch("http://localhost:5000/api/recipes"),
-          fetch("http://localhost:5000/api/categories"),
+          fetch(`${import.meta.env.VITE_API_URL}/api/recipes`),
+          fetch(`${import.meta.env.VITE_API_URL}/api/categories`),
         ]);
 
         const recipesData = await recipesRes.json();

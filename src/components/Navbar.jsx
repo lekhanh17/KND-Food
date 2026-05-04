@@ -70,7 +70,7 @@ export default function Navbar() {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `http://localhost:5000/api/notifications/read/${id}`,
+        `${import.meta.env.VITE_API_URL}/api/notifications/read/${id}`,
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${token}` },
@@ -92,7 +92,7 @@ export default function Navbar() {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        "http://localhost:5000/api/notifications/delete-read",
+        `${import.meta.env.VITE_API_URL}/api/notifications/delete-read`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
@@ -107,7 +107,7 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/categories")
+    fetch(`${import.meta.env.VITE_API_URL}/api/categories`)
       .then((res) => res.json())
       .then((data) => {
         const formattedCategories = data.map((item) => ({
@@ -126,7 +126,7 @@ export default function Navbar() {
 
       try {
         const response = await fetch(
-          "http://localhost:5000/api/notifications",
+          `${import.meta.env.VITE_API_URL}/api/notifications`,
           {
             headers: { Authorization: `Bearer ${token}` },
           },

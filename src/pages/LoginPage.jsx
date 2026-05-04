@@ -33,13 +33,16 @@ export default function LoginPage() {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ Email: email, Password: password }),
         },
-        body: JSON.stringify({ Email: email, Password: password }),
-      });
+      );
 
       const data = await response.json();
 

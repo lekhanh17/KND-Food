@@ -10,7 +10,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 const toastConfig = {
   position: "top-center",
@@ -530,7 +530,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                       {comment.images.map((imgUrl, idx) => {
                         const imgFullUrl = imgUrl.startsWith("http")
                           ? imgUrl
-                          : `http://localhost:5000/${imgUrl.replace(/\\/g, "/")}`;
+                          : `${import.meta.env.VITE_API_URL}/${imgUrl.replace(/\\/g, "/")}`
                         return (
                           <img
                             key={idx}

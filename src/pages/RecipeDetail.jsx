@@ -52,7 +52,7 @@ export default function RecipeDetail() {
   };
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/categories")
+    fetch(`${import.meta.env.VITE_API_URL}/api/categories`)
       .then((res) => res.json())
       .then((data) => {
         const map = {};
@@ -67,7 +67,7 @@ export default function RecipeDetail() {
   }, []);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/recipes/detail/${id}`)
+    fetch(`${import.meta.env.VITE_API_URL}/api/recipes/detail/${id}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.message) {
@@ -90,7 +90,7 @@ export default function RecipeDetail() {
       try {
         const token = localStorage.getItem("token");
         const res = await fetch(
-          `http://localhost:5000/api/favorites/check/${id}`,
+          `${import.meta.env.VITE_API_URL}/api/favorites/check/${id}`,
           { headers: { Authorization: `Bearer ${token}` } },
         );
         if (res.ok) {
@@ -110,7 +110,7 @@ export default function RecipeDetail() {
       setLoadingRecs(true);
       try {
         const res = await fetch(
-          `http://localhost:5000/api/recipes/recommend/${id}`,
+          `${import.meta.env.VITE_API_URL}/api/recipes/recommend/${id}`,
         );
         if (res.ok) {
           const data = await res.json();
@@ -143,14 +143,17 @@ export default function RecipeDetail() {
     setIsSaving(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch("http://localhost:5000/api/favorites/toggle", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/favorites/toggle`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ RecipeID: id }),
         },
-        body: JSON.stringify({ RecipeID: id }),
-      });
+      );
 
       if (!res.ok) throw new Error("Lỗi mạng");
       const data = await res.json();
@@ -180,7 +183,7 @@ export default function RecipeDetail() {
         try {
           const token = localStorage.getItem("token");
           const response = await fetch(
-            `http://localhost:5000/api/recipes/delete/${id}`,
+            `${import.meta.env.VITE_API_URL}/api/recipes/delete/${id}`,
             { method: "DELETE", headers: { Authorization: `Bearer ${token}` } },
           );
 

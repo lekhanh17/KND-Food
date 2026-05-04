@@ -67,7 +67,7 @@ export default function EditRecipe() {
   };
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/categories")
+    fetch(`${import.meta.env.VITE_API_URL}/api/categories`)
       .then((res) => res.json())
       .then((data) => setCategories(data))
       .catch((err) => console.error("Lỗi lấy danh mục:", err));
@@ -86,7 +86,7 @@ export default function EditRecipe() {
       return;
     }
 
-    fetch(`http://localhost:5000/api/recipes/detail/${id}`)
+    fetch(`${import.meta.env.VITE_API_URL}/api/recipes/detail/${id}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.message) {
@@ -185,7 +185,7 @@ export default function EditRecipe() {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/recipes/update/${id}`,
+        `${import.meta.env.VITE_API_URL}/api/recipes/update/${id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },

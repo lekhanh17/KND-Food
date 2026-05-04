@@ -67,7 +67,7 @@ export default function CreateRecipe() {
   ]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/categories")
+    fetch(`${import.meta.env.VITE_API_URL}/api/categories`)
       .then((res) => res.json())
       .then((data) => {
         setCategories(data);
@@ -241,10 +241,13 @@ export default function CreateRecipe() {
     });
 
     try {
-      const response = await fetch("http://localhost:5000/api/recipes/create", {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/recipes/create`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
 
       const data = await response.json();
 

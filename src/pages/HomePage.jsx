@@ -20,9 +20,9 @@ export default function HomePage() {
       try {
         // ĐÃ SỬA: Gọi thêm API featured để lấy top món ăn nổi bật (đã có đánh giá)
         const [recipesRes, categoriesRes, featuredRes] = await Promise.all([
-          fetch("http://localhost:5000/api/recipes"),
-          fetch("http://localhost:5000/api/categories"),
-          fetch("http://localhost:5000/api/recipes/featured"),
+          fetch(`${import.meta.env.VITE_API_URL}/api/recipes`),
+          fetch(`${import.meta.env.VITE_API_URL}/api/categories`),
+          fetch(`${import.meta.env.VITE_API_URL}/api/recipes/featured`),
         ]);
 
         const recipesData = await recipesRes.json();

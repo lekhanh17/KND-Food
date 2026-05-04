@@ -23,7 +23,7 @@ export default function ForgotPassword() {
       // GỌI API THẬT ĐẾN BACKEND NODE.JS
       // *Lưu ý: Nếu Node.js của bạn chạy cổng khác (ví dụ 3000), nhớ sửa lại số 5000 ở link dưới nhé
       const response = await fetch(
-        "http://localhost:5000/api/forgot-password",
+        `${import.meta.env.VITE_API_URL}/api/forgot-password`,
         {
           method: "POST",
           headers: {

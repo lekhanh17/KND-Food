@@ -34,7 +34,7 @@ export default function SearchBar() {
       setIsSearching(true);
       try {
         const response = await fetch(
-          `http://localhost:5000/api/search?q=${searchTerm}`,
+          `${import.meta.env.VITE_API_URL}/api/search?q=${searchTerm}`,
         );
         const data = await response.json();
 

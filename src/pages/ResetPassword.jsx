@@ -33,18 +33,21 @@ export default function ResetPassword() {
 
     try {
       // GỌI API THẬT ĐỂ ĐỔI MẬT KHẨU
-      const response = await fetch("http://localhost:5000/api/reset-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/reset-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          // Gửi 3 thông tin cần thiết lên Node.js
+          body: JSON.stringify({
+            email: email,
+            token: token,
+            newPassword: password,
+          }),
         },
-        // Gửi 3 thông tin cần thiết lên Node.js
-        body: JSON.stringify({
-          email: email,
-          token: token,
-          newPassword: password,
-        }),
-      });
+      );
 
       const data = await response.json();
 

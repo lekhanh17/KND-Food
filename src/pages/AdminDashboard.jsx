@@ -121,9 +121,12 @@ export default function AdminDashboard() {
         return;
       }
 
-      const response = await fetch("http://localhost:5000/api/users", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/users`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
       if (!response.ok) throw new Error("Lỗi mạng");
       const data = await response.json();
@@ -141,7 +144,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        "http://localhost:5000/api/admin/pending-recipes",
+        `${import.meta.env.VITE_API_URL}/api/admin/pending-recipes`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -160,7 +163,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5000/api/admin/approve-recipe/${id}`,
+        `${import.meta.env.VITE_API_URL}/api/admin/approve-recipe/${id}`,
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${token}` },
@@ -189,7 +192,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5000/api/admin/reject-recipe/${id}`,
+        `${import.meta.env.VITE_API_URL}/api/admin/reject-recipe/${id}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
@@ -213,7 +216,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://localhost:5000/api/admin/update-role`,
+        `${import.meta.env.VITE_API_URL}/api/admin/update-role`,
         {
           method: "PUT",
           headers: {
@@ -247,10 +250,13 @@ export default function AdminDashboard() {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/api/users/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/users/${id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
       if (response.ok) {
         toast.success("Đã xóa người dùng!", whiteToastConfig);
