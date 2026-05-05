@@ -77,8 +77,28 @@ export default function LoginPage() {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 p-4">
-      <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md w-full border border-gray-100 min-h-[450px] flex flex-col justify-center">
-        <div className="text-center mb-8">
+      {/* ĐÃ THÊM 'relative' VÀO ĐÂY ĐỂ ĐỊNH VỊ NÚT QUAY LẠI */}
+      <div className="relative bg-white p-8 rounded-3xl shadow-xl max-w-md w-full border border-gray-100 min-h-[450px] flex flex-col justify-center">
+        
+        {/* NÚT QUAY LẠI TRANG CHỦ MỚI THÊM */}
+        <Link
+          to="/"
+          className="absolute top-6 left-6 w-9 h-9 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:bg-orange-50 hover:text-orange-500 transition-all hover:-translate-x-1"
+          title="Về trang chủ"
+        >
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            strokeWidth={2.5} 
+            stroke="currentColor" 
+            className="w-4 h-4"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+        </Link>
+
+        <div className="text-center mb-8 mt-2">
           <h2 className="text-3xl font-bold text-orange-500 mb-2">Đăng nhập</h2>
         </div>
 

@@ -447,7 +447,7 @@ export default function Navbar() {
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-orange-500 text-white rounded-full flex items-center justify-center font-black shadow-md shadow-orange-200 uppercase overflow-hidden">
                     {user.Avatar ? (
                       <img
-                        src={user.Avatar}
+                        src={`${import.meta.env.VITE_API_URL}/${user.Avatar}`}
                         alt="avt"
                         className="w-full h-full object-cover"
                       />
