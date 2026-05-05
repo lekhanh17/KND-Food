@@ -28,7 +28,7 @@ export default function RecipeCard({ item }) {
       {/* KHU VỰC ẢNH */}
       <div className="relative h-56 overflow-hidden shrink-0">
         <img 
-          src={item.image || item.ImageURL} 
+          src={`${import.meta.env.VITE_API_URL}/${item.image || item.ImageURL}`} 
           alt={item.title || item.Title} 
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
         />
