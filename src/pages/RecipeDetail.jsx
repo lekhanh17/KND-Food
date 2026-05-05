@@ -399,7 +399,7 @@ export default function RecipeDetail() {
               <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden shrink-0 flex items-center justify-center border-2 border-transparent group-hover:border-orange-400 transition-colors">
                 {recipe.Avatar ? (
                   <img
-                    src={recipe.Avatar}
+                    src={`${import.meta.env.VITE_API_URL}/${recipe.Avatar}`}
                     alt="Avatar"
                     className="w-full h-full object-cover"
                   />
@@ -564,7 +564,7 @@ export default function RecipeDetail() {
                     {step.ImageURL && (
                       <div className="rounded-2xl overflow-hidden border border-gray-200 bg-gray-100 flex justify-center">
                         <img
-                          src={step.ImageURL}
+                          src={`${import.meta.env.VITE_API_URL}/${step.ImageURL}`}
                           alt={`Bước ${step.StepNumber}`}
                           className="w-full object-contain max-h-[300px]"
                         />

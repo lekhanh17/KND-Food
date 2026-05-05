@@ -344,7 +344,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
               <div className="w-11 h-11 rounded-2xl bg-orange-500 text-white shrink-0 flex items-center justify-center font-black shadow-md shadow-orange-200">
                 {loggedInUser?.Avatar ? (
                   <img
-                    src={loggedInUser.Avatar}
+                    src={`${import.meta.env.VITE_API_URL}/${loggedInUser.Avatar}`}
                     alt="Avt"
                     className="w-full h-full object-cover rounded-2xl"
                   />
@@ -416,7 +416,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                     >
                       <FontAwesomeIcon icon={faCamera} className="text-xl" />
                     </button>
-                    {/* SỬA Ở ĐÂY: BỘ ĐẾM KÝ TỰ REAL-TIME */}
+                    {/* BỘ ĐẾM KÝ TỰ REAL-TIME */}
                     <p className="text-xs text-gray-400 font-medium">
                       {selectedImages.length}/3 ảnh đính kèm{" "}
                       <span className="mx-1">•</span>
@@ -478,7 +478,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                 <div className="w-11 h-11 rounded-2xl bg-white border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center text-sm font-black text-orange-500">
                   {comment.authorAvatar ? (
                     <img
-                      src={comment.authorAvatar}
+                      src={`${import.meta.env.VITE_API_URL}/${comment.authorAvatar}`}
                       alt="Avt"
                       className="w-full h-full object-cover"
                     />

@@ -57,9 +57,10 @@ export default function Hero() {
           // Cắt lấy 5 món đứng đầu bảng xếp hạng
           const topRecipes = sortedRecipes.slice(0, 5).map((recipe) => ({
             id: recipe.RecipeID,
-            image:
-              recipe.ImageURL ||
-              "https://images.unsplash.com/photo-1493770348161-369560ae357d?q=80&w=2070&auto=format&fit=crop",
+            // SỬA Ở ĐÂY: Ghép link Backend vào nếu có ảnh, không có thì xài link Unsplash
+            image: recipe.ImageURL
+              ? `${import.meta.env.VITE_API_URL}/${recipe.ImageURL}`
+              : "https://images.unsplash.com/photo-1493770348161-369560ae357d?q=80&w=2070&auto=format&fit=crop",
             subtitle: categoryMap[recipe.CategoryID]
               ? `NỔI BẬT: ${categoryMap[recipe.CategoryID]}`.toUpperCase()
               : "MÓN NGON NỔI BẬT",

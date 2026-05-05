@@ -192,7 +192,7 @@ export default function UserPage() {
             `${import.meta.env.VITE_API_URL}/api/favorites/my-favorites`,
             {
               headers: { Authorization: `Bearer ${token}` },
-            },
+            }
           );
           if (response.ok) {
             const data = await response.json();
@@ -227,7 +227,7 @@ export default function UserPage() {
             FollowerID: user?.UserID || user?.id,
             TargetUserID: profileUser?.UserID || profileUser?.id,
           }),
-        },
+        }
       );
       const data = await res.json();
       if (res.ok) {
@@ -258,7 +258,7 @@ export default function UserPage() {
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/users/${profileUser.UserID}/${type}`,
+        `${import.meta.env.VITE_API_URL}/api/users/${profileUser.UserID}/${type}`
       );
       if (res.ok) {
         const data = await res.json();
@@ -294,7 +294,7 @@ export default function UserPage() {
             FollowerID: user?.UserID || user?.id,
             TargetUserID: targetUserId,
           }),
-        },
+        }
       );
       const data = await res.json();
       if (res.ok) {
@@ -303,8 +303,8 @@ export default function UserPage() {
           prevList.map((item) =>
             item.UserID === targetUserId
               ? { ...item, isFollowing: data.isFollowing }
-              : item,
-          ),
+              : item
+          )
         );
         // Cập nhật lại số đếm ở ngoài Profile
         if (followModalType === "following" && isOwnProfile) {
@@ -378,7 +378,7 @@ export default function UserPage() {
         {
           method: "POST",
           body: formData,
-        },
+        }
       );
       const data = await response.json();
       if (response.ok) {
@@ -421,7 +421,7 @@ export default function UserPage() {
             Username: trimmedUsername,
             Bio: trimmedBio,
           }),
-        },
+        }
       );
 
       if (response.ok) {
@@ -475,7 +475,7 @@ export default function UserPage() {
             CurrentPassword: currentPassword,
             NewPassword: newPassword,
           }),
-        },
+        }
       );
 
       const data = await response.json();
@@ -533,7 +533,7 @@ export default function UserPage() {
             <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center shadow-sm">
               {profileUser.Avatar ? (
                 <img
-                  src={profileUser.Avatar}
+                  src={`${import.meta.env.VITE_API_URL}/${profileUser.Avatar}`}
                   alt="Avatar"
                   className="w-full h-full object-cover"
                 />
@@ -745,7 +745,7 @@ export default function UserPage() {
 
                         {recipe.ImageURL ? (
                           <img
-                            src={recipe.ImageURL}
+                            src={`${import.meta.env.VITE_API_URL}/${recipe.ImageURL}`}
                             alt={recipe.Title}
                             className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
                               recipe.Status === "Pending"
@@ -928,7 +928,7 @@ export default function UserPage() {
                       <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center border border-gray-200">
                         {item.Avatar ? (
                           <img
-                            src={item.Avatar}
+                            src={`${import.meta.env.VITE_API_URL}/${item.Avatar}`}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -1006,7 +1006,7 @@ export default function UserPage() {
                       <div className="w-24 h-24 rounded-full border border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center shadow-sm">
                         {user.Avatar ? (
                           <img
-                            src={user.Avatar}
+                            src={`${import.meta.env.VITE_API_URL}/${user.Avatar}`}
                             alt="Avatar"
                             className="w-full h-full object-cover"
                           />
