@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom"; // Dùng để click vào link chuyển trang
+import { Link } from "react-router-dom"; 
 
 export default function SearchBar() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -7,10 +7,25 @@ export default function SearchBar() {
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  // Dùng ref để phát hiện click ra ngoài thì đóng dropdown
+  // Link ảnh mặc định phòng khi bị lỗi
+  const DEFAULT_RECIPE_IMG = "https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg"; 
+  const DEFAULT_USER_IMG = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+  // HÀM XỬ LÝ LINK ẢNH (Giống mấy trang kia của sếp)
+  const getImageUrl = (imagePath, fallbackImg) => {
+    if (!imagePath) return fallbackImg;
+    // Nếu ảnh đã là link online (http) thì giữ nguyên
+    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+      return imagePath;
+    }
+    // Nếu ảnh là đường dẫn nội bộ (/images/...), thì nối với API URL của Backend
+    const baseUrl = import.meta.env.VITE_API_URL || "";
+    const formattedPath = imagePath.startsWith("/") ? imagePath : `/${imagePath}`;
+    return `${baseUrl}${formattedPath}`;
+  };
+
   const searchRef = useRef(null);
 
-  // Xử lý click ra ngoài để đóng
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
@@ -21,7 +36,6 @@ export default function SearchBar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Xử lý DEBOUNCE và GỌI API
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setResults({ recipes: [], users: [] });
@@ -29,7 +43,6 @@ export default function SearchBar() {
       return;
     }
 
-    // Thiết lập đồng hồ đếm ngược 500ms (Debounce)
     const delayDebounceFn = setTimeout(async () => {
       setIsSearching(true);
       try {
@@ -39,15 +52,14 @@ export default function SearchBar() {
         const data = await response.json();
 
         setResults(data);
-        setShowDropdown(true); // Có data thì xổ dropdown ra
+        setShowDropdown(true); 
       } catch (error) {
         console.error("Lỗi tìm kiếm:", error);
       } finally {
         setIsSearching(false);
       }
-    }, 500); // Đợi nửa giây sau khi ngừng gõ
+    }, 500); 
 
-    // Dọn dẹp đồng hồ cũ nếu người dùng gõ tiếp
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm]);
 
@@ -74,11 +86,10 @@ export default function SearchBar() {
           onChange={(e) => setSearchTerm(e.target.value)}
           onFocus={() => {
             if (searchTerm) setShowDropdown(true);
-          }} // Click lại vào ô thì mở lại dropdown
+          }} 
           placeholder="Tìm kiếm công thức, người dùng..."
           className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
         />
-        {/* Cái xoay xoay loading nhỏ xíu bên góc phải */}
         {isSearching && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2">
             <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
@@ -99,13 +110,14 @@ export default function SearchBar() {
                 {results.recipes.map((recipe) => (
                   <Link
                     key={recipe.RecipeID}
-                    to={`/recipe/${recipe.RecipeID}`} // Link sang trang chi tiết món ăn
+                    to={`/recipe/${recipe.RecipeID}`} 
                     onClick={() => setShowDropdown(false)}
                     className="flex items-center gap-3 px-3 py-2 hover:bg-orange-50 rounded-lg transition-colors"
                   >
                     <img
-                      src={recipe.ImageURL || "link-anh-mac-dinh.jpg"}
-                      alt=""
+                      src={getImageUrl(recipe.ImageURL, DEFAULT_RECIPE_IMG)} // <--- ĐÃ NỐI API URL Ở ĐÂY
+                      onError={(e) => { e.target.src = DEFAULT_RECIPE_IMG; }}
+                      alt={recipe.Title}
                       className="w-10 h-10 rounded-md object-cover"
                     />
                     <span className="text-sm font-medium text-gray-700 truncate">
@@ -130,13 +142,14 @@ export default function SearchBar() {
                 {results.users.map((user) => (
                   <Link
                     key={user.UserID}
-                    to={`/user/${user.Username}`} // Link sang trang Profile
+                    to={`/user/${user.Username}`} 
                     onClick={() => setShowDropdown(false)}
                     className="flex items-center gap-3 px-3 py-2 hover:bg-orange-50 rounded-lg transition-colors"
                   >
                     <img
-                      src={user.Avatar || "link-avatar-mac-dinh.png"}
-                      alt=""
+                      src={getImageUrl(user.Avatar || user.ProfilePicture, DEFAULT_USER_IMG)} // <--- ĐÃ NỐI API URL Ở ĐÂY
+                      onError={(e) => { e.target.src = DEFAULT_USER_IMG; }}
+                      alt={user.Username}
                       className="w-8 h-8 rounded-full object-cover border border-gray-200"
                     />
                     <span className="text-sm font-medium text-gray-700 truncate">
