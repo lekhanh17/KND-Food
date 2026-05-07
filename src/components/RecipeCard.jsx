@@ -19,6 +19,21 @@ export default function RecipeCard({ item }) {
   const reviewCount = item.ReviewCount !== undefined ? item.ReviewCount : (item.reviews ? item.reviews : 0);
   const averageRating = item.AverageRating !== undefined ? item.AverageRating : (item.rating ? item.rating : 0);
 
+  // 🛡️ KHIÊN BẢO VỆ ẢNH ĐÂY SẾP
+  const getImageUrl = (url) => {
+    if (!url) return "/default-food.png"; // Ảnh mặc định nếu lỡ lỗi
+
+    // Nếu là link Cloudinary (đã có chữ http)
+    if (url.startsWith("http")) {
+      // Nếu Database lỡ lưu link localhost cũ thì tự động thay bằng link API hiện tại
+      return url.replace("http://localhost:5000", import.meta.env.VITE_API_URL);
+    }
+
+    // Nếu là link /uploads/... cũ thì mới nối thêm Backend API vào
+    const cleanUrl = url.startsWith("/") ? url : `/${url}`;
+    return `${import.meta.env.VITE_API_URL}${cleanUrl}`;
+  };
+
   return (
     <Link 
       to={`/recipe/${item.id || item.RecipeID}`}
@@ -28,7 +43,8 @@ export default function RecipeCard({ item }) {
       {/* KHU VỰC ẢNH */}
       <div className="relative h-56 overflow-hidden shrink-0">
         <img 
-          src={`${import.meta.env.VITE_API_URL}/${item.image || item.ImageURL}`} 
+          /* Đã thay đổi src sử dụng hàm getImageUrl */
+          src={getImageUrl(item.image || item.ImageURL)} 
           alt={item.title || item.Title} 
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
         />

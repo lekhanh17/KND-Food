@@ -21,6 +21,18 @@ const toastConfig = {
     "rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 mt-4",
 };
 
+// 🛡️ KHIÊN BẢO VỆ ẢNH ĐƯỢC ĐƯA VÀO ĐÂY
+const getImageUrl = (url) => {
+  if (!url) return "/default-avatar.png"; // Ảnh mặc định
+
+  if (url.startsWith("http")) {
+    return url.replace("http://localhost:5000", import.meta.env.VITE_API_URL);
+  }
+
+  const cleanUrl = url.startsWith("/") ? url : `/${url}`;
+  return `${import.meta.env.VITE_API_URL}${cleanUrl}`;
+};
+
 function formatCommentTime(createdAt) {
   let dateString = createdAt;
   if (typeof dateString === "string" && dateString.endsWith("Z")) {
@@ -344,7 +356,8 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
               <div className="w-11 h-11 rounded-2xl bg-orange-500 text-white shrink-0 flex items-center justify-center font-black shadow-md shadow-orange-200">
                 {loggedInUser?.Avatar ? (
                   <img
-                    src={`${import.meta.env.VITE_API_URL}/${loggedInUser.Avatar}`}
+                    /* SỬA ẢNH AVATAR USER ĐĂNG BÌNH LUẬN */
+                    src={getImageUrl(loggedInUser.Avatar)}
                     alt="Avt"
                     className="w-full h-full object-cover rounded-2xl"
                   />
@@ -478,7 +491,8 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                 <div className="w-11 h-11 rounded-2xl bg-white border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center text-sm font-black text-orange-500">
                   {comment.authorAvatar ? (
                     <img
-                      src={`${import.meta.env.VITE_API_URL}/${comment.authorAvatar}`}
+                      /* SỬA ẢNH AVATAR NGƯỜI BÌNH LUẬN KHÁC */
+                      src={getImageUrl(comment.authorAvatar)}
                       alt="Avt"
                       className="w-full h-full object-cover"
                     />
@@ -528,9 +542,8 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                   {comment.images && comment.images.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {comment.images.map((imgUrl, idx) => {
-                        const imgFullUrl = imgUrl.startsWith("http")
-                          ? imgUrl
-                          : `${import.meta.env.VITE_API_URL}/${imgUrl.replace(/\\/g, "/")}`
+                        /* SỬA ẢNH ĐÍNH KÈM BÌNH LUẬN Ở ĐÂY SẾP NHÉ */
+                        const imgFullUrl = getImageUrl(imgUrl.replace(/\\/g, "/"));
                         return (
                           <img
                             key={idx}
