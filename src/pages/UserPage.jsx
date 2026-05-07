@@ -3,6 +3,18 @@ import { Link, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import RecipeCard from "../components/RecipeCard";
 
+// KHIÊN BẢO VỆ ẢNH TÍCH HỢP SẴN
+const getImageUrl = (url) => {
+  if (!url) return "/default-avatar.png"; // Ảnh mặc định nếu trống
+
+  if (url.startsWith("http")) {
+    return url.replace("http://localhost:5000", import.meta.env.VITE_API_URL);
+  }
+
+  const cleanUrl = url.startsWith("/") ? url : `/${url}`;
+  return `${import.meta.env.VITE_API_URL}${cleanUrl}`;
+};
+
 // ==============================================
 // CẤU HÌNH TOAST ĐỒNG BỘ (TRẮNG, CĂN GIỮA)
 // ==============================================
@@ -262,7 +274,6 @@ export default function UserPage() {
       );
       if (res.ok) {
         const data = await res.json();
-        // ĐÃ THÊM: Gắn cờ isFollowing = true cho tất cả người trong danh sách "Đang theo dõi" của mình
         if (type === "following" && isOwnProfile) {
           const enhancedData = data.map((item) => ({
             ...item,
@@ -281,7 +292,6 @@ export default function UserPage() {
     }
   };
 
-  // ĐÃ THÊM: Hàm xử lý Unfollow nhanh trong Modal (Kiểu TikTok)
   const handleUnfollowFromList = async (targetUserId) => {
     if (!user) return;
     try {
@@ -298,7 +308,6 @@ export default function UserPage() {
       );
       const data = await res.json();
       if (res.ok) {
-        // Cập nhật lại UI trong danh sách
         setFollowList((prevList) =>
           prevList.map((item) =>
             item.UserID === targetUserId
@@ -306,7 +315,6 @@ export default function UserPage() {
               : item
           )
         );
-        // Cập nhật lại số đếm ở ngoài Profile
         if (followModalType === "following" && isOwnProfile) {
           setProfileUser((prev) => ({
             ...prev,
@@ -533,7 +541,8 @@ export default function UserPage() {
             <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center shadow-sm">
               {profileUser.Avatar ? (
                 <img
-                  src={`${import.meta.env.VITE_API_URL}/${profileUser.Avatar}`}
+                  /* Ảnh Avatar chính của Profile */
+                  src={getImageUrl(profileUser.Avatar)}
                   alt="Avatar"
                   className="w-full h-full object-cover"
                 />
@@ -745,7 +754,8 @@ export default function UserPage() {
 
                         {recipe.ImageURL ? (
                           <img
-                            src={`${import.meta.env.VITE_API_URL}/${recipe.ImageURL}`}
+                            /* Ảnh bìa món ăn trong tab Bài đăng của tôi */
+                            src={getImageUrl(recipe.ImageURL)}
                             alt={recipe.Title}
                             className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
                               recipe.Status === "Pending"
@@ -928,7 +938,8 @@ export default function UserPage() {
                       <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center border border-gray-200">
                         {item.Avatar ? (
                           <img
-                            src={`${import.meta.env.VITE_API_URL}/${item.Avatar}`}
+                            /* Ảnh Avatar trong Modal Danh sách Follow */
+                            src={getImageUrl(item.Avatar)}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -1006,7 +1017,8 @@ export default function UserPage() {
                       <div className="w-24 h-24 rounded-full border border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center shadow-sm">
                         {user.Avatar ? (
                           <img
-                            src={`${import.meta.env.VITE_API_URL}/${user.Avatar}`}
+                            /* ĐÃ SỬA: Ảnh Avatar trong Modal Chỉnh sửa hồ sơ */
+                            src={getImageUrl(user.Avatar)}
                             alt="Avatar"
                             className="w-full h-full object-cover"
                           />

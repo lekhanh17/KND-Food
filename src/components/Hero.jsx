@@ -1,6 +1,18 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+// KHIÊN BẢO VỆ ẢNH TÍCH HỢP SẴN (Có kèm ảnh mặc định riêng cho Hero)
+const getImageUrl = (url) => {
+  if (!url) return "https://images.unsplash.com/photo-1493770348161-369560ae357d?q=80&w=2070&auto=format&fit=crop"; 
+
+  if (url.startsWith("http")) {
+    return url.replace("http://localhost:5000", import.meta.env.VITE_API_URL);
+  }
+
+  const cleanUrl = url.startsWith("/") ? url : `/${url}`;
+  return `${import.meta.env.VITE_API_URL}${cleanUrl}`;
+};
+
 export default function Hero() {
   const navigate = useNavigate();
 
@@ -57,10 +69,8 @@ export default function Hero() {
           // Cắt lấy 5 món đứng đầu bảng xếp hạng
           const topRecipes = sortedRecipes.slice(0, 5).map((recipe) => ({
             id: recipe.RecipeID,
-            // SỬA Ở ĐÂY: Ghép link Backend vào nếu có ảnh, không có thì xài link Unsplash
-            image: recipe.ImageURL
-              ? `${import.meta.env.VITE_API_URL}/${recipe.ImageURL}`
-              : "https://images.unsplash.com/photo-1493770348161-369560ae357d?q=80&w=2070&auto=format&fit=crop",
+            // Sử dụng khiên bảo vệ ảnh getImageUrl
+            image: getImageUrl(recipe.ImageURL),
             subtitle: categoryMap[recipe.CategoryID]
               ? `NỔI BẬT: ${categoryMap[recipe.CategoryID]}`.toUpperCase()
               : "MÓN NGON NỔI BẬT",

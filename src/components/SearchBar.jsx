@@ -11,17 +11,17 @@ export default function SearchBar() {
   const DEFAULT_RECIPE_IMG = "https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg"; 
   const DEFAULT_USER_IMG = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-  // HÀM XỬ LÝ LINK ẢNH (Giống mấy trang kia của sếp)
-  const getImageUrl = (imagePath, fallbackImg) => {
-    if (!imagePath) return fallbackImg;
-    // Nếu ảnh đã là link online (http) thì giữ nguyên
-    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
-      return imagePath;
+  // KHIÊN BẢO VỆ ẢNH TÍCH HỢP SẴN (Đã nâng cấp)
+  const getImageUrl = (url, fallbackImg) => {
+    if (!url) return fallbackImg;
+
+    if (url.startsWith("http")) {
+      // Sửa lỗi link localhost cũ còn lưu trong Database
+      return url.replace("http://localhost:5000", import.meta.env.VITE_API_URL);
     }
-    // Nếu ảnh là đường dẫn nội bộ (/images/...), thì nối với API URL của Backend
-    const baseUrl = import.meta.env.VITE_API_URL || "";
-    const formattedPath = imagePath.startsWith("/") ? imagePath : `/${imagePath}`;
-    return `${baseUrl}${formattedPath}`;
+
+    const cleanUrl = url.startsWith("/") ? url : `/${url}`;
+    return `${import.meta.env.VITE_API_URL}${cleanUrl}`;
   };
 
   const searchRef = useRef(null);
@@ -97,7 +97,7 @@ export default function SearchBar() {
         )}
       </div>
 
-      {/* 2. MENU DROPDOWN XỔ XUỐNG */}
+      {/* 2. MENU DROPDOWN */}
       {showDropdown &&
         (results.recipes.length > 0 || results.users.length > 0) && (
           <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-50">
@@ -115,7 +115,8 @@ export default function SearchBar() {
                     className="flex items-center gap-3 px-3 py-2 hover:bg-orange-50 rounded-lg transition-colors"
                   >
                     <img
-                      src={getImageUrl(recipe.ImageURL, DEFAULT_RECIPE_IMG)} // <--- ĐÃ NỐI API URL Ở ĐÂY
+                      /* ÁP DỤNG KHIÊN BẢO VỆ */
+                      src={getImageUrl(recipe.ImageURL, DEFAULT_RECIPE_IMG)}
                       onError={(e) => { e.target.src = DEFAULT_RECIPE_IMG; }}
                       alt={recipe.Title}
                       className="w-10 h-10 rounded-md object-cover"
@@ -147,7 +148,8 @@ export default function SearchBar() {
                     className="flex items-center gap-3 px-3 py-2 hover:bg-orange-50 rounded-lg transition-colors"
                   >
                     <img
-                      src={getImageUrl(user.Avatar || user.ProfilePicture, DEFAULT_USER_IMG)} // <--- ĐÃ NỐI API URL Ở ĐÂY
+                      /* ÁP DỤNG KHIÊN BẢO VỆ */
+                      src={getImageUrl(user.Avatar || user.ProfilePicture, DEFAULT_USER_IMG)}
                       onError={(e) => { e.target.src = DEFAULT_USER_IMG; }}
                       alt={user.Username}
                       className="w-8 h-8 rounded-full object-cover border border-gray-200"

@@ -11,6 +11,18 @@ import {
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 
+// KHIÊN BẢO VỆ ẢNH TÍCH HỢP SẴN
+const getImageUrl = (url) => {
+  if (!url) return "https://via.placeholder.com/300"; // Ảnh mặc định nếu trống
+
+  if (url.startsWith("http")) {
+    return url.replace("http://localhost:5000", import.meta.env.VITE_API_URL);
+  }
+
+  const cleanUrl = url.startsWith("/") ? url : `/${url}`;
+  return `${import.meta.env.VITE_API_URL}${cleanUrl}`;
+};
+
 // ==========================================
 // CẤU HÌNH ÉP TOAST SANG MÀU TRẮNG (DÙNG ! ĐỂ ĐÈ APP.JSX)
 // ==========================================
@@ -326,7 +338,7 @@ export default function AdminDashboard() {
               <h2 className="text-lg sm:text-2xl font-black text-gray-800 uppercase tracking-tighter mb-4 sm:mb-8 px-2">
                 Danh sách thành viên
               </h2>
-              {/* ĐÃ SỬA: pb-40 để menu Role hiện thoải mái không bị bảng nuốt mất */}
+              {/* pb-40 để menu Role hiện thoải mái không bị bảng nuốt mất */}
               <div className="overflow-x-auto pb-40 -mx-2 sm:mx-0 px-2 sm:px-0">
                 {loading ? (
                   <div className="py-20 text-center font-bold text-gray-400">
@@ -404,9 +416,8 @@ export default function AdminDashboard() {
                       className="border border-gray-100 rounded-3xl p-4 shadow-sm hover:shadow-md transition bg-white flex flex-col"
                     >
                       <img
-                        src={
-                          recipe.ImageURL || "https://via.placeholder.com/300"
-                        }
+                        /* ÁP DỤNG KHIÊN BẢO VỆ */
+                        src={getImageUrl(recipe.ImageURL)}
                         alt={recipe.Title}
                         className="w-full h-32 sm:h-40 object-cover rounded-2xl mb-4"
                       />

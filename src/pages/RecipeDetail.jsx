@@ -7,6 +7,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart } from "@fortawesome/free-solid-svg-icons";
 import RecipeCard from "../components/RecipeCard";
 
+// KHIÊN BẢO VỆ ẢNH TÍCH HỢP SẴN
+const getImageUrl = (url) => {
+  if (!url) return "/default-food.png"; // Ảnh mặc định nếu trống
+
+  if (url.startsWith("http")) {
+    return url.replace("http://localhost:5000", import.meta.env.VITE_API_URL);
+  }
+
+  const cleanUrl = url.startsWith("/") ? url : `/${url}`;
+  return `${import.meta.env.VITE_API_URL}${cleanUrl}`;
+};
+
 // ==========================================
 // HÀM CHUYỂN ĐỔI SỐ SANG CHỮ CHO ĐỘ KHÓ
 // ==========================================
@@ -311,7 +323,8 @@ export default function RecipeDetail() {
             )
           ) : (
             <img
-              src={`${import.meta.env.VITE_API_URL}/${recipe.ImageURL}`}
+              /* ẢNH BÌA MÓN ĂN */
+              src={getImageUrl(recipe.ImageURL)}
               alt={recipe.Title}
               className="max-w-full max-h-full object-contain rounded-3xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] bg-white/50"
             />
@@ -391,7 +404,7 @@ export default function RecipeDetail() {
               </div>
             </div>
 
-            {/* KHỐI TÁC GIẢ - ĐÃ CHUYỂN THÀNH LINK */}
+            {/* KHỐI TÁC GIẢ */}
             <Link
               to={`/profile/${recipe.UserID}`}
               className="shrink-0 flex items-center gap-3 p-3 bg-gray-50 hover:bg-orange-50 rounded-2xl border border-gray-100 hover:border-orange-200 transition-all cursor-pointer min-w-[160px] group shadow-sm hover:shadow-md"
@@ -399,7 +412,8 @@ export default function RecipeDetail() {
               <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden shrink-0 flex items-center justify-center border-2 border-transparent group-hover:border-orange-400 transition-colors">
                 {recipe.Avatar ? (
                   <img
-                    src={`${import.meta.env.VITE_API_URL}/${recipe.Avatar}`}
+                    /* ẢNH AVATAR TÁC GIẢ */
+                    src={getImageUrl(recipe.Avatar)}
                     alt="Avatar"
                     className="w-full h-full object-cover"
                   />
@@ -564,7 +578,8 @@ export default function RecipeDetail() {
                     {step.ImageURL && (
                       <div className="rounded-2xl overflow-hidden border border-gray-200 bg-gray-100 flex justify-center">
                         <img
-                          src={`${import.meta.env.VITE_API_URL}/${step.ImageURL}`}
+                          /* SỬA ẢNH HƯỚNG DẪN CÁC BƯỚC Ở ĐÂY */
+                          src={getImageUrl(step.ImageURL)}
                           alt={`Bước ${step.StepNumber}`}
                           className="w-full object-contain max-h-[300px]"
                         />

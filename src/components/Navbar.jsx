@@ -18,6 +18,18 @@ import {
   faStar,
 } from "@fortawesome/free-solid-svg-icons";
 
+// KHIÊN BẢO VỆ ẢNH TÍCH HỢP SẴN
+const getImageUrl = (url) => {
+  if (!url) return "/default-avatar.png"; // Ảnh mặc định nếu trống
+
+  if (url.startsWith("http")) {
+    return url.replace("http://localhost:5000", import.meta.env.VITE_API_URL);
+  }
+
+  const cleanUrl = url.startsWith("/") ? url : `/${url}`;
+  return `${import.meta.env.VITE_API_URL}${cleanUrl}`;
+};
+
 export default function Navbar() {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -43,7 +55,7 @@ export default function Navbar() {
     return notifications.filter((n) => !n.IsRead).length;
   }, [notifications]);
 
-  // ĐÃ SỬA: Xóa logic của tab 'all'
+  // Xóa logic của tab 'all'
   const filteredNotifications = useMemo(() => {
     if (activeNotifTab === "follow")
       return notifications.filter((n) => n.Type === "Follow");
@@ -447,7 +459,8 @@ export default function Navbar() {
                   <div className="w-8 h-8 sm:w-9 sm:h-9 bg-orange-500 text-white rounded-full flex items-center justify-center font-black shadow-md shadow-orange-200 uppercase overflow-hidden">
                     {user.Avatar ? (
                       <img
-                        src={`${import.meta.env.VITE_API_URL}/${user.Avatar}`}
+                        /* Ảnh Avatar trên Navbar */
+                        src={getImageUrl(user.Avatar)}
                         alt="avt"
                         className="w-full h-full object-cover"
                       />
