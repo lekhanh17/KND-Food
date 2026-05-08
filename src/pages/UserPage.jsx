@@ -725,7 +725,8 @@ export default function UserPage() {
                 <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
               </div>
             ) : myRecipes.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              // ĐÃ SỬA: Đổi thành grid-cols-2 trên mobile (2 card/hàng), và lg:grid-cols-3 trên PC (3 card/hàng), ép gọn gap
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {myRecipes.map((recipe) => {
                   const difficultyUI = getDifficultyUI(recipe.Difficulty);
 
@@ -737,8 +738,9 @@ export default function UserPage() {
                     >
                       <div className="aspect-[4/3] overflow-hidden relative bg-gray-100">
                         {recipe.Status === "Pending" && (
-                          <div className="absolute top-3 right-3 z-10 px-3 py-1.5 bg-yellow-500/90 backdrop-blur-md text-white text-[10px] font-black tracking-widest rounded-xl shadow-lg border border-yellow-400">
-                            <span className="flex items-center gap-1.5">
+                          // ĐÃ SỬA: Ép nhỏ padding và font-size của tag trên điện thoại
+                          <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 px-2 py-1 sm:px-3 sm:py-1.5 bg-yellow-500/90 backdrop-blur-md text-white text-[8px] sm:text-[10px] font-black tracking-widest rounded-lg sm:rounded-xl shadow-lg border border-yellow-400">
+                            <span className="flex items-center gap-1 sm:gap-1.5">
                               <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
                               Đang chờ duyệt
                             </span>
@@ -747,7 +749,8 @@ export default function UserPage() {
 
                         {(recipe.Status === "Approved" ||
                           recipe.Status === "Published") && (
-                          <div className="absolute top-3 right-3 z-10 px-3 py-1.5 bg-green-500/90 backdrop-blur-md text-white text-[10px] font-black tracking-widest rounded-xl shadow-lg">
+                          // ĐÃ SỬA: Ép nhỏ padding và font-size của tag trên điện thoại
+                          <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 px-2 py-1 sm:px-3 sm:py-1.5 bg-green-500/90 backdrop-blur-md text-white text-[8px] sm:text-[10px] font-black tracking-widest rounded-lg sm:rounded-xl shadow-lg">
                             Đã duyệt
                           </div>
                         )}
@@ -764,31 +767,33 @@ export default function UserPage() {
                             }`}
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-300">
+                          <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs sm:text-base">
                             No Image
                           </div>
                         )}
 
+                        {/* ĐÃ SỬA: Ép nhỏ padding và font-size của tag độ khó */}
                         <div
-                          className={`absolute top-3 left-3 px-3 py-1.5 rounded-lg border text-xs font-black shadow-sm z-10 ${difficultyUI.color}`}
+                          className={`absolute top-2 left-2 sm:top-3 sm:left-3 px-2 py-1 sm:px-3 sm:py-1.5 rounded-md sm:rounded-lg border text-[9px] sm:text-xs font-black shadow-sm z-10 ${difficultyUI.color}`}
                         >
                           {difficultyUI.label}
                         </div>
                       </div>
 
-                      <div className="p-4">
-                        <h3 className="font-bold text-lg text-gray-900 line-clamp-1 mb-2 group-hover:text-orange-500 transition-colors">
+                      {/* ĐÃ SỬA: Ép nhỏ padding text trên mobile */}
+                      <div className="p-2.5 sm:p-4">
+                        <h3 className="font-bold text-sm sm:text-lg text-gray-900 line-clamp-1 mb-1 sm:mb-2 group-hover:text-orange-500 transition-colors">
                           {recipe.Title}
                         </h3>
-                        <div className="flex items-center text-sm text-gray-500 font-medium gap-4">
-                          <span className="flex items-center gap-1.5">
+                        <div className="flex items-center text-[10px] sm:text-sm text-gray-500 font-medium gap-2 sm:gap-4">
+                          <span className="flex items-center gap-1 sm:gap-1.5">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
                               fill="none"
                               viewBox="0 0 24 24"
                               strokeWidth={2}
                               stroke="currentColor"
-                              className="w-4 h-4"
+                              className="w-3 h-3 sm:w-4 sm:h-4"
                             >
                               <path
                                 strokeLinecap="round"
@@ -845,7 +850,8 @@ export default function UserPage() {
                 <div className="w-8 h-8 border-4 border-red-400 border-t-transparent rounded-full animate-spin mb-4"></div>
               </div>
             ) : favoriteRecipes.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              // ĐÃ SỬA: Đổi thành grid-cols-2 trên mobile
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {favoriteRecipes.map((recipe) => (
                   <RecipeCard key={recipe.RecipeID} item={recipe} />
                 ))}

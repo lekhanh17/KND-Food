@@ -18,7 +18,6 @@ export default function HomePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // ĐÃ SỬA: Gọi thêm API featured để lấy top món ăn nổi bật (đã có đánh giá)
         const [recipesRes, categoriesRes, featuredRes] = await Promise.all([
           fetch(`${import.meta.env.VITE_API_URL}/api/recipes`),
           fetch(`${import.meta.env.VITE_API_URL}/api/categories`),
@@ -46,12 +45,12 @@ export default function HomePage() {
             r.Status === "1",
         );
 
-        // Format toàn bộ công thức (dùng để render theo từng danh mục ở dưới)
+        // Format toàn bộ công thức
         const formattedAllRecipes = approvedRecipes.map((recipe) => ({
           id: recipe.RecipeID,
           title: recipe.Title,
           category: dynamicCategoryMap[recipe.CategoryID] || `Khác`,
-          categoryId: recipe.CategoryID, // Cần ID để lát nữa phân loại
+          categoryId: recipe.CategoryID,
           time: `${(recipe.PrepTime || 0) + (recipe.CookTime || 0)}p`,
           difficulty: recipe.Difficulty || 1,
           rating: recipe.AverageRating || 0,
@@ -59,11 +58,9 @@ export default function HomePage() {
           image: recipe.ImageURL || defaultRecipeImg,
         }));
 
-        setAllRecipes(formattedAllRecipes); // Lưu lại tất cả
+        setAllRecipes(formattedAllRecipes);
 
-        // ==============================================
-        // ĐÃ SỬA: Lấy dữ liệu từ API Featured để gán cho Trending
-        // ==============================================
+        // Món ăn nổi bật
         const formattedTrending = featuredData.map((recipe) => ({
           id: recipe.RecipeID,
           title: recipe.Title,
@@ -89,26 +86,26 @@ export default function HomePage() {
 
   return (
     <div className="bg-white min-h-screen">
-      {/* Vẫn giữ lại Banner Hero nhé, lỡ bạn làm mất code cũ thì nó nằm ở component này */}
       <Hero />
 
-      {/* 1. KHÁM PHÁ DANH MỤC NHANH (Các nút bấm Pill) */}
-      <section className="container mx-auto px-6 pt-16 pb-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-black text-gray-900 flex items-center gap-3">
-            <span className="w-10 h-10 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-lg shadow-sm">
+      {/* 1. KHÁM PHÁ DANH MỤC NHANH */}
+      <section className="container mx-auto px-6 pt-16 pb-8 overflow-hidden">
+        <div className="mb-6">
+          <h2 className="text-2xl sm:text-3xl font-black text-gray-900 flex items-center gap-3">
+            <span className="w-10 h-10 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center text-lg shadow-sm shrink-0">
               <FontAwesomeIcon icon={faUtensils} />
             </span>
             Khám phá nhanh
           </h2>
-          <p className="text-gray-400 mt-2 pl-14">
+          <p className="text-gray-400 mt-2 pl-14 text-sm sm:text-base">
             Lựa chọn theo khẩu vị của bạn
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-4 pl-2">
+        {/* ĐÃ SỬA: Chạy flex-nowrap trên mobile (trượt) và md:flex-wrap trên PC (rớt dòng) */}
+        <div className="flex gap-3 overflow-x-auto flex-nowrap md:flex-wrap pb-4 md:pb-0 w-full snap-x [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {isLoading ? (
-            <div className="w-full flex py-4">
+            <div className="w-full flex py-4 justify-center">
               <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : (
@@ -116,7 +113,7 @@ export default function HomePage() {
               <Link
                 key={cat.CategoryID}
                 to={`/recipes?category=${cat.CategoryID}`}
-                className="px-6 py-3 bg-gray-50 text-gray-700 font-bold rounded-2xl hover:bg-orange-500 hover:text-white transition-all duration-300 shadow-sm border border-gray-100 active:scale-95"
+                className="shrink-0 whitespace-nowrap px-5 py-2.5 bg-gray-50 text-gray-700 font-bold text-sm rounded-2xl hover:bg-orange-500 hover:text-white transition-all duration-300 shadow-sm border border-gray-100 active:scale-95"
               >
                 {cat.CategoryName}
               </Link>
@@ -129,18 +126,17 @@ export default function HomePage() {
       <section className="container mx-auto px-6 py-12 border-t border-gray-50 mt-4">
         <div className="flex justify-between items-end mb-10">
           <div>
-            <h2 className="text-4xl font-black text-gray-900">
+            <h2 className="text-2xl sm:text-4xl font-black text-gray-900">
               Món ăn nổi bật
             </h2>
-            <p className="text-gray-400 mt-2">
+            <p className="text-gray-400 mt-2 text-sm sm:text-base">
               Những công thức được yêu thích nhất tuần này
             </p>
           </div>
-          {/* Điều kiện lớn hơn 4 mới hiện nút Xem tất cả */}
           {trendingRecipes.length > 4 && (
             <Link
               to="/recipes?sort=popular"
-              className="text-orange-500 font-bold hover:underline underline-offset-8 flex items-center group"
+              className="text-orange-500 font-bold hover:underline underline-offset-8 flex items-center group text-xs sm:text-base"
             >
               Xem tất cả
               <FontAwesomeIcon
@@ -156,8 +152,7 @@ export default function HomePage() {
             <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : trendingRecipes.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* ĐÃ SỬA: Chèn .slice(0, 4) vào để cắt đúng 4 món lên Trang chủ */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             {trendingRecipes.slice(0, 4).map((item) => (
               <RecipeCard key={item.id} item={item} />
             ))}
@@ -169,20 +164,15 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* ========================================== */}
       {/* 3. DUYỆT TỪNG DANH MỤC VÀ HIỂN THỊ MÓN ĂN */}
-      {/* ========================================== */}
       {!isLoading &&
         allCategories.map((cat) => {
-          // Lọc ra các món ăn thuộc danh mục hiện tại
           const recipesInCategory = allRecipes.filter(
             (r) => r.categoryId === cat.CategoryID,
           );
 
-          // Cú lừa UI/UX: Nếu danh mục này CHƯA có món nào, thì ĐỪNG in nguyên cái khung ra làm gì cho trống web
           if (recipesInCategory.length === 0) return null;
 
-          // Chỉ lấy tối đa 4 món để hiện ở Trang chủ cho gọn
           const displayRecipes = recipesInCategory.slice(0, 4);
 
           return (
@@ -192,16 +182,15 @@ export default function HomePage() {
             >
               <div className="flex justify-between items-end mb-10">
                 <div>
-                  <h2 className="text-3xl font-black text-gray-900 capitalize">
+                  <h2 className="text-2xl sm:text-3xl font-black text-gray-900 capitalize">
                     {cat.CategoryName}
                   </h2>
                 </div>
 
-                {/* Nút Xem tất cả dẫn tới trang lọc của đúng danh mục này */}
                 {recipesInCategory.length > 4 && (
                   <Link
                     to={`/recipes?category=${cat.CategoryID}`}
-                    className="text-orange-500 font-bold hover:underline underline-offset-8 flex items-center group text-sm"
+                    className="text-orange-500 font-bold hover:underline underline-offset-8 flex items-center group text-xs sm:text-sm"
                   >
                     Xem tất cả
                     <FontAwesomeIcon
@@ -212,7 +201,7 @@ export default function HomePage() {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
                 {displayRecipes.map((item) => (
                   <RecipeCard key={item.id} item={item} />
                 ))}
