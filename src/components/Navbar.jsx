@@ -86,7 +86,7 @@ export default function Navbar() {
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       if (response.ok) {
         setNotifications((prev) =>
@@ -108,7 +108,7 @@ export default function Navbar() {
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
-        }
+        },
       );
       if (response.ok) {
         setNotifications(notifications.filter((n) => !n.IsRead));
@@ -141,7 +141,7 @@ export default function Navbar() {
           `${import.meta.env.VITE_API_URL}/api/notifications`,
           {
             headers: { Authorization: `Bearer ${token}` },
-          }
+          },
         );
         if (response.ok) {
           const data = await response.json();
@@ -164,6 +164,9 @@ export default function Navbar() {
       fetchNotifications();
     }
 
+    // NGHE LỆNH CẬP NHẬT TỨC THỜI
+    window.addEventListener("refresh-notifications", fetchNotifications);
+
     const interval = setInterval(() => {
       if (user) fetchNotifications();
     }, 30000);
@@ -171,6 +174,8 @@ export default function Navbar() {
     return () => {
       window.removeEventListener("user-changed", syncUser);
       window.removeEventListener("storage", syncUser);
+      // XÓA EVENT KHI ĐÓNG NAVBAR
+      window.removeEventListener("refresh-notifications", fetchNotifications);
       clearInterval(interval);
     };
   }, [user]);
@@ -237,10 +242,18 @@ export default function Navbar() {
 
   const timeAgo = (dateString) => {
     const now = new Date();
-    let past = new Date(dateString);
+
+    // Ép chuỗi ngày về giờ chuẩn (Cắt bỏ chữ Z ở cuối nếu có để trình duyệt không hiểu lầm là giờ UTC rồi tự cộng thêm)
+    let cleanDateString = dateString;
+    if (typeof dateString === "string" && dateString.endsWith("Z")) {
+      cleanDateString = dateString.slice(0, -1);
+    }
+
+    // Do Backend đã lưu chuẩn giờ VN, ta không cần bù giờ (+ 5 tiếng) nữa!
+    let past = new Date(cleanDateString);
 
     if (past > now) {
-      past = new Date(past.getTime() - 7 * 60 * 60 * 1000);
+      past = now;
     }
 
     const diffInSeconds = Math.floor((now - past) / 1000);
@@ -264,7 +277,7 @@ export default function Navbar() {
     return `${diffInYears} năm trước`;
   };
 
-  // ĐÃ SỬA: Xóa tab "Tất cả"
+  // DANH SÁCH TAB THÔNG BÁO, NẾU LÀ ADMIN/STAFF THÌ MỚI HIỂN THỊ TAB "Duyệt bài"
   const notifTabs = [
     { id: "interact", label: "Tương tác" },
     { id: "follow", label: "Người theo dõi" },
