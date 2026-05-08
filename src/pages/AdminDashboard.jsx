@@ -38,7 +38,7 @@ const whiteToastConfig = {
 };
 
 // ==========================================
-// COMPONENT: DROPDOWN CHỌN VAI TRÒ SIÊU ĐẸP
+// COMPONENT: DROPDOWN CHỌN VAI TRÒ
 // ==========================================
 const CustomRoleDropdown = ({ currentRole, onRoleChange, disabled }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -51,7 +51,8 @@ const CustomRoleDropdown = ({ currentRole, onRoleChange, disabled }) => {
   };
 
   return (
-    <div className="relative inline-block text-left w-24 sm:w-28">
+    // ĐÃ SỬA: Giảm w-24 xuống w-20 trên mobile cho gọn
+    <div className="relative inline-block text-left w-20 sm:w-28">
       {/* Nút bấm hiển thị Role hiện tại */}
       <button
         type="button"
@@ -345,17 +346,23 @@ export default function AdminDashboard() {
                     Đang tải...
                   </div>
                 ) : (
-                  <table className="w-full text-left border-collapse min-w-[500px]">
+                  // Xóa min-w-[500px] để bảng tự co giãn 100% màn hình
+                  <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-b border-gray-100">
-                        <th className="py-4 px-2 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase">
+                        {/* Ép padding lại px-1 trên mobile để tiết kiệm diện tích */}
+                        <th className="py-4 px-1 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase">
                           Người dùng
                         </th>
-                        <th className="py-4 px-2 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase">
+                        {/* Ẩn riêng cột Email ở màn hình điện thoại (sm:table-cell) */}
+                        <th className="hidden sm:table-cell py-4 px-1 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase">
                           Email
                         </th>
-                        <th className="py-4 px-2 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase">
+                        <th className="py-4 px-1 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase">
                           Vai trò
+                        </th>
+                        <th className="py-4 px-1 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase text-center">
+                          <span className="sr-only">Xóa</span>
                         </th>
                       </tr>
                     </thead>
@@ -365,13 +372,20 @@ export default function AdminDashboard() {
                           key={u.UserID}
                           className="border-b border-gray-50 hover:bg-gray-50"
                         >
-                          <td className="py-4 px-2 sm:px-4 font-bold text-gray-800 text-xs sm:text-sm">
-                            {u.FullName}
+                          <td className="py-4 px-1 sm:px-4 align-middle">
+                            <div className="font-bold text-gray-800 text-[11px] sm:text-sm">
+                              {u.FullName}
+                            </div>
+                            {/* Hiện email ngay dưới Tên khi dùng Mobile */}
+                            <div className="sm:hidden text-gray-400 text-[9px] truncate max-w-[120px] mt-0.5 font-medium">
+                              {u.Email}
+                            </div>
                           </td>
-                          <td className="py-4 px-2 sm:px-4 text-gray-600 text-[10px] sm:text-sm truncate max-w-[120px] sm:max-w-none">
+                          {/* Cột Email gốc bị ẩn khi dùng Mobile */}
+                          <td className="hidden sm:table-cell py-4 px-1 sm:px-4 text-gray-600 text-[10px] sm:text-sm truncate max-w-[120px] sm:max-w-none align-middle">
                             {u.Email}
                           </td>
-                          <td className="py-4 px-2 sm:px-4">
+                          <td className="py-4 px-1 sm:px-4 align-middle">
                             <CustomRoleDropdown
                               currentRole={u.Role || "User"}
                               onRoleChange={(newRole) =>
@@ -380,13 +394,14 @@ export default function AdminDashboard() {
                               disabled={currentUser?.Role !== "Admin"}
                             />
                           </td>
-                          <td className="py-4 px-2 sm:px-4 text-center">
+                          <td className="py-4 px-1 sm:px-4 text-center align-middle">
                             {currentUser?.Role === "Admin" && (
                               <button
                                 onClick={() => handleDeleteUser(u.UserID)}
-                                className="text-red-300 hover:text-red-600 transition-colors"
+                                className="text-red-300 hover:text-red-600 transition-colors p-2"
+                                title="Xóa"
                               >
-                                <FontAwesomeIcon icon={faTrash} />
+                                <FontAwesomeIcon icon={faTrash} className="text-[10px] sm:text-sm" />
                               </button>
                             )}
                           </td>

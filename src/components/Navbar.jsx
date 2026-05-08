@@ -16,6 +16,7 @@ import {
   faUserPlus,
   faHeart,
   faStar,
+  faSearch,
 } from "@fortawesome/free-solid-svg-icons";
 
 // KHIÊN BẢO VỆ ẢNH TÍCH HỢP SẴN
@@ -35,8 +36,11 @@ export default function Navbar() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  
+  // State quản lý đóng/mở thanh tìm kiếm trên điện thoại
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
-  // ĐÃ SỬA: Đặt tab mặc định là 'interact' (Tương tác) thay vì 'all'
+  // Đặt tab mặc định là 'interact' (Tương tác) thay vì 'all'
   const [activeNotifTab, setActiveNotifTab] = useState("interact");
 
   const [categories, setCategories] = useState([]);
@@ -282,7 +286,6 @@ export default function Navbar() {
     return `${diffInYears} năm trước`;
   };
 
-  // DANH SÁCH TAB THÔNG BÁO, NẾU LÀ ADMIN/STAFF THÌ MỚI HIỂN THỊ TAB "Duyệt bài"
   const notifTabs = [
     { id: "interact", label: "Tương tác" },
     { id: "follow", label: "Người theo dõi" },
@@ -321,24 +324,26 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100 shadow-sm transition-all duration-300">
-      <div className="container mx-auto px-4 lg:px-8 h-20 flex items-center justify-between gap-2 sm:gap-8">
+      {/* ĐÃ SỬA: Giảm padding px-4 xuống px-2 trên mobile, giảm h-20 xuống h-16 trên mobile để vừa vặn hơn */}
+      <div className="container mx-auto px-2 sm:px-4 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-1 sm:gap-8">
+        
         {/* LOGO */}
-        <Link to="/" className="flex items-center gap-2 shrink-0 group">
-          <div className="w-10 h-10 sm:w-11 sm:h-11 bg-orange-500 rounded-2xl flex items-center justify-center text-white text-lg sm:text-xl shadow-lg shadow-orange-200 group-hover:rotate-12 transition-transform duration-300">
+        <Link to="/" className="flex items-center gap-1.5 sm:gap-2 shrink-0 group">
+          <div className="w-8 h-8 sm:w-11 sm:h-11 bg-orange-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-white text-base sm:text-xl shadow-lg shadow-orange-200 group-hover:rotate-12 transition-transform duration-300">
             <FontAwesomeIcon icon={faBreadSlice} />
           </div>
-          <span className="text-lg sm:text-2xl font-black text-gray-800 tracking-tighter uppercase leading-none">
+          <span className="text-base sm:text-2xl font-black text-gray-800 tracking-tighter uppercase leading-none">
             KND <span className="text-orange-500">Food</span>
           </span>
         </Link>
 
-        {/* THANH TÌM KIẾM */}
+        {/* THANH TÌM KIẾM (Chỉ hiện trên màn hình lớn) */}
         <div className="flex-1 max-w-2xl relative z-50 hidden md:block">
           <SearchBar />
         </div>
 
         {/* ĐIỀU HƯỚNG & USER */}
-        <div className="flex items-center gap-2 sm:gap-5 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-5 shrink-0">
           <div className="hidden xl:flex items-center gap-6 text-gray-600 font-bold text-sm">
             <Link
               to="/recipes"
@@ -375,45 +380,54 @@ export default function Navbar() {
             </div>
           </div>
 
+          {/* NÚT SEARCH DÀNH RIÊNG CHO MOBILE (Thu nhỏ w-8 h-8 trên mobile) */}
+          <button
+            onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
+            className="md:hidden flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 text-gray-500 bg-gray-50 rounded-xl sm:rounded-2xl hover:bg-orange-50 hover:text-orange-500 transition-all duration-300 border border-gray-100 shadow-sm active:scale-95"
+            title="Tìm kiếm"
+          >
+            <FontAwesomeIcon icon={faSearch} className="text-xs sm:text-sm" />
+          </button>
+
           {/* NÚT QUẢN TRỊ */}
           {user && (user.Role === "Admin" || user.Role === "Staff") && (
             <Link
               to="/admin"
-              className="flex items-center justify-center w-10 h-10 sm:w-auto sm:px-5 sm:py-2.5 text-red-600 bg-red-50 rounded-2xl hover:bg-red-600 hover:text-white transition-all duration-300 font-black text-xs uppercase tracking-wider border border-red-100 shadow-sm active:scale-95"
+              className="flex items-center justify-center w-8 h-8 sm:w-auto sm:px-5 sm:py-2.5 text-red-600 bg-red-50 rounded-xl sm:rounded-2xl hover:bg-red-600 hover:text-white transition-all duration-300 font-black text-xs uppercase tracking-wider border border-red-100 shadow-sm active:scale-95"
               title="Quản trị"
             >
               <FontAwesomeIcon
                 icon={faUserShield}
-                className="text-sm sm:text-xs"
+                className="text-xs sm:text-sm"
               />
               <span className="hidden sm:inline ml-2">Quản trị</span>
             </Link>
           )}
 
-          {/* NÚT CHIA SẺ */}
+          {/* NÚT CHIA SẺ (Thu nhỏ w-8 h-8 trên mobile) */}
           <Link
             to="/create-recipe"
-            className="flex items-center justify-center w-10 h-10 sm:w-auto sm:px-5 sm:py-2.5 text-orange-600 bg-orange-50 rounded-2xl hover:bg-orange-600 hover:text-white transition-all duration-300 whitespace-nowrap font-black text-xs uppercase tracking-wider border border-orange-100 shadow-sm active:scale-95"
+            className="flex items-center justify-center w-8 h-8 sm:w-auto sm:px-5 sm:py-2.5 text-orange-600 bg-orange-50 rounded-xl sm:rounded-2xl hover:bg-orange-600 hover:text-white transition-all duration-300 whitespace-nowrap font-black text-xs uppercase tracking-wider border border-orange-100 shadow-sm active:scale-95"
             title="Chia sẻ"
           >
-            <FontAwesomeIcon icon={faUtensils} className="text-sm sm:text-xs" />
+            <FontAwesomeIcon icon={faUtensils} className="text-xs sm:text-sm" />
             <span className="hidden sm:inline ml-2">Chia sẻ</span>
           </Link>
 
           {user ? (
-            <div className="flex items-center gap-2 sm:gap-4 border-l border-gray-100 pl-2 sm:pl-4">
+            <div className="flex items-center gap-1.5 sm:gap-4 border-l border-gray-100 pl-1.5 sm:pl-4">
               {/* CHUÔNG THÔNG BÁO */}
               <div className="relative" ref={notifMenuRef}>
                 <button
                   onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                  className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center transition-all border ${unreadCount > 0 ? "bg-orange-500 text-white shadow-lg shadow-orange-200 border-orange-400" : "bg-gray-50 text-gray-500 hover:bg-orange-50 hover:text-orange-500 border-gray-100"}`}
+                  className={`w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all border ${unreadCount > 0 ? "bg-orange-500 text-white shadow-lg shadow-orange-200 border-orange-400" : "bg-gray-50 text-gray-500 hover:bg-orange-50 hover:text-orange-500 border-gray-100"}`}
                 >
                   <FontAwesomeIcon
                     icon={faBell}
-                    className={unreadCount > 0 ? "animate-tada" : ""}
+                    className={`text-xs sm:text-base ${unreadCount > 0 ? "animate-tada" : ""}`}
                   />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-black border-2 border-white">
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] sm:text-[10px] rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center font-black border-2 border-white">
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   )}
@@ -421,7 +435,6 @@ export default function Navbar() {
 
                 {isNotificationOpen && (
                   <div className="fixed left-4 right-4 sm:absolute sm:left-auto sm:right-0 sm:w-[420px] bg-white shadow-2xl rounded-3xl border border-gray-50 mt-4 overflow-hidden animate-in fade-in zoom-in-95 duration-200 z-[60] flex flex-col max-h-[calc(100vh-100px)]">
-                    {/* Header Notification (ĐÃ SỬA: Bỏ nút đọc hết) */}
                     <div className="p-5 pb-3 flex items-center justify-between shrink-0">
                       <h3 className="font-black text-gray-900 text-lg">
                         Thông báo
@@ -436,7 +449,6 @@ export default function Navbar() {
                       </div>
                     </div>
 
-                    {/* TIKTOK STYLE PILLS */}
                     <div className="px-4 pb-3 flex flex-wrap gap-2 border-b border-gray-100 shrink-0">
                       {notifTabs.map((tab) => (
                         <button
@@ -453,7 +465,6 @@ export default function Navbar() {
                       ))}
                     </div>
 
-                    {/* Danh sách List thông báo */}
                     <div className="flex-1 overflow-y-auto">
                       {filteredNotifications.length > 0 ? (
                         filteredNotifications.map(renderNotifItem)
@@ -473,12 +484,11 @@ export default function Navbar() {
               <div className="relative py-2" ref={userMenuRef}>
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 sm:gap-3 p-1 sm:p-1.5 sm:pr-4 bg-gray-50 hover:bg-gray-100 rounded-full transition-all border border-gray-100 group"
+                  className="flex items-center gap-1.5 sm:gap-3 p-1 sm:p-1.5 sm:pr-4 bg-gray-50 hover:bg-gray-100 rounded-full transition-all border border-gray-100 group"
                 >
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 bg-orange-500 text-white rounded-full flex items-center justify-center font-black shadow-md shadow-orange-200 uppercase overflow-hidden">
+                  <div className="w-7 h-7 sm:w-9 sm:h-9 bg-orange-500 text-white rounded-full flex items-center justify-center font-black shadow-md shadow-orange-200 uppercase overflow-hidden text-xs sm:text-base">
                     {user.Avatar ? (
                       <img
-                        /* Ảnh Avatar trên Navbar */
                         src={getImageUrl(user.Avatar)}
                         alt="avt"
                         className="w-full h-full object-cover"
@@ -498,7 +508,7 @@ export default function Navbar() {
                   <div className="absolute top-full right-0 w-48 sm:w-56 bg-white shadow-2xl rounded-3xl p-3 border border-gray-50 mt-0.2 animate-in fade-in slide-in-from-top-2 duration-200 z-[60]">
                     <Link
                       to="/profile"
-                      onClick={() => setIsUserMenuOpen(false)} // Tự đóng khi bấm vào link
+                      onClick={() => setIsUserMenuOpen(false)}
                       className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-500 rounded-2xl transition font-bold group"
                     >
                       <FontAwesomeIcon
@@ -523,16 +533,17 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            // ĐÃ SỬA: Thêm whitespace-nowrap, giảm font và padding trên mobile để chừa không gian
+            <div className="flex items-center gap-1 sm:gap-2">
               <Link
                 to="/login"
-                className="text-gray-700 font-bold px-3 py-2 text-xs sm:text-sm hover:text-orange-500 transition"
+                className="text-gray-700 font-bold px-1.5 sm:px-3 py-1.5 sm:py-2 text-[11px] sm:text-sm hover:text-orange-500 transition whitespace-nowrap"
               >
                 Đăng nhập
               </Link>
               <Link
                 to="/register"
-                className="bg-orange-500 text-white px-4 py-2 sm:px-6 rounded-full font-bold text-xs sm:text-sm shadow-lg shadow-orange-100 hover:bg-orange-600 transition-all active:scale-95"
+                className="bg-orange-500 text-white px-3 sm:px-6 py-1.5 sm:py-2 rounded-full font-bold text-[11px] sm:text-sm shadow-md shadow-orange-100 hover:bg-orange-600 transition-all active:scale-95 whitespace-nowrap"
               >
                 Đăng ký
               </Link>
@@ -540,6 +551,13 @@ export default function Navbar() {
           )}
         </div>
       </div>
+
+      {/* THANH TÌM KIẾM DẠNG TRƯỢT DÀNH CHO MOBILE */}
+      {isMobileSearchOpen && (
+        <div className="md:hidden w-full px-4 pb-4 animate-in fade-in slide-in-from-top-2 border-t border-gray-100 pt-3">
+          <SearchBar />
+        </div>
+      )}
     </nav>
   );
 }
