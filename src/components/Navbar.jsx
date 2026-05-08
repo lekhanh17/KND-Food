@@ -58,15 +58,20 @@ export default function Navbar() {
   // SỬA LỖI TÀNG HÌNH: Thêm "System" vào tab admin để khớp với Database
   const filteredNotifications = useMemo(() => {
     if (activeNotifTab === "follow")
-      return notifications.filter((n) => n.Type === "Follow");
+      return notifications.filter((n) => n.Type && n.Type.toLowerCase() === "follow");
+      
     if (activeNotifTab === "interact")
       return notifications.filter((n) =>
-        ["Favorite", "Comment"].includes(n.Type),
+        // ĐÃ SỬA: Bê Approve và Reject về tab Tương tác cho User đọc được kết quả duyệt bài
+        ["Favorite", "Comment", "Approve", "Reject"].includes(n.Type),
       );
+      
     if (activeNotifTab === "admin")
       return notifications.filter((n) =>
-        ["Approve", "Reject", "System"].includes(n.Type),
+        // ĐÃ SỬA: Admin giờ chỉ cần hiện thông báo Hệ thống (Có món chờ duyệt)
+        ["System"].includes(n.Type),
       );
+      
     return notifications;
   }, [notifications, activeNotifTab]);
 

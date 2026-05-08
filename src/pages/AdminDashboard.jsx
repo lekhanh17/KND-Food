@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -415,15 +415,23 @@ export default function AdminDashboard() {
                       key={recipe.RecipeID}
                       className="border border-gray-100 rounded-3xl p-4 shadow-sm hover:shadow-md transition bg-white flex flex-col"
                     >
-                      <img
-                        /* ÁP DỤNG KHIÊN BẢO VỆ */
-                        src={getImageUrl(recipe.ImageURL)}
-                        alt={recipe.Title}
-                        className="w-full h-32 sm:h-40 object-cover rounded-2xl mb-4"
-                      />
+                      {/* Bọc Link vào ảnh để xem chi tiết ở Tab mới */}
+                      <Link to={`/recipe/${recipe.RecipeID}`} target="_blank" className="block">
+                        <img
+                          /* ÁP DỤNG KHIÊN BẢO VỆ */
+                          src={getImageUrl(recipe.ImageURL)}
+                          alt={recipe.Title}
+                          className="w-full h-32 sm:h-40 object-cover rounded-2xl mb-4 cursor-pointer hover:opacity-80 transition"
+                        />
+                      </Link>
+
+                      {/* Bọc Link vào Tiêu đề để xem chi tiết ở Tab mới */}
                       <h3 className="font-black text-base sm:text-lg text-gray-800 line-clamp-1">
-                        {recipe.Title}
+                        <Link to={`/recipe/${recipe.RecipeID}`} target="_blank" className="hover:text-orange-500 transition-colors">
+                          {recipe.Title}
+                        </Link>
                       </h3>
+
                       <p className="text-[10px] sm:text-sm text-gray-500 mt-1 flex-grow">
                         Tác giả:{" "}
                         <span className="font-bold text-gray-700">
