@@ -55,7 +55,7 @@ export default function Navbar() {
     return notifications.filter((n) => !n.IsRead).length;
   }, [notifications]);
 
-  // Xóa logic của tab 'all'
+  // SỬA LỖI TÀNG HÌNH: Thêm "System" vào tab admin để khớp với Database
   const filteredNotifications = useMemo(() => {
     if (activeNotifTab === "follow")
       return notifications.filter((n) => n.Type === "Follow");
@@ -65,7 +65,7 @@ export default function Navbar() {
       );
     if (activeNotifTab === "admin")
       return notifications.filter((n) =>
-        ["Approve", "Reject"].includes(n.Type),
+        ["Approve", "Reject", "System"].includes(n.Type),
       );
     return notifications;
   }, [notifications, activeNotifTab]);
@@ -86,7 +86,7 @@ export default function Navbar() {
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${token}` },
-        },
+        }
       );
       if (response.ok) {
         setNotifications((prev) =>
@@ -108,7 +108,7 @@ export default function Navbar() {
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },
-        },
+        }
       );
       if (response.ok) {
         setNotifications(notifications.filter((n) => !n.IsRead));
@@ -141,7 +141,7 @@ export default function Navbar() {
           `${import.meta.env.VITE_API_URL}/api/notifications`,
           {
             headers: { Authorization: `Bearer ${token}` },
-          },
+          }
         );
         if (response.ok) {
           const data = await response.json();
@@ -194,6 +194,7 @@ export default function Navbar() {
   const getNotifyIcon = (type) => {
     switch (type) {
       case "Approve":
+      case "System": // Thêm System vào đây để nó có icon luôn nếu cần
         return (
           <FontAwesomeIcon
             icon={faCheckCircle}
