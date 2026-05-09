@@ -1,19 +1,23 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "react-toastify";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
-    const email = e.target[0].value;
-    const password = e.target[1].value;
+    const loginId = e.target.loginId.value.trim().toLowerCase();
+    const password = e.target.password.value;
 
     const toastConfig = {
       position: "top-center",
@@ -24,9 +28,8 @@ export default function LoginPage() {
         "rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 mt-4",
     };
 
-    // 🛑 CHẶN MẬT KHẨU NGẮN (LỚP KHIÊN REACT)
     if (password.length < 8) {
-      setIsLoading(false); // Tắt loading đi để user còn nhập lại
+      setIsLoading(false);
       setError("Mật khẩu phải từ 8 ký tự trở lên!");
       toast.error("Sai định dạng mật khẩu!", toastConfig);
       return;
@@ -40,33 +43,30 @@ export default function LoginPage() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ Email: email, Password: password }),
+          body: JSON.stringify({ identifier: loginId, Password: password }),
         },
       );
 
       const data = await response.json();
 
       if (response.ok) {
-        // === PHẦN QUAN TRỌNG NHẤT: LƯU TOKEN VÀ USER ===
-        localStorage.setItem("token", data.token); // Lưu token để dùng cho các API sau này
-        localStorage.setItem("loggedInUser", JSON.stringify(data.user)); // Lưu thông tin user
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("loggedInUser", JSON.stringify(data.user));
 
         toast.success(data.message || "Đăng nhập thành công!", toastConfig);
 
         setTimeout(() => {
-          // CHỈNH SỬA LOGIC ĐIỀU HƯỚNG:
-          // Ép kiểu về chữ hoa để so sánh cho chính xác (Admin hoặc Staff)
           const userRole = data.user.Role.toUpperCase();
 
           if (userRole === "ADMIN" || userRole === "STAFF") {
-            navigate("/"); // Admin và Nhân viên đều vào trang chủ
+            navigate("/"); 
           } else {
-            navigate("/"); // User về trang chủ
+            navigate("/"); 
           }
         }, 2000);
       } else {
         setIsLoading(false);
-        setError(data.message || "Email hoặc Mật khẩu không chính xác!");
+        setError(data.message || "Thông tin đăng nhập không chính xác!");
       }
     } catch (err) {
       console.error("Lỗi API:", err);
@@ -77,10 +77,8 @@ export default function LoginPage() {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 p-4">
-      {/* ĐÃ THÊM 'relative' VÀO ĐÂY ĐỂ ĐỊNH VỊ NÚT QUAY LẠI */}
       <div className="relative bg-white p-8 rounded-3xl shadow-xl max-w-md w-full border border-gray-100 min-h-[450px] flex flex-col justify-center">
         
-        {/* NÚT QUAY LẠI TRANG CHỦ MỚI THÊM */}
         <Link
           to="/"
           className="absolute top-6 left-6 w-9 h-9 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:bg-orange-50 hover:text-orange-500 transition-all hover:-translate-x-1"
@@ -116,16 +114,19 @@ export default function LoginPage() {
           </div>
         ) : (
           <>
-            <form className="space-y-4 animate-fade-in" onSubmit={handleLogin}>
+            {/* ĐÃ SỬA: Thêm autoComplete="off" vào form để cấm tự động điền */}
+            <form className="space-y-4 animate-fade-in" onSubmit={handleLogin} autoComplete="off">
               <div>
                 <label className="block text-gray-700 mb-1 font-medium text-sm">
-                  Email
+                  Email hoặc ID người dùng
                 </label>
                 <input
-                  type="email"
+                  type="text"
+                  name="loginId"
                   required
+                  autoComplete="off" // Cấm gợi ý email cũ
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white transition-all"
-                  placeholder="Nhập email của bạn..."
+                  placeholder="Nhập email hoặc ID..."
                 />
               </div>
 
@@ -133,13 +134,24 @@ export default function LoginPage() {
                 <label className="block text-gray-700 mb-1 font-medium text-sm">
                   Mật khẩu
                 </label>
-                <input
-                  type="password"
-                  required
-                  minLength={8} // 🛑 LỚP KHIÊN HTML5
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white transition-all"
-                  placeholder="••••••••"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    required
+                    minLength={8}
+                    autoComplete="new-password" // ĐÃ SỬA: Tuyệt chiêu lừa trình duyệt đây là mật khẩu mới để nó không thả tooltip gợi ý
+                    className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white transition-all"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 focus:outline-none transition-colors"
+                  >
+                    <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} />
+                  </button>
+                </div>
               </div>
 
               {error && (
