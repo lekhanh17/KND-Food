@@ -66,13 +66,13 @@ export default function Navbar() {
       
     if (activeNotifTab === "interact")
       return notifications.filter((n) =>
-        // ĐÃ SỬA: Bê Approve và Reject về tab Tương tác cho User đọc được kết quả duyệt bài
+        // Đưa Approve và Reject về tab Tương tác cho User đọc được kết quả duyệt bài
         ["Favorite", "Comment", "Approve", "Reject"].includes(n.Type),
       );
       
     if (activeNotifTab === "admin")
       return notifications.filter((n) =>
-        // ĐÃ SỬA: Admin giờ chỉ cần hiện thông báo Hệ thống (Có món chờ duyệt)
+        // Đưa System về tab Admin cho User đọc được thông báo hệ thống
         ["System"].includes(n.Type),
       );
       
@@ -480,7 +480,7 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* USER DROPDOWN */}
+              {/* USER DROPDOWN LÚC ĐÃ ĐĂNG NHẬP */}
               <div className="relative py-2" ref={userMenuRef}>
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
@@ -533,20 +533,45 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            // ĐÃ SỬA: Thêm whitespace-nowrap, giảm font và padding trên mobile để chừa không gian
-            <div className="flex items-center gap-1 sm:gap-2">
-              <Link
-                to="/login"
-                className="text-gray-700 font-bold px-1.5 sm:px-3 py-1.5 sm:py-2 text-[11px] sm:text-sm hover:text-orange-500 transition whitespace-nowrap"
-              >
-                Đăng nhập
-              </Link>
-              <Link
-                to="/register"
-                className="bg-orange-500 text-white px-3 sm:px-6 py-1.5 sm:py-2 rounded-full font-bold text-[11px] sm:text-sm shadow-md shadow-orange-100 hover:bg-orange-600 transition-all active:scale-95 whitespace-nowrap"
-              >
-                Đăng ký
-              </Link>
+            // Gom 2 nút Đăng nhập / Đăng ký thành Icon Dropdown giống y hệt Avatar khi Login
+            <div className="flex items-center border-l border-gray-100 pl-1.5 sm:pl-4">
+              <div className="relative py-2" ref={userMenuRef}>
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="w-8 h-8 sm:w-11 sm:h-11 bg-gray-50 text-gray-500 rounded-full sm:rounded-2xl flex items-center justify-center hover:bg-orange-50 hover:text-orange-500 transition-all border border-gray-100 shadow-sm active:scale-95"
+                  title="Tài khoản"
+                >
+                  <FontAwesomeIcon icon={faUser} className="text-xs sm:text-base" />
+                </button>
+
+                {isUserMenuOpen && (
+                  <div className="absolute top-full right-0 w-48 bg-white shadow-2xl rounded-3xl p-3 border border-gray-50 mt-0.2 animate-in fade-in slide-in-from-top-2 duration-200 z-[60]">
+                    <Link
+                      to="/login"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-500 rounded-2xl transition font-bold group"
+                    >
+                      <FontAwesomeIcon
+                        icon={faUser}
+                        className="w-4 text-gray-400 group-hover:text-orange-500"
+                      />
+                      Đăng nhập
+                    </Link>
+                    <div className="my-1 border-t border-gray-100"></div>
+                    <Link
+                      to="/register"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 hover:bg-orange-50 hover:text-orange-500 rounded-2xl transition font-bold group"
+                    >
+                      <FontAwesomeIcon
+                        icon={faUserPlus}
+                        className="w-4 text-gray-400 group-hover:text-orange-500"
+                      />
+                      Đăng ký
+                    </Link>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
