@@ -2,6 +2,8 @@
 import { Link, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import RecipeCard from "../components/RecipeCard";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEye } from "@fortawesome/free-solid-svg-icons";
 
 // KHIÊN BẢO VỆ ẢNH TÍCH HỢP SẴN
 const getImageUrl = (url) => {
@@ -725,10 +727,11 @@ export default function UserPage() {
                 <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
               </div>
             ) : myRecipes.length > 0 ? (
-              // ĐÃ SỬA: Đổi thành grid-cols-2 trên mobile (2 card/hàng), và lg:grid-cols-3 trên PC (3 card/hàng), ép gọn gap
+              // Đổi thành grid-cols-2 trên mobile (2 card/hàng), và lg:grid-cols-3 trên PC (3 card/hàng), ép gọn gap
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {myRecipes.map((recipe) => {
                   const difficultyUI = getDifficultyUI(recipe.Difficulty);
+                  const viewsCount = recipe.ViewCount || recipe.viewCount || recipe.Views || recipe.views || 0;
 
                   return (
                     <Link
@@ -738,7 +741,6 @@ export default function UserPage() {
                     >
                       <div className="aspect-[4/3] overflow-hidden relative bg-gray-100">
                         {recipe.Status === "Pending" && (
-                          // ĐÃ SỬA: Ép nhỏ padding và font-size của tag trên điện thoại
                           <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 px-2 py-1 sm:px-3 sm:py-1.5 bg-yellow-500/90 backdrop-blur-md text-white text-[8px] sm:text-[10px] font-black tracking-widest rounded-lg sm:rounded-xl shadow-lg border border-yellow-400">
                             <span className="flex items-center gap-1 sm:gap-1.5">
                               <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
@@ -749,7 +751,6 @@ export default function UserPage() {
 
                         {(recipe.Status === "Approved" ||
                           recipe.Status === "Published") && (
-                          // ĐÃ SỬA: Ép nhỏ padding và font-size của tag trên điện thoại
                           <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 px-2 py-1 sm:px-3 sm:py-1.5 bg-green-500/90 backdrop-blur-md text-white text-[8px] sm:text-[10px] font-black tracking-widest rounded-lg sm:rounded-xl shadow-lg">
                             Đã duyệt
                           </div>
@@ -772,15 +773,20 @@ export default function UserPage() {
                           </div>
                         )}
 
-                        {/* ĐÃ SỬA: Ép nhỏ padding và font-size của tag độ khó */}
                         <div
                           className={`absolute top-2 left-2 sm:top-3 sm:left-3 px-2 py-1 sm:px-3 sm:py-1.5 rounded-md sm:rounded-lg border text-[9px] sm:text-xs font-black shadow-sm z-10 ${difficultyUI.color}`}
                         >
                           {difficultyUI.label}
                         </div>
+
+                        {/* Lớp phủ sương & Icon Lượt xem cho thẻ tuỳ chỉnh */}
+                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none"></div>
+                        <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 flex items-center gap-1.5 text-white text-[10px] sm:text-xs font-bold z-10 drop-shadow-md">
+                          <FontAwesomeIcon icon={faEye} className="w-3 h-3 sm:w-3.5 sm:h-3.5 opacity-90" />
+                          <span>{viewsCount}</span>
+                        </div>
                       </div>
 
-                      {/* ĐÃ SỬA: Ép nhỏ padding text trên mobile */}
                       <div className="p-2.5 sm:p-4">
                         <h3 className="font-bold text-sm sm:text-lg text-gray-900 line-clamp-1 mb-1 sm:mb-2 group-hover:text-orange-500 transition-colors">
                           {recipe.Title}
@@ -850,7 +856,6 @@ export default function UserPage() {
                 <div className="w-8 h-8 border-4 border-red-400 border-t-transparent rounded-full animate-spin mb-4"></div>
               </div>
             ) : favoriteRecipes.length > 0 ? (
-              // ĐÃ SỬA: Đổi thành grid-cols-2 trên mobile
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {favoriteRecipes.map((recipe) => (
                   <RecipeCard key={recipe.RecipeID} item={recipe} />

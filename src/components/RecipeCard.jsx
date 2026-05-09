@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faStar } from "@fortawesome/free-solid-svg-icons";
+import { faStar, faEye } from "@fortawesome/free-solid-svg-icons";
 
 export default function RecipeCard({ item }) {
   // Hàm đổi số (1-5) thành chữ + Màu sắc tương ứng
@@ -18,6 +18,8 @@ export default function RecipeCard({ item }) {
   const difficultyUI = getDifficultyUI(item.difficulty || item.Difficulty);
   const reviewCount = item.ReviewCount !== undefined ? item.ReviewCount : (item.reviews ? item.reviews : 0);
   const averageRating = item.AverageRating !== undefined ? item.AverageRating : (item.rating ? item.rating : 0);
+  // Lấy dữ liệu lượt xem (Mặc định là 0 nếu chưa có)
+  const viewsCount = item.ViewCount !== undefined ? item.ViewCount : (item.viewCount || 0);
 
   // 🛡️ KHIÊN BẢO VỆ ẢNH ĐÂY SẾP
   const getImageUrl = (url) => {
@@ -50,6 +52,15 @@ export default function RecipeCard({ item }) {
         />
         <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-[10px] font-black text-orange-600 uppercase tracking-wider shadow-sm">
           {item.category || item.CategoryName || "Món ăn"}
+        </div>
+
+        {/* ĐÃ THÊM: Lớp phủ Gradient đen dưới đáy để nổi bật chữ trắng */}
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none"></div>
+
+        {/* ĐÃ THÊM: Hiển thị lượt xem góc dưới trái (Style giống TikTok) */}
+        <div className="absolute bottom-3 left-4 flex items-center gap-1.5 text-white text-sm font-bold z-10 drop-shadow-md">
+          <FontAwesomeIcon icon={faEye} className="w-4 h-4 opacity-90" />
+          <span>{viewsCount}</span>
         </div>
       </div>
 

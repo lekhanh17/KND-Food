@@ -56,6 +56,8 @@ export default function HomePage() {
           rating: recipe.AverageRating || 0,
           reviews: recipe.ReviewCount || 0,
           image: recipe.ImageURL || defaultRecipeImg,
+          // Truyền ViewCount vào cho RecipeCard
+          ViewCount: recipe.ViewCount || 0,
         }));
 
         setAllRecipes(formattedAllRecipes);
@@ -71,6 +73,8 @@ export default function HomePage() {
           rating: recipe.AverageRating || 0,
           reviews: recipe.ReviewCount || 0,
           image: recipe.ImageURL || defaultRecipeImg,
+          // Truyền ViewCount vào cho RecipeCard
+          ViewCount: recipe.ViewCount || 0,
         }));
 
         setTrendingRecipes(formattedTrending);

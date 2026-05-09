@@ -96,6 +96,25 @@ export default function RecipeDetail() {
       });
   }, [id]);
 
+  // ==========================================
+  // GỬI API TĂNG LƯỢT XEM CHẠY NGẦM
+  // ==========================================
+  useEffect(() => {
+    if (!id) return;
+    const increaseViewCount = async () => {
+      try {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/recipes/${id}/view`, {
+          method: "PUT"
+        });
+      } catch (error) {
+        console.error("Lỗi khi tăng lượt xem:", error);
+      }
+    };
+    
+    // Người dùng click vào là gửi API luôn
+    increaseViewCount();
+  }, [id]);
+
   useEffect(() => {
     const checkSavedStatus = async () => {
       if (!loggedInUser || !id) return;

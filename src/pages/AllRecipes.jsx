@@ -76,6 +76,8 @@ export default function AllRecipes() {
           rating: recipe.AverageRating || 0,
           reviews: recipe.ReviewCount || 0,
           image: recipe.ImageURL || defaultRecipeImg,
+          // Truyền ViewCount vào để thẻ RecipeCard lấy được dữ liệu lượt xem
+          ViewCount: recipe.ViewCount || 0,
         }));
 
         setRecipes(formattedRecipes);
