@@ -197,20 +197,20 @@ export default function AdminDashboard() {
   };
 
   // ==========================================
-  // API TỪ CHỐI BÀI KÈM LÝ DO
+  // TỪ CHỐI LÀ XÓA BAY MÀU (NHƯNG VẪN GỬI LÝ DO)
   // ==========================================
   const handleRejectRecipe = async (id) => {
     // Hiển thị bảng nhập lý do
     const { value: reason, isConfirmed } = await Swal.fire({
-      title: "Từ chối bài đăng?",
-      text: "Vui lòng nhập lý do từ chối để người dùng rút kinh nghiệm:",
+      title: "Từ chối & Xóa bài?",
+      text: "Nhập lý do để thông báo cho tác giả (bài viết sẽ bị xóa vĩnh viễn):",
       input: "textarea",
-      inputPlaceholder: "Nhập lý do từ chối...",
+      inputPlaceholder: "Ví dụ: Ảnh mờ, nội dung sơ sài...",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#ef4444",
       cancelButtonColor: "#9ca3af",
-      confirmButtonText: "Xác nhận từ chối",
+      confirmButtonText: "Xác nhận Xóa",
       cancelButtonText: "Hủy",
       inputValidator: (value) => {
         if (!value || !value.trim()) {
@@ -220,7 +220,6 @@ export default function AdminDashboard() {
       customClass: { popup: "rounded-3xl shadow-2xl border border-gray-100" },
     });
 
-    // Nếu bấm Hủy hoặc đóng bảng
     if (!isConfirmed) return;
 
     try {
@@ -228,18 +227,18 @@ export default function AdminDashboard() {
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/admin/reject-recipe/${id}`,
         {
-          method: "PUT", // ĐỔI TỪ DELETE SANG PUT ĐỂ UPDATE TRẠNG THÁI VÀ GỬI LÝ DO
+          method: "DELETE",
           headers: { 
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}` 
           },
-          body: JSON.stringify({ reason: reason.trim() }) // Gửi lý do xuống Backend
+          body: JSON.stringify({ reason: reason.trim() }) 
         },
       );
 
       if (response.ok) {
         setPendingRecipes(pendingRecipes.filter((r) => r.RecipeID !== id));
-        toast.success("Đã từ chối bài đăng và gửi lý do!", whiteToastConfig);
+        toast.success("Đã xóa bài đăng và gửi lý do cho tác giả!", whiteToastConfig);
       } else {
         toast.error("Có lỗi xảy ra khi thực hiện!", whiteToastConfig);
       }
