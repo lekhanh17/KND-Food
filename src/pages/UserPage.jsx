@@ -206,7 +206,7 @@ export default function UserPage() {
             `${import.meta.env.VITE_API_URL}/api/favorites/my-favorites`,
             {
               headers: { Authorization: `Bearer ${token}` },
-            }
+            },
           );
           if (response.ok) {
             const data = await response.json();
@@ -225,6 +225,14 @@ export default function UserPage() {
     }
   }, [activeTab, isOwnProfile]);
 
+  // ==========================================
+  // BỘ LỌC HIỂN THỊ BÀI VIẾT THÔNG MINH
+  // ==========================================
+  const displayMyRecipes = myRecipes.filter((recipe) => {
+    if (isOwnProfile) return true; // Chủ tài khoản thì được xem hết (cả bài chờ duyệt)
+    return recipe.Status === "Approved" || recipe.Status === "Published"; // Người lạ thì chỉ thấy bài Đã Duyệt
+  });
+
   const handleFollowToggle = async () => {
     if (!user) {
       toast.warning("Vui lòng đăng nhập để theo dõi!", whiteToastConfig);
@@ -241,7 +249,7 @@ export default function UserPage() {
             FollowerID: user?.UserID || user?.id,
             TargetUserID: profileUser?.UserID || profileUser?.id,
           }),
-        }
+        },
       );
       const data = await res.json();
       if (res.ok) {
@@ -272,7 +280,7 @@ export default function UserPage() {
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/users/${profileUser.UserID}/${type}`
+        `${import.meta.env.VITE_API_URL}/api/users/${profileUser.UserID}/${type}`,
       );
       if (res.ok) {
         const data = await res.json();
@@ -306,7 +314,7 @@ export default function UserPage() {
             FollowerID: user?.UserID || user?.id,
             TargetUserID: targetUserId,
           }),
-        }
+        },
       );
       const data = await res.json();
       if (res.ok) {
@@ -314,8 +322,8 @@ export default function UserPage() {
           prevList.map((item) =>
             item.UserID === targetUserId
               ? { ...item, isFollowing: data.isFollowing }
-              : item
-          )
+              : item,
+          ),
         );
         if (followModalType === "following" && isOwnProfile) {
           setProfileUser((prev) => ({
@@ -388,7 +396,7 @@ export default function UserPage() {
         {
           method: "POST",
           body: formData,
-        }
+        },
       );
       const data = await response.json();
       if (response.ok) {
@@ -431,7 +439,7 @@ export default function UserPage() {
             Username: trimmedUsername,
             Bio: trimmedBio,
           }),
-        }
+        },
       );
 
       if (response.ok) {
@@ -485,7 +493,7 @@ export default function UserPage() {
             CurrentPassword: currentPassword,
             NewPassword: newPassword,
           }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -729,9 +737,14 @@ export default function UserPage() {
             ) : myRecipes.length > 0 ? (
               // Đổi thành grid-cols-2 trên mobile (2 card/hàng), và lg:grid-cols-3 trên PC (3 card/hàng), ép gọn gap
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                {myRecipes.map((recipe) => {
+                {displayMyRecipes.map((recipe) => {
                   const difficultyUI = getDifficultyUI(recipe.Difficulty);
-                  const viewsCount = recipe.ViewCount || recipe.viewCount || recipe.Views || recipe.views || 0;
+                  const viewsCount =
+                    recipe.ViewCount ||
+                    recipe.viewCount ||
+                    recipe.Views ||
+                    recipe.views ||
+                    0;
 
                   return (
                     <Link
@@ -782,7 +795,10 @@ export default function UserPage() {
                         {/* Lớp phủ sương & Icon Lượt xem cho thẻ tuỳ chỉnh */}
                         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none"></div>
                         <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 flex items-center gap-1.5 text-white text-[10px] sm:text-xs font-bold z-10 drop-shadow-md">
-                          <FontAwesomeIcon icon={faEye} className="w-3 h-3 sm:w-3.5 sm:h-3.5 opacity-90" />
+                          <FontAwesomeIcon
+                            icon={faEye}
+                            className="w-3 h-3 sm:w-3.5 sm:h-3.5 opacity-90"
+                          />
                           <span>{viewsCount}</span>
                         </div>
                       </div>
