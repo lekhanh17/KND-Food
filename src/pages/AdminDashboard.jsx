@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faTrash,
@@ -195,26 +196,50 @@ export default function AdminDashboard() {
     }
   };
 
-  // --- API TỪ CHỐI BÀI ---
+  // ==========================================
+  // API TỪ CHỐI BÀI KÈM LÝ DO
+  // ==========================================
   const handleRejectRecipe = async (id) => {
-    const isConfirm = window.confirm(
-      "Xác nhận từ chối? Bài đăng này sẽ bị xóa vĩnh viễn!",
-    );
-    if (!isConfirm) return;
+    // Hiển thị bảng nhập lý do
+    const { value: reason, isConfirmed } = await Swal.fire({
+      title: "Từ chối bài đăng?",
+      text: "Vui lòng nhập lý do từ chối để người dùng rút kinh nghiệm:",
+      input: "textarea",
+      inputPlaceholder: "Nhập lý do từ chối...",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#9ca3af",
+      confirmButtonText: "Xác nhận từ chối",
+      cancelButtonText: "Hủy",
+      inputValidator: (value) => {
+        if (!value || !value.trim()) {
+          return "Vui lòng nhập lý do từ chối!";
+        }
+      },
+      customClass: { popup: "rounded-3xl shadow-2xl border border-gray-100" },
+    });
+
+    // Nếu bấm Hủy hoặc đóng bảng
+    if (!isConfirmed) return;
 
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/admin/reject-recipe/${id}`,
         {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
+          method: "PUT", // ĐỔI TỪ DELETE SANG PUT ĐỂ UPDATE TRẠNG THÁI VÀ GỬI LÝ DO
+          headers: { 
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}` 
+          },
+          body: JSON.stringify({ reason: reason.trim() }) // Gửi lý do xuống Backend
         },
       );
 
       if (response.ok) {
         setPendingRecipes(pendingRecipes.filter((r) => r.RecipeID !== id));
-        toast.success("Đã từ chối bài đăng!", whiteToastConfig);
+        toast.success("Đã từ chối bài đăng và gửi lý do!", whiteToastConfig);
       } else {
         toast.error("Có lỗi xảy ra khi thực hiện!", whiteToastConfig);
       }

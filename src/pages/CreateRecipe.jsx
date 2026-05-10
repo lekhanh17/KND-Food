@@ -103,7 +103,7 @@ export default function CreateRecipe() {
     const file = e.target.files[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        return showWarning("Vui lòng chọn file hình ảnh hợp lệ!");
+        return showWarning("Vui lòng chọn file hình ảnh!");
       }
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
@@ -154,13 +154,34 @@ export default function CreateRecipe() {
     const file = e.target.files[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        return showWarning("Vui lòng chọn file hình ảnh hợp lệ!");
+        return showWarning("Vui lòng chọn file hình ảnh!");
       }
       const newSteps = [...steps];
       newSteps[index].imageFile = file;
       newSteps[index].imagePreview = URL.createObjectURL(file);
       setSteps(newSteps);
     }
+  };
+
+  // ==========================================
+  // HÀM XÁC NHẬN TRƯỚC KHI HỦY BỎ
+  // ==========================================
+  const handleCancel = () => {
+    Swal.fire({
+      title: "Bạn có chắc chắn muốn hủy?",
+      text: "Những thông tin bạn vừa nhập sẽ bị xóa và không được lưu lại!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#f97316",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Hủy bỏ",
+      cancelButtonText: "Tiếp tục viết",
+      customClass: { popup: "rounded-3xl shadow-2xl border border-gray-100" },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate(-1); // Quay lại trang trước đó nếu người dùng chọn "Đồng ý"
+      }
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -179,7 +200,7 @@ export default function CreateRecipe() {
     }
 
     // ==========================================
-    // Cảnh báo bắt buộc nhập Tên và Ảnh
+    // Cảnh báo bắt buộc nhập Tên, Ảnh và Các thông số
     // ==========================================
     if (!title.trim()) {
       return showWarning("Vui lòng nhập tên món ăn!");
@@ -187,6 +208,19 @@ export default function CreateRecipe() {
 
     if (!imageFile) {
       return showWarning("Vui lòng thêm ảnh đại diện cho món ăn!");
+    }
+
+    // Chặn đăng bài nếu không nhập thông số thời gian & khẩu phần
+    if (!prepTime || prepTime < 0) {
+      return showWarning("Vui lòng nhập thời gian chuẩn bị!");
+    }
+    
+    if (!cookTime || cookTime < 0) {
+      return showWarning("Vui lòng nhập thời gian nấu!");
+    }
+    
+    if (!servings || servings <= 0) {
+      return showWarning("Vui lòng nhập khẩu phần (ít nhất là 1 người)!");
     }
 
     const validIngredients = ingredients.filter((i) => i.name.trim() !== "");
@@ -401,7 +435,6 @@ export default function CreateRecipe() {
                     </span>
                   </div>
                   <div className="relative pt-2 pb-6">
-                    {/* ĐÃ THÊM LẠI: style linear-gradient vào thanh input range và bỏ bg-gray-200 để hiển thị vạch màu cam */}
                     <input
                       type="range"
                       min="1"
@@ -434,10 +467,11 @@ export default function CreateRecipe() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Chuẩn bị (Phút)
+                    Chuẩn bị (Phút) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
+                    required
                     min="0"
                     value={prepTime}
                     onChange={(e) => setPrepTime(e.target.value)}
@@ -446,10 +480,11 @@ export default function CreateRecipe() {
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Nấu (Phút)
+                    Nấu (Phút) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
+                    required
                     min="0"
                     value={cookTime}
                     onChange={(e) => setCookTime(e.target.value)}
@@ -458,10 +493,11 @@ export default function CreateRecipe() {
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Khẩu phần (Người)
+                    Khẩu phần (Người) <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="number"
+                    required
                     min="1"
                     value={servings}
                     onChange={(e) => setServings(e.target.value)}
@@ -612,7 +648,7 @@ export default function CreateRecipe() {
                         </svg>
                         <p className="text-gray-500 font-medium">
                           Bấm vào đây để tải video lên <br />
-                          (giới hạn 50MB)
+                          <span className="text-sm">(giới hạn 50MB)</span>
                         </p>
                       </div>
                     )}
@@ -748,7 +784,7 @@ export default function CreateRecipe() {
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
               <span className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm">
                 4
-              </span>{" "}
+              </span>
               Các bước thực hiện
             </h2>
             <div className="space-y-6">
@@ -866,7 +902,7 @@ export default function CreateRecipe() {
           <div className="flex justify-end gap-4 pt-4">
             <button
               type="button"
-              onClick={() => navigate(-1)}
+              onClick={handleCancel}
               className="px-8 py-4 bg-white border border-gray-300 text-gray-700 rounded-2xl font-bold hover:bg-gray-50 transition active:scale-95"
             >
               Hủy bỏ

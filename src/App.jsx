@@ -115,7 +115,7 @@ function AppContent() {
     <div className="min-h-screen bg-white flex flex-col">
       
       {/* ==============================================
-          ĐÃ THÊM: KÍCH HOẠT SCROLL TO TOP Ở ĐÂY
+          KÍCH HOẠT SCROLL TO TOP
           ============================================== */}
       <ScrollToTop />
 

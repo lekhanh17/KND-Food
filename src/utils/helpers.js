@@ -1,5 +1,3 @@
-// File: src/utils/helpers.js
-
 export const getImageUrl = (url) => {
   if (!url) return "/default-food.png"; // Ảnh mặc định nếu trống
 
