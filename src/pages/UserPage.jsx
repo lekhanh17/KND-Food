@@ -230,7 +230,7 @@ export default function UserPage() {
   // ==========================================
   const displayMyRecipes = myRecipes.filter((recipe) => {
     if (isOwnProfile) return true; // Chủ tài khoản thì được xem hết (cả bài chờ duyệt)
-    return recipe.Status === "Approved" || recipe.Status === "Published"; // Người lạ thì chỉ thấy bài Đã Duyệt
+    return recipe.Status === "Approved" || recipe.Status === "Published"; // Người lạ chỉ thấy bài Đã Duyệt
   });
 
   const handleFollowToggle = async () => {
@@ -762,12 +762,11 @@ export default function UserPage() {
                           </div>
                         )}
 
-                        {(recipe.Status === "Approved" ||
-                          recipe.Status === "Published") && (
-                          <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 px-2 py-1 sm:px-3 sm:py-1.5 bg-green-500/90 backdrop-blur-md text-white text-[8px] sm:text-[10px] font-black tracking-widest rounded-lg sm:rounded-xl shadow-lg">
-                            Đã duyệt
-                          </div>
-                        )}
+                        {isOwnProfile && (recipe.Status === "Approved" || recipe.Status === "Published") && (
+  <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 px-2 py-1 sm:px-3 sm:py-1.5 bg-green-500/90 backdrop-blur-md text-white text-[8px] sm:text-[10px] font-black tracking-widest rounded-lg sm:rounded-xl shadow-lg">
+    Đã duyệt
+  </div>
+)}
 
                         {recipe.ImageURL ? (
                           <img
