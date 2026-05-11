@@ -152,11 +152,18 @@ export default function SearchBar() {
                       src={getImageUrl(user.Avatar || user.ProfilePicture, DEFAULT_USER_IMG)}
                       onError={(e) => { e.target.src = DEFAULT_USER_IMG; }}
                       alt={user.Username}
-                      className="w-8 h-8 rounded-full object-cover border border-gray-200"
+                      /* ĐÃ SỬA: Tăng kích thước avatar lên w-10 h-10 cho cân đối với 2 dòng text */
+                      className="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0"
                     />
-                    <span className="text-sm font-medium text-gray-700 truncate">
-                      @{user.Username}
-                    </span>
+                    {/* ĐÃ SỬA: Bọc 2 dòng text vào div flex-col để chia hàng */}
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="text-sm font-bold text-gray-800 truncate">
+                        {user.FullName || user.Username}
+                      </span>
+                      <span className="text-[11px] font-medium text-gray-500 truncate">
+                        @{user.Username}
+                      </span>
+                    </div>
                   </Link>
                 ))}
               </div>
