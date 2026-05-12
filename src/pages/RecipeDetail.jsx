@@ -48,7 +48,7 @@ export default function RecipeDetail() {
   const [showAllRecs, setShowAllRecs] = useState(false);
 
   const [currentServings, setCurrentServings] = useState(1);
-  
+
   // State quản lý bức ảnh đang được phóng to
   const [zoomedImage, setZoomedImage] = useState(null);
 
@@ -107,13 +107,13 @@ export default function RecipeDetail() {
     const increaseViewCount = async () => {
       try {
         await fetch(`${import.meta.env.VITE_API_URL}/api/recipes/${id}/view`, {
-          method: "PUT"
+          method: "PUT",
         });
       } catch (error) {
         console.error("Lỗi khi tăng lượt xem:", error);
       }
     };
-    
+
     // Người dùng click vào là gửi API luôn
     increaseViewCount();
   }, [id]);
@@ -602,7 +602,9 @@ export default function RecipeDetail() {
                           /* ĐÃ SỬA: Thêm onClick gọi state để phóng to ảnh và gắn style cursor-pointer */
                           src={getImageUrl(step.ImageURL)}
                           alt={`Bước ${step.StepNumber}`}
-                          onClick={() => setZoomedImage(getImageUrl(step.ImageURL))}
+                          onClick={() =>
+                            setZoomedImage(getImageUrl(step.ImageURL))
+                          }
                           className="w-full object-contain max-h-[300px] cursor-pointer hover:opacity-90 transition-opacity"
                         />
                       </div>
@@ -667,7 +669,13 @@ export default function RecipeDetail() {
                         rating: item.AverageRating || 0,
                         reviews: item.ReviewCount || 0,
                         image: item.ImageURL,
-                        views: item.ViewCount || 0,
+                        // Backend có gửi tên nào trong 4 tên này thì cũng lấy được số!
+                        views:
+                          item.Views ||
+                          item.ViewCount ||
+                          item.viewCount ||
+                          item.LuotXem ||
+                          0,
                       };
                       return (
                         <div
@@ -714,26 +722,37 @@ export default function RecipeDetail() {
       {/* MODAL PHÓNG TO ẢNH HƯỚNG DẪN BƯỚC */}
       {/* ========================================== */}
       {zoomedImage && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"
           // Bấm ra ngoài vùng đen là tắt ảnh
           onClick={() => setZoomedImage(null)}
         >
           {/* Nút X tắt ảnh góc phải trên */}
-          <button 
+          <button
             className="absolute top-4 right-4 md:top-8 md:right-8 w-10 h-10 bg-white/20 hover:bg-white/40 text-white rounded-full flex items-center justify-center transition"
             onClick={() => setZoomedImage(null)}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2.5}
+              stroke="currentColor"
+              className="w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
 
           {/* Bức ảnh ở giữa */}
-          <img 
-            src={zoomedImage} 
-            alt="Phóng to" 
-            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300" 
+          <img
+            src={zoomedImage}
+            alt="Phóng to"
+            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300"
             // e.stopPropagation() để lúc bấm vào chính bức ảnh thì không bị đóng (chỉ tắt khi bấm ra ngoài hoặc nút X)
             onClick={(e) => e.stopPropagation()}
           />
