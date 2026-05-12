@@ -669,13 +669,10 @@ export default function RecipeDetail() {
                         rating: item.AverageRating || 0,
                         reviews: item.ReviewCount || 0,
                         image: item.ImageURL,
-                        // Backend có gửi tên nào trong 4 tên này thì cũng lấy được số!
-                        views:
-                          item.Views ||
-                          item.ViewCount ||
-                          item.viewCount ||
-                          item.LuotXem ||
-                          0,
+                        // Thêm các biến chữ hoa chữ thường để RecipeCard chắc chắn nhận được!
+                        views: item.Views || item.ViewCount || item.viewCount || item.LuotXem || 0,
+                        ViewCount: item.Views || item.ViewCount || item.viewCount || item.LuotXem || 0,
+                        Views: item.Views || item.ViewCount || item.viewCount || item.LuotXem || 0,
                       };
                       return (
                         <div
