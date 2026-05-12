@@ -21,7 +21,7 @@ const toastConfig = {
     "rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 mt-4",
 };
 
-// 🛡️ KHIÊN BẢO VỆ ẢNH ĐƯỢC ĐƯA VÀO ĐÂY
+// KHIÊN BẢO VỆ ẢNH
 const getImageUrl = (url) => {
   if (!url) return "/default-avatar.png"; // Ảnh mặc định
 

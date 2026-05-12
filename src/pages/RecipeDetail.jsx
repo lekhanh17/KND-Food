@@ -667,6 +667,7 @@ export default function RecipeDetail() {
                         rating: item.AverageRating || 0,
                         reviews: item.ReviewCount || 0,
                         image: item.ImageURL,
+                        views: item.ViewCount || 0,
                       };
                       return (
                         <div
