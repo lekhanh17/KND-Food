@@ -17,6 +17,19 @@ export default function AllRecipes() {
     sortParam === "popular" ? "top_rated" : "newest",
   );
 
+  // ==========================================
+  // STATE QUẢN LÝ ĐỘ KHÓ
+  // ==========================================
+  const [difficultyLevel, setDifficultyLevel] = useState(0); // 0 là Tất cả
+  const difficultyLabels = [
+    "Tất cả",
+    "Rất Dễ",
+    "Dễ",
+    "Trung bình",
+    "Khó",
+    "Rất Khó",
+  ];
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -98,20 +111,37 @@ export default function AllRecipes() {
       )
     : recipes;
 
-  // 2. Lọc và Sắp xếp dữ liệu
+  // 2. Lọc (theo Món Nổi Bật + Độ khó) và Sắp xếp dữ liệu
   const finalDisplayedRecipes = [...filteredByCategory]
     .filter((recipe) => {
       // Nếu đang vào từ link "Món nổi bật" thì chỉ hiện các món đó
-      if (sortParam === "popular") {
-        return recipe.rating > 0; // Hoặc dùng recipe.reviews > 0 đều được
+      if (sortParam === "popular" && recipe.rating <= 0) {
+        return false;
       }
+
+      // LỌC THEO ĐỘ KHÓ: Xử lý thông minh cả trường hợp DB lưu là Chữ hoặc Số
+      if (difficultyLevel !== 0) {
+        const dbDifficulty = String(recipe.difficulty).trim().toLowerCase();
+        const selectedDifficulty = difficultyLabels[difficultyLevel]
+          .trim()
+          .toLowerCase();
+
+        // Kiểm tra khớp chữ hoặc khớp số (VD: 1 = Rất Dễ)
+        if (
+          dbDifficulty !== selectedDifficulty &&
+          dbDifficulty !== String(difficultyLevel)
+        ) {
+          return false;
+        }
+      }
+
       return true; // Xem bình thường thì vẫn hiện đủ món
     })
     .sort((a, b) => {
       if (sortBy === "newest") return b.id - a.id;
       if (sortBy === "oldest") return a.id - b.id;
 
-      // ĐÃ SỬA: Logic xếp hạng thông minh (Xét Rating trước, Bằng Rating thì xét Reviews)
+      // Logic xếp hạng thông minh (Xét Rating trước, Bằng Rating thì xét Reviews)
       if (sortBy === "top_rated") {
         if (b.rating === a.rating) {
           return b.reviews - a.reviews;
@@ -129,7 +159,7 @@ export default function AllRecipes() {
   ];
 
   // ==========================================
-  // Đổi tiêu đề cực xịn theo ngữ cảnh
+  // Đổi tiêu đề theo ngữ cảnh
   // ==========================================
   let pageTitle = "Tất Cả Công Thức";
   let pageSubtitle = "Khám phá bộ sưu tập món ngon đa dạng từ cộng đồng.";
@@ -145,47 +175,91 @@ export default function AllRecipes() {
   return (
     <div className="min-h-screen bg-gray-50 pt-28 pb-20 font-sans text-gray-900">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-          <div>
+        
+        {/* THANH HEADER CHỨA TIÊU ĐỀ VÀ TOOLBAR LỌC/SẮP XẾP */}
+        <div className="mb-10 flex flex-col xl:flex-row xl:items-end justify-between gap-6">
+          <div className="flex-1">
             <h1 className="text-3xl md:text-4xl font-black tracking-tight text-[#1c2b36] capitalize">
               {pageTitle}
             </h1>
             <p className="text-gray-500 mt-2 font-medium">{pageSubtitle}</p>
           </div>
 
-          {/* GIAO DIỆN BỘ LỌC (CUSTOM DROPDOWN) */}
-          <div className="relative" ref={dropdownRef}>
-            <div
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className={`flex items-center gap-3 bg-white px-5 py-3 rounded-2xl border transition-all cursor-pointer shadow-sm select-none ${isDropdownOpen ? "border-orange-500 ring-2 ring-orange-500/20" : "border-gray-200 hover:border-gray-300"}`}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="w-5 h-5 text-orange-500 shrink-0"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
-                />
-              </svg>
-              <span className="text-gray-500 font-bold text-sm hidden md:block">
-                Sắp xếp:
-              </span>
-
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-[#1c2b36]">
-                  {sortOptions.find((opt) => opt.value === sortBy)?.label}
+          {/* GIAO DIỆN TOOLBAR (BỘ LỌC ĐỘ KHÓ + CUSTOM DROPDOWN SẮP XẾP) */}
+          <div className="flex flex-col sm:flex-row items-center gap-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 w-full xl:w-auto">
+            
+            {/* 1. THANH TRƯỢT LỌC ĐỘ KHÓ (Căn chỉnh tuyệt đối giống CreateRecipe) */}
+            <div className="w-full sm:w-64 shrink-0">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-semibold text-gray-700">
+                  Mức độ:
                 </span>
+                <span className="text-xs font-black text-orange-600 bg-orange-50 px-3 py-1 rounded-lg tracking-wider">
+                  {difficultyLevel === 0
+                    ? "Tất cả"
+                    : `${difficultyLevel} - ${difficultyLabels[difficultyLevel]}`}
+                </span>
+              </div>
+              
+              <div className="relative pt-2 pb-6">
+                <input
+                  type="range"
+                  min="0"
+                  max="5"
+                  step="1"
+                  value={difficultyLevel}
+                  onChange={(e) => setDifficultyLevel(Number(e.target.value))}
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-orange-500 hover:accent-orange-600 transition-all relative z-10"
+                  style={{
+                    background: `linear-gradient(to right, #f97316 ${(difficultyLevel / 5) * 100}%, #e5e7eb ${(difficultyLevel / 5) * 100}%)`,
+                  }}
+                />
+                
+              </div>
+            </div>
+
+            {/* ĐƯỜNG KẺ CHIA CÁCH (Chỉ hiện trên màn hình to) */}
+            <div className="hidden sm:block w-[1px] h-12 bg-gray-200"></div>
+
+            {/* 2. NÚT SẮP XẾP (DROPDOWN) */}
+            <div className="relative w-full sm:w-auto" ref={dropdownRef}>
+              <div
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className={`flex items-center justify-between sm:justify-start gap-3 bg-white px-5 py-3 rounded-xl border transition-all cursor-pointer select-none ${
+                  isDropdownOpen
+                    ? "border-orange-500 ring-2 ring-orange-500/20"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-5 h-5 text-orange-500 shrink-0"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+                    />
+                  </svg>
+                  <span className="text-gray-500 font-bold text-sm hidden md:block whitespace-nowrap">
+                    Sắp xếp:
+                  </span>
+                  <span className="font-bold text-[#1c2b36] whitespace-nowrap">
+                    {sortOptions.find((opt) => opt.value === sortBy)?.label}
+                  </span>
+                </div>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
                   fill="currentColor"
-                  className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? "rotate-180 text-orange-500" : ""}`}
+                  className={`w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200 ${
+                    isDropdownOpen ? "rotate-180 text-orange-500" : ""
+                  }`}
                 >
                   <path
                     fillRule="evenodd"
@@ -194,26 +268,30 @@ export default function AllRecipes() {
                   />
                 </svg>
               </div>
-            </div>
 
-            {isDropdownOpen && (
-              <div className="absolute right-0 z-50 w-full min-w-[180px] mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                <ul className="py-2">
-                  {sortOptions.map((opt) => (
-                    <li
-                      key={opt.value}
-                      onClick={() => {
-                        setSortBy(opt.value);
-                        setIsDropdownOpen(false);
-                      }}
-                      className={`px-4 py-2.5 text-sm cursor-pointer transition-colors ${sortBy === opt.value ? "bg-orange-50 text-orange-600 font-bold" : "text-gray-600 hover:bg-gray-50 hover:text-orange-500 font-medium"}`}
-                    >
-                      {opt.label}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+              {isDropdownOpen && (
+                <div className="absolute right-0 z-50 w-full min-w-[180px] mt-2 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                  <ul className="py-2">
+                    {sortOptions.map((opt) => (
+                      <li
+                        key={opt.value}
+                        onClick={() => {
+                          setSortBy(opt.value);
+                          setIsDropdownOpen(false);
+                        }}
+                        className={`px-4 py-2.5 text-sm cursor-pointer transition-colors ${
+                          sortBy === opt.value
+                            ? "bg-orange-50 text-orange-600 font-bold"
+                            : "text-gray-600 hover:bg-gray-50 hover:text-orange-500 font-medium"
+                        }`}
+                      >
+                        {opt.label}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -231,7 +309,7 @@ export default function AllRecipes() {
           <div className="text-center py-20 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center">
             <span className="text-5xl mb-4">🍽️</span>
             <p className="text-gray-500 font-medium">
-              Chưa có công thức nào thuộc danh mục này.
+              Chưa có công thức nào phù hợp với bộ lọc này.
             </p>
           </div>
         )}
