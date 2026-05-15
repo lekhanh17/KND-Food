@@ -37,7 +37,8 @@ export default function Hero() {
     const fetchHeroData = async () => {
       try {
         const [recipesRes, categoriesRes] = await Promise.all([
-          fetch(`${import.meta.env.VITE_API_URL}/api/recipes`),
+          // GỌI API FEATURED ĐỂ ĐỒNG BỘ VỚI DANH SÁCH MÓN NỔI BẬT
+          fetch(`${import.meta.env.VITE_API_URL}/api/recipes/featured`),
           fetch(`${import.meta.env.VITE_API_URL}/api/categories`),
         ]);
 
@@ -54,20 +55,10 @@ export default function Hero() {
           });
         }
 
-        // LỌC MÓN NỔI BẬT: Dựa vào Rating và Số lượt Đánh giá
         if (recipesData && recipesData.length > 0) {
-          // Clone mảng ra để sort không làm hỏng mảng gốc
-          const sortedRecipes = [...recipesData].sort((a, b) => {
-            // Ưu tiên 1: Đánh giá cao xếp trước (5 sao > 4 sao)
-            if (b.AverageRating !== a.AverageRating) {
-              return b.AverageRating - a.AverageRating;
-            }
-            // Ưu tiên 2: Nếu bằng sao, món nào nhiều người bình luận hơn thì xếp trước
-            return b.ReviewCount - a.ReviewCount;
-          });
-
-          // Cắt lấy 5 món đứng đầu bảng xếp hạng
-          const topRecipes = sortedRecipes.slice(0, 5).map((recipe) => ({
+          // KHÔNG CẦN SORT NỮA VÌ BACKEND ĐÃ SORT
+          // Chỉ việc cắt lấy 5 món đứng đầu bảng xếp hạng
+          const topRecipes = recipesData.slice(0, 5).map((recipe) => ({
             id: recipe.RecipeID,
             // Sử dụng khiên bảo vệ ảnh getImageUrl
             image: getImageUrl(recipe.ImageURL),
