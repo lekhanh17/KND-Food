@@ -94,7 +94,7 @@ function normalizeComment(comment) {
     authorUsername: comment.Username || comment.authorUsername || "",
     authorAvatar: comment.Avatar || comment.authorAvatar || "",
     content: comment.Content || comment.content || "",
-    rating: comment.Rating || comment.rating || 5,
+    rating: comment.Rating || comment.rating || null, // SỬA: Đổi 5 thành null để dễ nhận biết
     images: imagesArray,
     createdAt:
       comment.CreatedAt || comment.createdAt || new Date().toISOString(),
@@ -150,14 +150,28 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recipeId]);
 
+  // ==========================================
+  // ĐÃ SỬA: BỘ ĐẾM SIÊU THÔNG MINH HIỂN THỊ CẢ 2 LOẠI
+  // ==========================================
   const totalCommentsLabel = useMemo(() => {
     if (comments.length === 0) return "Chưa có đánh giá nào";
-    return `${comments.length} đánh giá`;
-  }, [comments.length]);
 
+    const ratedCount = comments.filter((c) => c.rating > 0).length;
+    const discussionCount = comments.length - ratedCount;
+
+    let parts = [];
+    if (ratedCount > 0) parts.push(`${ratedCount} đánh giá`);
+    if (discussionCount > 0) parts.push(`${discussionCount} bình luận`);
+
+    return parts.join(" & "); // Ví dụ: "1 đánh giá • 2 bình luận"
+  }, [comments]);
+
+  // Kiểm tra xem user này đã từng CHẤM SAO chưa
   const hasReviewed = useMemo(() => {
     if (!loggedInUser) return false;
-    return comments.some((cmt) => cmt.userId === loggedInUser.UserID);
+    return comments.some(
+      (cmt) => cmt.userId === loggedInUser.UserID && cmt.rating > 0
+    );
   }, [comments, loggedInUser]);
 
   const getRatingText = (star) => {
@@ -215,12 +229,14 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
       return;
     }
 
-    if (rating === 0) {
+    // ĐÃ SỬA: CHỈ ÉP CHỌN SAO KHI USER CHƯA TỪNG ĐÁNH GIÁ
+    if (!hasReviewed && rating === 0) {
       toast.warning("Vui lòng chọn số sao đánh giá!", toastConfig);
       return;
     }
+    
     if (!trimmedComment) {
-      toast.warning("Vui lòng nhập nội dung đánh giá.", toastConfig);
+      toast.warning("Vui lòng nhập nội dung bình luận.", toastConfig);
       return;
     }
 
@@ -231,11 +247,11 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
       const formData = new FormData();
       formData.append("RecipeID", recipeId);
       formData.append("Content", trimmedComment);
-      formData.append("Rating", rating);
-
-      selectedImages.forEach((file) => {
-        formData.append("Images", file);
-      });
+      
+      // Nếu đã đánh giá rồi, ép Rating thành rỗng (mặc định API sẽ gán NULL)
+      if (!hasReviewed) {
+        formData.append("Rating", rating);
+      }
 
       const response = await fetch(`${API_BASE_URL}/comments`, {
         method: "POST",
@@ -253,7 +269,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
       setSelectedImages([]);
       setImagePreviews([]);
 
-      toast.success("Đã gửi đánh giá thành công.", toastConfig);
+      toast.success(hasReviewed ? "Đã gửi bình luận!" : "Đã gửi đánh giá thành công.", toastConfig);
     } catch (error) {
       toast.error(error.message, toastConfig);
     } finally {
@@ -264,7 +280,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
   const handleDeleteComment = (commentId) => {
     Swal.fire({
       title: "Xóa?",
-      text: "Bạn có chắc chắn muốn xóa đánh giá? Không thể hoàn tác!",
+      text: "Bạn có chắc chắn muốn xóa? Không thể hoàn tác!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#ef4444",
@@ -309,7 +325,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-6">
         <div>
           <p className="text-base font-black tracking-[0.18em] text-orange-500 mb-2 uppercase">
-            Đánh Giá
+            Đánh Giá & Bình Luận
           </p>
         </div>
         <p className="text-sm font-semibold text-gray-500">
@@ -317,40 +333,39 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
         </p>
       </div>
 
-      {!isLoadingComments && hasReviewed ? (
-        <div className="mb-8 rounded-[28px] border border-orange-100 bg-orange-50/50 p-8 text-center shadow-sm">
-          <p className="text-orange-500 font-black text-lg">
-            Bạn đã đánh giá công thức này!
-          </p>
-        </div>
-      ) : (
+      {/* ĐÃ SỬA: LUÔN HIỆN FORM TƯƠNG TÁC */}
+      {!isLoadingComments && (
         <form onSubmit={handleSubmitComment} className="mb-8">
           <div className="rounded-[28px] border border-orange-100 bg-gradient-to-br from-orange-50/70 via-white to-white p-5 shadow-[0_10px_30px_rgba(249,115,22,0.08)]">
-            <div className="flex items-center gap-4 mb-4 pb-4 border-b border-orange-100/50">
-              <span className="text-sm font-bold text-gray-700">
-                Chất lượng công thức:
-              </span>
-              <div className="flex items-center gap-1">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    type="button"
-                    key={star}
-                    className={`text-2xl transition-colors duration-200 ${star <= (hoverRating || rating) ? "text-yellow-400" : "text-gray-300"} hover:scale-110 active:scale-95`}
-                    onClick={() => setRating(star)}
-                    onMouseEnter={() => setHoverRating(star)}
-                    onMouseLeave={() => setHoverRating(0)}
-                    disabled={!loggedInUser || isSubmitting}
-                  >
-                    <FontAwesomeIcon icon={faStar} />
-                  </button>
-                ))}
-              </div>
-              {rating > 0 && (
-                <span className="text-sm font-bold text-yellow-500 ml-2 animate-in fade-in zoom-in duration-300">
-                  {getRatingText(rating)}
+            
+            {/* CHỈ HIỆN CHỌN SAO KHI USER CHƯA TỪNG ĐÁNH GIÁ */}
+            {!hasReviewed && (
+                <div className="flex items-center gap-4 mb-4 pb-4 border-b border-orange-100/50">
+                <span className="text-sm font-bold text-gray-700">
+                    Chất lượng công thức:
                 </span>
-              )}
-            </div>
+                <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                        type="button"
+                        key={star}
+                        className={`text-2xl transition-colors duration-200 ${star <= (hoverRating || rating) ? "text-yellow-400" : "text-gray-300"} hover:scale-110 active:scale-95`}
+                        onClick={() => setRating(star)}
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        disabled={!loggedInUser || isSubmitting}
+                    >
+                        <FontAwesomeIcon icon={faStar} />
+                    </button>
+                    ))}
+                </div>
+                {rating > 0 && (
+                    <span className="text-sm font-bold text-yellow-500 ml-2 animate-in fade-in zoom-in duration-300">
+                    {getRatingText(rating)}
+                    </span>
+                )}
+                </div>
+            )}
 
             <div className="flex items-start gap-4">
               <div className="w-11 h-11 rounded-2xl bg-orange-500 text-white shrink-0 flex items-center justify-center font-black shadow-md shadow-orange-200">
@@ -371,10 +386,13 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                   maxLength={300}
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
+                  // ĐÃ SỬA: Thay đổi Placeholder thông minh dựa vào trạng thái vote
                   placeholder={
-                    loggedInUser
-                      ? "Chia sẻ cảm nhận của bạn về món ăn này..."
-                      : "Đăng nhập để viết đánh giá..."
+                    !loggedInUser 
+                        ? "Đăng nhập để viết bình luận..." 
+                        : hasReviewed 
+                            ? "Bạn muốn hỏi thêm hoặc chia sẻ thêm về món này?" 
+                            : "Chia sẻ cảm nhận của bạn về món ăn này..."
                   }
                   disabled={!loggedInUser || isSubmitting}
                   className="w-full resize-none rounded-3xl border border-white bg-white px-5 py-4 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 disabled:bg-gray-50"
@@ -447,14 +465,15 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                       disabled={isSubmitting}
                       className="rounded-2xl bg-orange-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-orange-200 hover:bg-orange-600 active:scale-95 disabled:bg-orange-300 disabled:scale-100 transition-all"
                     >
-                      {isSubmitting ? "Đang gửi..." : "Đăng đánh giá"}
+                      {/* ĐÃ SỬA: Đổi tên nút tùy ngữ cảnh */}
+                      {isSubmitting ? "Đang gửi..." : (hasReviewed ? "Gửi bình luận" : "Đăng đánh giá")}
                     </button>
                   ) : (
                     <Link
                       to="/login"
                       className="rounded-2xl bg-orange-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-orange-200 hover:bg-orange-600 transition-all"
                     >
-                      Đăng nhập để đánh giá
+                      Đăng nhập để tương tác
                     </Link>
                   )}
                 </div>
@@ -502,21 +521,24 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-1">
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex items-center gap-3">
                       <h3 className="text-sm font-black text-gray-900 truncate">
                         {comment.authorName}
                       </h3>
-                      <div className="flex items-center gap-1 mt-0.5">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <FontAwesomeIcon
-                            key={star}
-                            icon={faStar}
-                            className={`text-[10px] ${star <= comment.rating ? "text-yellow-400" : "text-gray-300"}`}
-                          />
-                        ))}
-                      </div>
+                      {/* ĐÃ SỬA: CHỈ VẼ NGÔI SAO NẾU CÓ ĐÁNH GIÁ (>0) */}
+                      {comment.rating > 0 && (
+                          <div className="flex items-center gap-1 mt-0.5">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                            <FontAwesomeIcon
+                                key={star}
+                                icon={faStar}
+                                className={`text-[10px] ${star <= comment.rating ? "text-yellow-400" : "text-gray-300"}`}
+                            />
+                            ))}
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 mt-1 sm:mt-0">
                       <span className="text-xs font-semibold text-gray-400">
                         {formatCommentTime(comment.createdAt)}
                       </span>

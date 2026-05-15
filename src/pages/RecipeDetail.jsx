@@ -599,7 +599,6 @@ export default function RecipeDetail() {
                     {step.ImageURL && (
                       <div className="rounded-2xl overflow-hidden border border-gray-200 bg-gray-100 flex justify-center">
                         <img
-                          /* ĐÃ SỬA: Thêm onClick gọi state để phóng to ảnh và gắn style cursor-pointer */
                           src={getImageUrl(step.ImageURL)}
                           alt={`Bước ${step.StepNumber}`}
                           onClick={() =>
@@ -616,7 +615,7 @@ export default function RecipeDetail() {
           </div>
         </div>
 
-        {/* ĐÃ SỬA: Biến khu vực AI Gợi ý thành một "Khối ma thuật" nổi bật */}
+        {/* Khối ma thuật AI Gợi ý */}
         {!loading && recipe && (
           <div className="mt-16 mb-10 relative overflow-hidden bg-gradient-to-br from-[#f8f5ff] via-white to-[#fff0f5] rounded-[2.5rem] p-6 md:p-10 border border-purple-100 shadow-[0_8px_30px_rgb(168,85,247,0.06)] group">
             {/* Hiệu ứng ánh sáng mờ (Glow) tàng hình phía sau */}
@@ -669,7 +668,6 @@ export default function RecipeDetail() {
                         rating: item.AverageRating || 0,
                         reviews: item.ReviewCount || 0,
                         image: item.ImageURL,
-                        // Thêm các biến chữ hoa chữ thường để RecipeCard chắc chắn nhận được!
                         views: item.Views || item.ViewCount || item.viewCount || item.LuotXem || 0,
                         ViewCount: item.Views || item.ViewCount || item.viewCount || item.LuotXem || 0,
                         Views: item.Views || item.ViewCount || item.viewCount || item.LuotXem || 0,
@@ -705,7 +703,7 @@ export default function RecipeDetail() {
           </div>
         )}
 
-        {/* NƠI RÁP COMPONENT COMMENTS VÀO */}
+        {/* NƠI RÁP COMPONENT COMMENTS VÀO: ĐÂY MỚI LÀ CHỖ CHỨA FORM BÌNH LUẬN NÈ SẾP TÌM ĐÚNG FILE COMMENTS.JSX GỬI TÔI NHÉ */}
         {!loading && recipe && (
           <Comments
             recipeId={id}
