@@ -170,7 +170,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
   const hasReviewed = useMemo(() => {
     if (!loggedInUser) return false;
     return comments.some(
-      (cmt) => cmt.userId === loggedInUser.UserID && cmt.rating > 0
+      (cmt) => cmt.userId === loggedInUser.UserID && cmt.rating > 0,
     );
   }, [comments, loggedInUser]);
 
@@ -229,12 +229,11 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
       return;
     }
 
-    // ĐÃ SỬA: CHỈ ÉP CHỌN SAO KHI USER CHƯA TỪNG ĐÁNH GIÁ
     if (!hasReviewed && rating === 0) {
       toast.warning("Vui lòng chọn số sao đánh giá!", toastConfig);
       return;
     }
-    
+
     if (!trimmedComment) {
       toast.warning("Vui lòng nhập nội dung bình luận.", toastConfig);
       return;
@@ -247,11 +246,17 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
       const formData = new FormData();
       formData.append("RecipeID", recipeId);
       formData.append("Content", trimmedComment);
-      
-      // Nếu đã đánh giá rồi, ép Rating thành rỗng (mặc định API sẽ gán NULL)
+
       if (!hasReviewed) {
         formData.append("Rating", rating);
       }
+
+      // ==================================================
+      // Thêm ảnh vào cục dữ liệu để gửi lên FE
+      // ==================================================
+      selectedImages.forEach((file) => {
+        formData.append("Images", file);
+      });
 
       const response = await fetch(`${API_BASE_URL}/comments`, {
         method: "POST",
@@ -269,7 +274,10 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
       setSelectedImages([]);
       setImagePreviews([]);
 
-      toast.success(hasReviewed ? "Đã gửi bình luận!" : "Đã gửi đánh giá thành công.", toastConfig);
+      toast.success(
+        hasReviewed ? "Đã gửi bình luận!" : "Đã gửi đánh giá thành công.",
+        toastConfig,
+      );
     } catch (error) {
       toast.error(error.message, toastConfig);
     } finally {
@@ -337,34 +345,33 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
       {!isLoadingComments && (
         <form onSubmit={handleSubmitComment} className="mb-8">
           <div className="rounded-[28px] border border-orange-100 bg-gradient-to-br from-orange-50/70 via-white to-white p-5 shadow-[0_10px_30px_rgba(249,115,22,0.08)]">
-            
             {/* CHỈ HIỆN CHỌN SAO KHI USER CHƯA TỪNG ĐÁNH GIÁ */}
             {!hasReviewed && (
-                <div className="flex items-center gap-4 mb-4 pb-4 border-b border-orange-100/50">
+              <div className="flex items-center gap-4 mb-4 pb-4 border-b border-orange-100/50">
                 <span className="text-sm font-bold text-gray-700">
-                    Chất lượng công thức:
+                  Chất lượng công thức:
                 </span>
                 <div className="flex items-center gap-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
+                  {[1, 2, 3, 4, 5].map((star) => (
                     <button
-                        type="button"
-                        key={star}
-                        className={`text-2xl transition-colors duration-200 ${star <= (hoverRating || rating) ? "text-yellow-400" : "text-gray-300"} hover:scale-110 active:scale-95`}
-                        onClick={() => setRating(star)}
-                        onMouseEnter={() => setHoverRating(star)}
-                        onMouseLeave={() => setHoverRating(0)}
-                        disabled={!loggedInUser || isSubmitting}
+                      type="button"
+                      key={star}
+                      className={`text-2xl transition-colors duration-200 ${star <= (hoverRating || rating) ? "text-yellow-400" : "text-gray-300"} hover:scale-110 active:scale-95`}
+                      onClick={() => setRating(star)}
+                      onMouseEnter={() => setHoverRating(star)}
+                      onMouseLeave={() => setHoverRating(0)}
+                      disabled={!loggedInUser || isSubmitting}
                     >
-                        <FontAwesomeIcon icon={faStar} />
+                      <FontAwesomeIcon icon={faStar} />
                     </button>
-                    ))}
+                  ))}
                 </div>
                 {rating > 0 && (
-                    <span className="text-sm font-bold text-yellow-500 ml-2 animate-in fade-in zoom-in duration-300">
+                  <span className="text-sm font-bold text-yellow-500 ml-2 animate-in fade-in zoom-in duration-300">
                     {getRatingText(rating)}
-                    </span>
+                  </span>
                 )}
-                </div>
+              </div>
             )}
 
             <div className="flex items-start gap-4">
@@ -388,11 +395,11 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                   onChange={(e) => setCommentText(e.target.value)}
                   // ĐÃ SỬA: Thay đổi Placeholder thông minh dựa vào trạng thái vote
                   placeholder={
-                    !loggedInUser 
-                        ? "Đăng nhập để viết bình luận..." 
-                        : hasReviewed 
-                            ? "Bạn muốn hỏi thêm hoặc chia sẻ thêm về món này?" 
-                            : "Chia sẻ cảm nhận của bạn về món ăn này..."
+                    !loggedInUser
+                      ? "Đăng nhập để viết bình luận..."
+                      : hasReviewed
+                        ? "Bạn muốn hỏi thêm hoặc chia sẻ thêm về món này?"
+                        : "Chia sẻ cảm nhận của bạn về món ăn này..."
                   }
                   disabled={!loggedInUser || isSubmitting}
                   className="w-full resize-none rounded-3xl border border-white bg-white px-5 py-4 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-300 disabled:bg-gray-50"
@@ -466,7 +473,11 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                       className="rounded-2xl bg-orange-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-orange-200 hover:bg-orange-600 active:scale-95 disabled:bg-orange-300 disabled:scale-100 transition-all"
                     >
                       {/* ĐÃ SỬA: Đổi tên nút tùy ngữ cảnh */}
-                      {isSubmitting ? "Đang gửi..." : (hasReviewed ? "Gửi bình luận" : "Đăng đánh giá")}
+                      {isSubmitting
+                        ? "Đang gửi..."
+                        : hasReviewed
+                          ? "Gửi bình luận"
+                          : "Đăng đánh giá"}
                     </button>
                   ) : (
                     <Link
@@ -527,14 +538,14 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                       </h3>
                       {/* ĐÃ SỬA: CHỈ VẼ NGÔI SAO NẾU CÓ ĐÁNH GIÁ (>0) */}
                       {comment.rating > 0 && (
-                          <div className="flex items-center gap-1 mt-0.5">
-                            {[1, 2, 3, 4, 5].map((star) => (
+                        <div className="flex items-center gap-1 mt-0.5">
+                          {[1, 2, 3, 4, 5].map((star) => (
                             <FontAwesomeIcon
-                                key={star}
-                                icon={faStar}
-                                className={`text-[10px] ${star <= comment.rating ? "text-yellow-400" : "text-gray-300"}`}
+                              key={star}
+                              icon={faStar}
+                              className={`text-[10px] ${star <= comment.rating ? "text-yellow-400" : "text-gray-300"}`}
                             />
-                            ))}
+                          ))}
                         </div>
                       )}
                     </div>
@@ -565,7 +576,9 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                     <div className="mt-3 flex flex-wrap gap-2">
                       {comment.images.map((imgUrl, idx) => {
                         /* SỬA ẢNH ĐÍNH KÈM BÌNH LUẬN Ở ĐÂY SẾP NHÉ */
-                        const imgFullUrl = getImageUrl(imgUrl.replace(/\\/g, "/"));
+                        const imgFullUrl = getImageUrl(
+                          imgUrl.replace(/\\/g, "/"),
+                        );
                         return (
                           <img
                             key={idx}
