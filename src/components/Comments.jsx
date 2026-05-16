@@ -7,6 +7,7 @@ import {
   faStar,
   faCamera,
   faTimes,
+  faReply, // ĐÃ THÊM: Icon trả lời
 } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
 
@@ -73,7 +74,8 @@ async function parseApiResponse(response) {
 
 function normalizeComment(comment) {
   let imagesArray = [];
-  const rawImageURL = comment.ImageURL || comment.image || null;
+  const rawImageURL =
+    comment.ImageURL || comment.ImageUrl || comment.imageURL || comment.image || null;
   if (rawImageURL) {
     imagesArray = rawImageURL.split(",").filter((img) => img.trim() !== "");
   }
@@ -94,7 +96,8 @@ function normalizeComment(comment) {
     authorUsername: comment.Username || comment.authorUsername || "",
     authorAvatar: comment.Avatar || comment.authorAvatar || "",
     content: comment.Content || comment.content || "",
-    rating: comment.Rating || comment.rating || null, // SỬA: Đổi 5 thành null để dễ nhận biết
+    rating: comment.Rating || comment.rating || null,
+    parentId: comment.ParentID || comment.parentId || null, // ĐÃ THÊM: Nhận diện bình luận cha
     images: imagesArray,
     createdAt:
       comment.CreatedAt || comment.createdAt || new Date().toISOString(),
@@ -117,6 +120,10 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [commentsError, setCommentsError] = useState("");
 
+  // ĐÃ THÊM: State quản lý việc mở khung Trả lời
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyText, setReplyText] = useState("");
+
   const fetchComments = async () => {
     setIsLoadingComments(true);
     setCommentsError("");
@@ -130,6 +137,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
       const normalizedComments = Array.isArray(data)
         ? data.map(normalizeComment)
         : [];
+      // Sắp xếp: Mới nhất lên đầu (Dành cho bình luận gốc)
       normalizedComments.sort(
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
@@ -150,20 +158,19 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recipeId]);
 
-  // ==========================================
-  // ĐÃ SỬA: BỘ ĐẾM SIÊU THÔNG MINH HIỂN THỊ CẢ 2 LOẠI
-  // ==========================================
+  // ĐÃ SỬA: Bộ đếm chỉ đếm các bình luận gốc (không tính các câu trả lời con)
   const totalCommentsLabel = useMemo(() => {
-    if (comments.length === 0) return "Chưa có đánh giá nào";
+    const mainComments = comments.filter((c) => !c.parentId);
+    if (mainComments.length === 0) return "Chưa có đánh giá nào";
 
-    const ratedCount = comments.filter((c) => c.rating > 0).length;
-    const discussionCount = comments.length - ratedCount;
+    const ratedCount = mainComments.filter((c) => c.rating > 0).length;
+    const discussionCount = mainComments.length - ratedCount;
 
     let parts = [];
     if (ratedCount > 0) parts.push(`${ratedCount} đánh giá`);
     if (discussionCount > 0) parts.push(`${discussionCount} bình luận`);
 
-    return parts.join(" & "); // Ví dụ: "1 đánh giá • 2 bình luận"
+    return parts.join(" • "); 
   }, [comments]);
 
   // Kiểm tra xem user này đã từng CHẤM SAO chưa
@@ -251,9 +258,6 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
         formData.append("Rating", rating);
       }
 
-      // ==================================================
-      // Thêm ảnh vào cục dữ liệu để gửi lên FE
-      // ==================================================
       selectedImages.forEach((file) => {
         formData.append("Images", file);
       });
@@ -285,10 +289,50 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
     }
   };
 
+  // ĐÃ THÊM: Hàm xử lý GỬI TRẢ LỜI (REPLY)
+  const handleSubmitReply = async (parentId) => {
+    const trimmedReply = replyText.trim();
+    if (!loggedInUser) {
+      toast.info("Hãy đăng nhập để trả lời.", toastConfig);
+      return;
+    }
+    if (!trimmedReply) {
+      toast.warning("Vui lòng nhập nội dung trả lời.", toastConfig);
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const token = localStorage.getItem("token");
+      const formData = new FormData();
+      formData.append("RecipeID", recipeId);
+      formData.append("Content", trimmedReply);
+      formData.append("ParentID", parentId); // Bắn ID của bình luận cha lên Backend
+
+      const response = await fetch(`${API_BASE_URL}/comments`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      const data = await parseApiResponse(response);
+      if (!response.ok) throw new Error(data.message || "Lỗi gửi trả lời.");
+
+      setComments((prev) => [...prev, normalizeComment(data)]); // Thêm reply vào danh sách
+      setReplyText("");
+      setReplyingTo(null); // Đóng khung reply
+      toast.success("Đã gửi câu trả lời!", toastConfig);
+    } catch (error) {
+      toast.error(error.message, toastConfig);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleDeleteComment = (commentId) => {
     Swal.fire({
       title: "Xóa?",
-      text: "Bạn có chắc chắn muốn xóa? Không thể hoàn tác!",
+      text: "Bạn có chắc chắn muốn xóa? Nếu xóa bình luận gốc, các câu trả lời cũng có thể bị mất!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#ef4444",
@@ -315,7 +359,8 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
           );
 
           if (response.ok) {
-            setComments((prev) => prev.filter((c) => c.id !== commentId));
+            // ĐÃ SỬA: Xóa luôn cả comment cha và các comment con của nó khỏi giao diện
+            setComments((prev) => prev.filter((c) => c.id !== commentId && c.parentId !== commentId));
           } else {
             const data = await response.json();
             toast.error(`❌ ${data.message}`, toastConfig);
@@ -327,6 +372,9 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
       }
     });
   };
+
+  // ĐÃ THÊM: Phân loại bình luận gốc
+  const mainComments = comments.filter((c) => !c.parentId);
 
   return (
     <section className="bg-white rounded-[2rem] p-6 md:p-10 shadow-sm border border-gray-100 mt-8">
@@ -341,11 +389,9 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
         </p>
       </div>
 
-      {/* ĐÃ SỬA: LUÔN HIỆN FORM TƯƠNG TÁC */}
       {!isLoadingComments && (
         <form onSubmit={handleSubmitComment} className="mb-8">
           <div className="rounded-[28px] border border-orange-100 bg-gradient-to-br from-orange-50/70 via-white to-white p-5 shadow-[0_10px_30px_rgba(249,115,22,0.08)]">
-            {/* CHỈ HIỆN CHỌN SAO KHI USER CHƯA TỪNG ĐÁNH GIÁ */}
             {!hasReviewed && (
               <div className="flex items-center gap-4 mb-4 pb-4 border-b border-orange-100/50">
                 <span className="text-sm font-bold text-gray-700">
@@ -378,7 +424,6 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
               <div className="w-11 h-11 rounded-2xl bg-orange-500 text-white shrink-0 flex items-center justify-center font-black shadow-md shadow-orange-200">
                 {loggedInUser?.Avatar ? (
                   <img
-                    /* SỬA ẢNH AVATAR USER ĐĂNG BÌNH LUẬN */
                     src={getImageUrl(loggedInUser.Avatar)}
                     alt="Avt"
                     className="w-full h-full object-cover rounded-2xl"
@@ -393,7 +438,6 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                   maxLength={300}
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
-                  // ĐÃ SỬA: Thay đổi Placeholder thông minh dựa vào trạng thái vote
                   placeholder={
                     !loggedInUser
                       ? "Đăng nhập để viết bình luận..."
@@ -454,7 +498,6 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                     >
                       <FontAwesomeIcon icon={faCamera} className="text-xl" />
                     </button>
-                    {/* BỘ ĐẾM KÝ TỰ REAL-TIME */}
                     <p className="text-xs text-gray-400 font-medium">
                       {selectedImages.length}/3 ảnh đính kèm{" "}
                       <span className="mx-1">•</span>
@@ -472,7 +515,6 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                       disabled={isSubmitting}
                       className="rounded-2xl bg-orange-500 px-6 py-3 text-sm font-black text-white shadow-lg shadow-orange-200 hover:bg-orange-600 active:scale-95 disabled:bg-orange-300 disabled:scale-100 transition-all"
                     >
-                      {/* ĐÃ SỬA: Đổi tên nút tùy ngữ cảnh */}
                       {isSubmitting
                         ? "Đang gửi..."
                         : hasReviewed
@@ -494,7 +536,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
         </form>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {isLoadingComments ? (
           <div className="p-10 text-center">
             <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -511,90 +553,195 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
               Thử tải lại
             </button>
           </div>
-        ) : comments.length > 0 ? (
-          comments.map((comment) => (
-            <article
-              key={comment.id}
-              className="rounded-3xl border border-gray-100 bg-gray-50/80 p-5 transition hover:border-orange-100 hover:bg-orange-50/40"
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-11 h-11 rounded-2xl bg-white border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center text-sm font-black text-orange-500">
-                  {comment.authorAvatar ? (
-                    <img
-                      /* SỬA ẢNH AVATAR NGƯỜI BÌNH LUẬN KHÁC */
-                      src={getImageUrl(comment.authorAvatar)}
-                      alt="Avt"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    comment.authorName?.charAt(0) || "U"
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-1">
-                    <div className="min-w-0 flex items-center gap-3">
-                      <h3 className="text-sm font-black text-gray-900 truncate">
-                        {comment.authorName}
-                      </h3>
-                      {/* ĐÃ SỬA: CHỈ VẼ NGÔI SAO NẾU CÓ ĐÁNH GIÁ (>0) */}
-                      {comment.rating > 0 && (
-                        <div className="flex items-center gap-1 mt-0.5">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <FontAwesomeIcon
-                              key={star}
-                              icon={faStar}
-                              className={`text-[10px] ${star <= comment.rating ? "text-yellow-400" : "text-gray-300"}`}
-                            />
-                          ))}
-                        </div>
+        ) : mainComments.length > 0 ? (
+          // ĐÃ SỬA: Lặp qua danh sách bình luận gốc
+          mainComments.map((comment) => {
+            // ĐÃ THÊM: Lọc ra các câu trả lời thuộc về comment gốc này (Sắp xếp tăng dần theo thời gian)
+            const replies = comments
+              .filter((c) => c.parentId === comment.id)
+              .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+            return (
+              <div key={comment.id} className="relative">
+                {/* BÌNH LUẬN GỐC */}
+                <article className="rounded-3xl border border-gray-100 bg-gray-50/80 p-5 transition hover:border-orange-100 hover:bg-orange-50/40">
+                  <div className="flex items-start gap-4">
+                    <div className="w-11 h-11 rounded-2xl bg-white border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center text-sm font-black text-orange-500">
+                      {comment.authorAvatar ? (
+                        <img
+                          src={getImageUrl(comment.authorAvatar)}
+                          alt="Avt"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        comment.authorName?.charAt(0) || "U"
                       )}
                     </div>
-                    <div className="flex items-center gap-3 mt-1 sm:mt-0">
-                      <span className="text-xs font-semibold text-gray-400">
-                        {formatCommentTime(comment.createdAt)}
-                      </span>
-                      {loggedInUser &&
-                        (loggedInUser.UserID === comment.userId ||
-                          loggedInUser.UserID === recipeAuthorId) && (
-                          <button
-                            onClick={() => handleDeleteComment(comment.id)}
-                            className="w-8 h-8 flex items-center justify-center rounded-xl bg-red-50 text-red-400 hover:bg-red-500 hover:text-white transition-all shadow-sm"
-                          >
-                            <FontAwesomeIcon
-                              icon={faTrash}
-                              className="text-xs"
-                            />
-                          </button>
-                        )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-1">
+                        <div className="min-w-0 flex items-center gap-3">
+                          <h3 className="text-sm font-black text-gray-900 truncate">
+                            {comment.authorName}
+                          </h3>
+                          {comment.rating > 0 && (
+                            <div className="flex items-center gap-1 mt-0.5">
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <FontAwesomeIcon
+                                  key={star}
+                                  icon={faStar}
+                                  className={`text-[10px] ${star <= comment.rating ? "text-yellow-400" : "text-gray-300"}`}
+                                />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 mt-1 sm:mt-0">
+                          <span className="text-xs font-semibold text-gray-400">
+                            {formatCommentTime(comment.createdAt)}
+                          </span>
+                          {loggedInUser &&
+                            (loggedInUser.UserID === comment.userId ||
+                              loggedInUser.UserID === recipeAuthorId) && (
+                              <button
+                                onClick={() => handleDeleteComment(comment.id)}
+                                className="w-8 h-8 flex items-center justify-center rounded-xl bg-red-50 text-red-400 hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                              >
+                                <FontAwesomeIcon
+                                  icon={faTrash}
+                                  className="text-xs"
+                                />
+                              </button>
+                            )}
+                        </div>
+                      </div>
+                      <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap break-all mt-2 mb-3">
+                        {comment.content}
+                      </p>
+
+                      {comment.images && comment.images.length > 0 && (
+                        <div className="mb-4 flex flex-wrap gap-2">
+                          {comment.images.map((imgUrl, idx) => {
+                            const imgFullUrl = getImageUrl(
+                              imgUrl.replace(/\\/g, "/"),
+                            );
+                            return (
+                              <img
+                                key={idx}
+                                src={imgFullUrl}
+                                alt={`Thành quả ${idx + 1}`}
+                                className="w-28 h-28 object-cover rounded-2xl border border-gray-200 shadow-sm cursor-pointer hover:scale-105 transition-transform"
+                                onClick={() => setViewingImage(imgFullUrl)}
+                              />
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* ĐÃ THÊM: NÚT BẤM TRẢ LỜI MỞ FORM */}
+                      <div className="mt-2 flex items-center gap-4">
+                        <button
+                          onClick={() => {
+                            setReplyingTo(replyingTo === comment.id ? null : comment.id);
+                            setReplyText("");
+                          }}
+                          className="text-xs font-bold text-gray-500 hover:text-orange-500 transition-colors flex items-center gap-1.5"
+                        >
+                          <FontAwesomeIcon icon={faReply} /> Trả lời
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  <p className="text-sm leading-relaxed text-gray-700 whitespace-pre-wrap break-all mt-2">
-                    {comment.content}
-                  </p>
+                </article>
 
-                  {comment.images && comment.images.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {comment.images.map((imgUrl, idx) => {
-                        /* SỬA ẢNH ĐÍNH KÈM BÌNH LUẬN Ở ĐÂY SẾP NHÉ */
-                        const imgFullUrl = getImageUrl(
-                          imgUrl.replace(/\\/g, "/"),
-                        );
-                        return (
-                          <img
-                            key={idx}
-                            src={imgFullUrl}
-                            alt={`Thành quả ${idx + 1}`}
-                            className="w-28 h-28 object-cover rounded-2xl border border-gray-200 shadow-sm cursor-pointer hover:scale-105 transition-transform"
-                            onClick={() => setViewingImage(imgFullUrl)}
-                          />
-                        );
-                      })}
+                {/* DANH SÁCH CÁC CÂU TRẢ LỜI (Đã sửa UI: Dùng viền dọc xuyên suốt, hiện đại và không bị gãy) */}
+                {replies.length > 0 && (
+                  <div className="mt-4 ml-5 md:ml-7 pl-4 md:pl-6 border-l-[3px] border-gray-100 space-y-4">
+                    {replies.map((reply) => (
+                      <article key={reply.id} className="rounded-3xl border border-gray-100 bg-white p-4 shadow-sm relative transition hover:border-orange-100 hover:shadow-md">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-xl bg-gray-100 border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center text-xs font-black text-orange-500">
+                            {reply.authorAvatar ? (
+                              <img src={getImageUrl(reply.authorAvatar)} alt="Avt" className="w-full h-full object-cover" />
+                            ) : (
+                              reply.authorName?.charAt(0) || "U"
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-1 mb-1">
+                              <h3 className="text-sm font-bold text-gray-900 truncate">
+                                {reply.authorName}
+                                {/* Hiển thị mác "Tác giả" nếu đúng là người đăng công thức */}
+                                {reply.userId === recipeAuthorId && (
+                                  <span className="ml-2 px-1.5 py-0.5 bg-orange-100 text-orange-600 text-[10px] rounded-md uppercase tracking-wide">
+                                    Tác giả
+                                  </span>
+                                )}
+                              </h3>
+                              <div className="flex items-center gap-3">
+                                <span className="text-[10px] font-semibold text-gray-400">
+                                  {formatCommentTime(reply.createdAt)}
+                                </span>
+                                {loggedInUser && (loggedInUser.UserID === reply.userId || loggedInUser.UserID === recipeAuthorId) && (
+                                  <button onClick={() => handleDeleteComment(reply.id)} className="text-gray-300 hover:text-red-500 transition-colors">
+                                    <FontAwesomeIcon icon={faTrash} className="text-xs" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                            <p className="text-[13px] leading-relaxed text-gray-600 whitespace-pre-wrap break-all">
+                              {reply.content}
+                            </p>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+
+                {/* ĐÃ THÊM: KHUNG NHẬP TRẢ LỜI NẰM NGAY DƯỚI BÌNH LUẬN GỐC */}
+                {replyingTo === comment.id && (
+                  <div className="mt-3 ml-12 md:ml-16 bg-white rounded-3xl p-4 border border-orange-200 shadow-lg shadow-orange-100/50 animate-in slide-in-from-top-2 duration-200">
+                    <div className="flex gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-orange-500 text-white shrink-0 flex items-center justify-center font-black">
+                        {loggedInUser?.Avatar ? (
+                          <img src={getImageUrl(loggedInUser.Avatar)} alt="Avt" className="w-full h-full object-cover rounded-xl" />
+                        ) : (
+                          loggedInUser?.FullName?.charAt(0) || "?"
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <textarea
+                          autoFocus
+                          rows="2"
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder={`Trả lời ${comment.authorName}...`}
+                          className="w-full resize-none bg-transparent text-sm text-gray-700 focus:outline-none placeholder-gray-400"
+                        />
+                        <div className="flex justify-end gap-2 mt-2 pt-2 border-t border-gray-50">
+                          <button
+                            type="button"
+                            onClick={() => setReplyingTo(null)}
+                            className="px-4 py-1.5 text-xs font-bold text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                          >
+                            Hủy
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleSubmitReply(comment.id)}
+                            disabled={isSubmitting || !replyText.trim()}
+                            className="px-4 py-1.5 text-xs font-bold bg-orange-500 text-white hover:bg-orange-600 rounded-lg transition-colors disabled:opacity-50"
+                          >
+                            {isSubmitting ? "Đang gửi..." : "Gửi"}
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
-            </article>
-          ))
+            );
+          })
         ) : (
           <div className="p-10 text-center text-gray-400 text-sm font-semibold">
             Chưa có đánh giá nào.
