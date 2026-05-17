@@ -236,7 +236,11 @@ export default function RecipeDetail() {
     });
   };
 
-  const calculateQuantity = (quantity, unit, originalServings) => {
+  // =====================================================================
+  // THUẬT TOÁN ĐIỀU CHỈNH NGUYÊN LIỆU PHI TUYẾN TÍNH
+  // Đã cấy trực tiếp vào hàm calculateQuantity hiện tại của sếp
+  // =====================================================================
+  const calculateQuantity = (ingredientName, quantity, unit, originalServings) => {
     if (!originalServings || !quantity) return quantity;
 
     const qualitativeUnits = [
@@ -274,7 +278,27 @@ export default function RecipeDetail() {
 
     if (isNaN(num)) return quantity;
 
-    const calculated = (num / originalServings) * currentServings;
+    // --- BẮT ĐẦU LOGIC AI TÍNH TOÁN GIẢM XÓC GIA VỊ ---
+    const ratio = currentServings / originalServings;
+
+    // Danh sách từ khóa nhận diện gia vị tự động
+    const spiceKeywords = [
+      "muối", "đường", "bột ngọt", "hạt nêm", "nước mắm", "mắm nêm",
+      "tiêu", "ớt", "sả", "hành", "tỏi", "dầu ăn", "thơm thái nhỏ", "nước lọc"
+    ];
+
+    const isSpice = ingredientName && spiceKeywords.some((keyword) =>
+      ingredientName.toLowerCase().includes(keyword)
+    );
+
+    let finalRatio = ratio;
+    // Thuật toán giảm xóc: Nếu là gia vị và tăng số người, chỉ tăng 60% tỷ lệ
+    if (isSpice && ratio > 1) {
+      finalRatio = 1 + (ratio - 1) * 0.6;
+    }
+
+    const calculated = num * finalRatio;
+    // --- KẾT THÚC LOGIC AI ---
 
     const smartFormatVietnamese = (dec) => {
       if (Number.isInteger(dec)) return dec;
@@ -554,7 +578,9 @@ export default function RecipeDetail() {
                       {ing.IngredientName}
                     </span>
                     <span className="text-green-700 font-black text-sm whitespace-nowrap shrink-0 text-right bg-green-100/50 px-2 py-1 rounded-lg">
+                      {/* ĐÃ SỬA CHỖ NÀY: Truyền thêm ing.IngredientName vào để bộ não chạy thuật toán nhận diện */}
                       {calculateQuantity(
+                        ing.IngredientName,
                         ing.Quantity,
                         ing.Unit,
                         recipe.Servings,
@@ -703,7 +729,7 @@ export default function RecipeDetail() {
           </div>
         )}
 
-        {/* NƠI RÁP COMPONENT COMMENTS VÀO: ĐÂY MỚI LÀ CHỖ CHỨA FORM BÌNH LUẬN NÈ SẾP TÌM ĐÚNG FILE COMMENTS.JSX GỬI TÔI NHÉ */}
+        {/* NƠI RÁP COMPONENT COMMENTS VÀO */}
         {!loading && recipe && (
           <Comments
             recipeId={id}
@@ -719,10 +745,8 @@ export default function RecipeDetail() {
       {zoomedImage && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"
-          // Bấm ra ngoài vùng đen là tắt ảnh
           onClick={() => setZoomedImage(null)}
         >
-          {/* Nút X tắt ảnh góc phải trên */}
           <button
             className="absolute top-4 right-4 md:top-8 md:right-8 w-10 h-10 bg-white/20 hover:bg-white/40 text-white rounded-full flex items-center justify-center transition"
             onClick={() => setZoomedImage(null)}
@@ -743,12 +767,10 @@ export default function RecipeDetail() {
             </svg>
           </button>
 
-          {/* Bức ảnh ở giữa */}
           <img
             src={zoomedImage}
             alt="Phóng to"
             className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300"
-            // e.stopPropagation() để lúc bấm vào chính bức ảnh thì không bị đóng (chỉ tắt khi bấm ra ngoài hoặc nút X)
             onClick={(e) => e.stopPropagation()}
           />
         </div>
