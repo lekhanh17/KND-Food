@@ -284,7 +284,7 @@ export default function RecipeDetail() {
     // Danh sách từ khóa nhận diện gia vị tự động
     const spiceKeywords = [
       "muối", "đường", "bột ngọt", "hạt nêm", "nước mắm", "mắm nêm",
-      "tiêu", "ớt", "sả", "hành", "tỏi", "dầu ăn", "thơm thái nhỏ", "nước lọc"
+      "tiêu", "ớt", "sả", "hành", "tỏi", "dầu ăn", "dầu hào", "thơm thái nhỏ", "màu", "nước lọc"
     ];
 
     const isSpice = ingredientName && spiceKeywords.some((keyword) =>
@@ -699,9 +699,10 @@ export default function RecipeDetail() {
                         Views: item.Views || item.ViewCount || item.viewCount || item.LuotXem || 0,
                       };
                       return (
+                        // ĐÃ SỬA TẠI ĐÂY: Thêm h-full và ép các thẻ con bên trong cũng lấy chiều cao 100%
                         <div
                           key={formattedItem.id}
-                          className="hover:-translate-y-2 transition-transform duration-300"
+                          className="hover:-translate-y-2 transition-transform duration-300 h-full [&>div]:h-full [&>a]:h-full flex flex-col"
                         >
                           <RecipeCard item={formattedItem} />
                         </div>

@@ -33,14 +33,26 @@ export default function AllRecipes() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Theo dõi nếu URL thay đổi (nhấn back/forward) thì tự cập nhật lại dropdown
+  // ==========================================
+  // STATE QUẢN LÝ PHÂN TRANG (PAGINATION)
+  // ==========================================
+  const [currentPage, setCurrentPage] = useState(1);
+  const recipesPerPage = 16; // Chốt hạ 16 món / 1 trang
+
+  // Theo dõi nếu URL thay đổi (nhấn back/forward) thì tự cập nhật lại dropdown VÀ reset trang
   useEffect(() => {
     if (sortParam === "popular") {
       setSortBy("top_rated");
     } else if (!sortParam && !categoryIdParam) {
       setSortBy("newest"); // Trạng thái mặc định khi xem tất cả
     }
+    setCurrentPage(1); // Reset về trang 1 khi đổi danh mục
   }, [sortParam, categoryIdParam]);
+
+  // Reset về trang 1 mỗi khi người dùng chỉnh Thanh trượt Độ khó hoặc Dropdown Sắp xếp
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [difficultyLevel, sortBy]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -152,6 +164,17 @@ export default function AllRecipes() {
       return 0;
     });
 
+  // ==========================================
+  // LOGIC TÍNH TOÁN CẮT MẢNG CHO PHÂN TRANG
+  // ==========================================
+  const indexOfLastRecipe = currentPage * recipesPerPage;
+  const indexOfFirstRecipe = indexOfLastRecipe - recipesPerPage;
+  const currentRecipes = finalDisplayedRecipes.slice(
+    indexOfFirstRecipe,
+    indexOfLastRecipe
+  );
+  const totalPages = Math.ceil(finalDisplayedRecipes.length / recipesPerPage);
+
   const sortOptions = [
     { value: "newest", label: "Mới nhất" },
     { value: "oldest", label: "Cũ nhất" },
@@ -188,7 +211,7 @@ export default function AllRecipes() {
           {/* GIAO DIỆN TOOLBAR (BỘ LỌC ĐỘ KHÓ + CUSTOM DROPDOWN SẮP XẾP) */}
           <div className="flex flex-col sm:flex-row items-center gap-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 w-full xl:w-auto">
             
-            {/* 1. THANH TRƯỢT LỌC ĐỘ KHÓ (Căn chỉnh tuyệt đối giống CreateRecipe) */}
+            {/* 1. THANH TRƯỢT LỌC ĐỘ KHÓ */}
             <div className="w-full sm:w-64 shrink-0">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-semibold text-gray-700">
@@ -218,7 +241,7 @@ export default function AllRecipes() {
               </div>
             </div>
 
-            {/* ĐƯỜNG KẺ CHIA CÁCH (Chỉ hiện trên màn hình to) */}
+            {/* ĐƯỜNG KẺ CHIA CÁCH */}
             <div className="hidden sm:block w-[1px] h-12 bg-gray-200"></div>
 
             {/* 2. NÚT SẮP XẾP (DROPDOWN) */}
@@ -300,11 +323,69 @@ export default function AllRecipes() {
             <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : finalDisplayedRecipes.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {finalDisplayedRecipes.map((recipe) => (
-              <RecipeCard key={recipe.id} item={recipe} />
-            ))}
-          </div>
+          <>
+            {/* DANH SÁCH MÓN ĂN ĐÃ BỊ CẮT GỌN CHO 1 TRANG (currentRecipes) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {currentRecipes.map((recipe) => (
+                <RecipeCard key={recipe.id} item={recipe} />
+              ))}
+            </div>
+
+            {/* GIAO DIỆN ĐIỀU HƯỚNG PHÂN TRANG (PAGINATION) */}
+            {totalPages > 1 && (
+              <div className="mt-14 flex items-center justify-center gap-2">
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-orange-500"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                  </svg>
+                </button>
+
+                {Array.from({ length: totalPages }, (_, index) => {
+                  const pageNumber = index + 1;
+                  // Rút gọn trang nếu quá nhiều (Chỉ hiện trang đầu, cuối và các trang lân cận)
+                  if (
+                    pageNumber === 1 ||
+                    pageNumber === totalPages ||
+                    (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                  ) {
+                    return (
+                      <button
+                        key={pageNumber}
+                        onClick={() => setCurrentPage(pageNumber)}
+                        className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-all ${
+                          currentPage === pageNumber
+                            ? "bg-orange-500 text-white shadow-md shadow-orange-500/30"
+                            : "bg-white border border-gray-200 text-gray-700 hover:border-orange-500 hover:text-orange-500"
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  } else if (
+                    pageNumber === currentPage - 2 ||
+                    pageNumber === currentPage + 2
+                  ) {
+                    return <span key={pageNumber} className="text-gray-400 font-bold px-1">...</span>;
+                  }
+                  return null;
+                })}
+
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-orange-500"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                  </svg>
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-20 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center">
             <span className="text-5xl mb-4">🍽️</span>

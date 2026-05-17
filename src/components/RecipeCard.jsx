@@ -18,20 +18,13 @@ export default function RecipeCard({ item }) {
   const difficultyUI = getDifficultyUI(item.difficulty || item.Difficulty);
   const reviewCount = item.ReviewCount !== undefined ? item.ReviewCount : (item.reviews ? item.reviews : 0);
   const averageRating = item.AverageRating !== undefined ? item.AverageRating : (item.rating ? item.rating : 0);
-  // Lấy dữ liệu lượt xem (Mặc định là 0 nếu chưa có)
   const viewsCount = item.ViewCount !== undefined ? item.ViewCount : (item.viewCount || 0);
 
-  // 🛡️ KHIÊN BẢO VỆ ẢNH ĐÂY SẾP
   const getImageUrl = (url) => {
-    if (!url) return "/default-food.png"; // Ảnh mặc định nếu lỡ lỗi
-
-    // Nếu là link Cloudinary (đã có chữ http)
+    if (!url) return "/default-food.png";
     if (url.startsWith("http")) {
-      // Nếu Database lỡ lưu link localhost cũ thì tự động thay bằng link API hiện tại
       return url.replace("http://localhost:5000", import.meta.env.VITE_API_URL);
     }
-
-    // Nếu là link /uploads/... cũ thì mới nối thêm Backend API vào
     const cleanUrl = url.startsWith("/") ? url : `/${url}`;
     return `${import.meta.env.VITE_API_URL}${cleanUrl}`;
   };
@@ -39,13 +32,13 @@ export default function RecipeCard({ item }) {
   return (
     <Link 
       to={`/recipe/${item.id || item.RecipeID}`}
-      className="group bg-white rounded-[2rem] border border-gray-100 overflow-hidden hover:shadow-2xl hover:shadow-orange-100 transition-all duration-500 flex-col block cursor-pointer outline-none"
+      // ĐÃ SỬA: Thêm h-full để thẻ luôn chiếm 100% chiều cao của grid item
+      className="group bg-white rounded-[2rem] border border-gray-100 overflow-hidden hover:shadow-2xl hover:shadow-orange-100 transition-all duration-500 flex flex-col h-full cursor-pointer outline-none"
     >
       
       {/* KHU VỰC ẢNH */}
       <div className="relative h-56 overflow-hidden shrink-0">
         <img 
-          /* Đã thay đổi src sử dụng hàm getImageUrl */
           src={getImageUrl(item.image || item.ImageURL)} 
           alt={item.title || item.Title} 
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
@@ -53,11 +46,7 @@ export default function RecipeCard({ item }) {
         <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-[10px] font-black text-orange-600 uppercase tracking-wider shadow-sm">
           {item.category || item.CategoryName || "Món ăn"}
         </div>
-
-        {/* ĐÃ THÊM: Lớp phủ Gradient đen dưới đáy để nổi bật chữ trắng */}
         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none"></div>
-
-        {/* ĐÃ THÊM: Hiển thị lượt xem góc dưới trái (Style giống TikTok) */}
         <div className="absolute bottom-3 left-4 flex items-center gap-1.5 text-white text-sm font-bold z-10 drop-shadow-md">
           <FontAwesomeIcon icon={faEye} className="w-4 h-4 opacity-90" />
           <span>{viewsCount}</span>
@@ -65,14 +54,14 @@ export default function RecipeCard({ item }) {
       </div>
 
       {/* KHU VỰC NỘI DUNG */}
-      <div className="p-6 flex flex-col flex-1 justify-between">
-        <div>
-          <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-orange-500 transition-colors line-clamp-2 leading-snug">
-            {item.title || item.Title}
-          </h3>
-        </div>
+      <div className="p-6 flex flex-col flex-1">
+        {/* Tên món ăn: Chặn min-height để không bị nhảy giật khung */}
+        <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-orange-500 transition-colors line-clamp-2 leading-snug">
+          {item.title || item.Title}
+        </h3>
         
-        <div>
+        {/* ĐÃ SỬA CHÍNH TẠI ĐÂY: Dùng mt-auto để luôn đẩy khối thời gian/rating này xuống dưới đáy */}
+        <div className="mt-auto">
           {/* Hàng 1: Thời gian & Nhãn Độ khó */}
           <div className="flex items-center gap-3 mb-4">
             <span className="flex items-center gap-1.5 text-sm font-medium text-gray-500">
@@ -111,7 +100,6 @@ export default function RecipeCard({ item }) {
             </div>
           </div>
         </div>
-
       </div>
     </Link>
   );
