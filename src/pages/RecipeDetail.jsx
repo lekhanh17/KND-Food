@@ -238,7 +238,6 @@ export default function RecipeDetail() {
 
   // =====================================================================
   // THUẬT TOÁN ĐIỀU CHỈNH NGUYÊN LIỆU PHI TUYẾN TÍNH
-  // Đã cấy trực tiếp vào hàm calculateQuantity hiện tại của sếp
   // =====================================================================
   const calculateQuantity = (ingredientName, quantity, unit, originalServings) => {
     if (!originalServings || !quantity) return quantity;
@@ -481,36 +480,39 @@ export default function RecipeDetail() {
 
           <hr className="border-gray-100 mb-8" />
 
-          <div className="grid grid-cols-3 gap-4 mb-10">
-            <div className="bg-gray-50 rounded-2xl p-4 flex flex-col justify-center items-center text-center">
-              <p className="text-gray-500 font-bold text-sm uppercase tracking-wider mb-1">
+          {/* ========================================== */}
+          {/* BỐ CỤC 3 HỘP ĐỂ RESPONSIVE TRÊN MOBILE */}
+          {/* ========================================== */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-10">
+            <div className="bg-gray-50 rounded-2xl p-3 md:p-4 flex flex-col justify-center items-center text-center">
+              <p className="text-gray-500 font-bold text-[11px] md:text-sm uppercase tracking-wider mb-1">
                 Chuẩn bị
               </p>
-              <p className="text-lg font-black text-gray-900">
+              <p className="text-base md:text-lg font-black text-gray-900">
                 {recipe.PrepTime}{" "}
-                <span className="text-base font-bold text-gray-700">Phút</span>
+                <span className="text-sm md:text-base font-bold text-gray-700">Phút</span>
               </p>
             </div>
-            <div className="bg-gray-50 rounded-2xl p-4 flex flex-col justify-center items-center text-center">
-              <p className="text-gray-500 font-bold text-sm uppercase tracking-wider mb-1">
+            <div className="bg-gray-50 rounded-2xl p-3 md:p-4 flex flex-col justify-center items-center text-center">
+              <p className="text-gray-500 font-bold text-[11px] md:text-sm uppercase tracking-wider mb-1">
                 Thực hiện
               </p>
-              <p className="text-lg font-black text-gray-900">
+              <p className="text-base md:text-lg font-black text-gray-900">
                 {recipe.CookTime}{" "}
-                <span className="text-base font-bold text-gray-700">Phút</span>
+                <span className="text-sm md:text-base font-bold text-gray-700">Phút</span>
               </p>
             </div>
 
-            <div className="bg-orange-50/50 rounded-2xl p-3 flex flex-col justify-center items-center text-center border border-orange-100">
-              <p className="text-orange-600 font-bold text-[11px] uppercase tracking-wider mb-1.5 flex items-center gap-1">
+            <div className="col-span-2 md:col-span-1 bg-orange-50/50 rounded-2xl p-3 md:p-4 flex flex-col justify-center items-center text-center border border-orange-100">
+              <p className="text-orange-600 font-bold text-[11px] md:text-[11px] uppercase tracking-wider mb-1.5 flex items-center gap-1">
                 Khẩu phần (Người)
               </p>
-              <div className="flex items-center gap-3 bg-white px-2 py-1 rounded-xl shadow-sm border border-orange-200/50">
+              <div className="flex items-center justify-center gap-3 bg-white px-3 py-1.5 rounded-xl shadow-sm border border-orange-200/50 w-full sm:w-auto">
                 <button
                   onClick={() =>
                     setCurrentServings((prev) => Math.max(1, prev - 1))
                   }
-                  className="w-7 h-7 flex items-center justify-center rounded-lg bg-orange-50 text-orange-500 hover:bg-orange-500 hover:text-white transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-orange-50 text-orange-500 hover:bg-orange-500 hover:text-white transition-colors"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -527,12 +529,12 @@ export default function RecipeDetail() {
                     />
                   </svg>
                 </button>
-                <span className="text-xl font-black text-gray-900 w-6 text-center">
+                <span className="text-xl font-black text-gray-900 w-8 text-center">
                   {currentServings}
                 </span>
                 <button
                   onClick={() => setCurrentServings((prev) => prev + 1)}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg bg-orange-50 text-orange-500 hover:bg-orange-500 hover:text-white transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg bg-orange-50 text-orange-500 hover:bg-orange-500 hover:text-white transition-colors"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -578,7 +580,6 @@ export default function RecipeDetail() {
                       {ing.IngredientName}
                     </span>
                     <span className="text-green-700 font-black text-sm whitespace-nowrap shrink-0 text-right bg-green-100/50 px-2 py-1 rounded-lg">
-                      {/* ĐÃ SỬA CHỖ NÀY: Truyền thêm ing.IngredientName vào để bộ não chạy thuật toán nhận diện */}
                       {calculateQuantity(
                         ing.IngredientName,
                         ing.Quantity,
@@ -652,10 +653,12 @@ export default function RecipeDetail() {
             ></div>
 
             <div className="relative z-10">
-              <h2 className="text-2xl md:text-3xl font-black mb-8 flex items-center gap-2 sm:gap-3 text-[#1c2b36]">
+              {/* ========================================== */}
+              {/* Thêm flex-wrap và leading-tight, fix Badge cho Mobile */}
+              {/* ========================================== */}
+              <h2 className="text-2xl md:text-3xl font-black mb-6 md:mb-8 flex flex-wrap items-center gap-2 sm:gap-3 text-[#1c2b36] leading-tight">
                 Có thể bạn sẽ thích!
-                {/* Badge AI Gợi ý phiên bản Pro */}
-                <div className="flex items-center gap-1.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1.5 rounded-xl ml-1 sm:ml-2 shadow-lg shadow-purple-200/50">
+                <div className="shrink-0 flex items-center gap-1.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1.5 rounded-xl shadow-lg shadow-purple-200/50">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -668,7 +671,7 @@ export default function RecipeDetail() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest">
+                  <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest whitespace-nowrap">
                     AI Gợi ý
                   </span>
                 </div>
@@ -699,7 +702,6 @@ export default function RecipeDetail() {
                         Views: item.Views || item.ViewCount || item.viewCount || item.LuotXem || 0,
                       };
                       return (
-                        // ĐÃ SỬA TẠI ĐÂY: Thêm h-full và ép các thẻ con bên trong cũng lấy chiều cao 100%
                         <div
                           key={formattedItem.id}
                           className="hover:-translate-y-2 transition-transform duration-300 h-full [&>div]:h-full [&>a]:h-full flex flex-col"
