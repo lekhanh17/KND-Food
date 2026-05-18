@@ -32,7 +32,7 @@ export default function RecipeCard({ item }) {
   return (
     <Link 
       to={`/recipe/${item.id || item.RecipeID}`}
-      // ĐÃ SỬA: Thêm h-full để thẻ luôn chiếm 100% chiều cao của grid item
+      // Thêm h-full để thẻ luôn chiếm 100% chiều cao của grid item
       className="group bg-white rounded-[2rem] border border-gray-100 overflow-hidden hover:shadow-2xl hover:shadow-orange-100 transition-all duration-500 flex flex-col h-full cursor-pointer outline-none"
     >
       
@@ -55,12 +55,12 @@ export default function RecipeCard({ item }) {
 
       {/* KHU VỰC NỘI DUNG */}
       <div className="p-6 flex flex-col flex-1">
-        {/* Tên món ăn: Chặn min-height để không bị nhảy giật khung */}
+        {/* Tên món ăn: Chặn min-height để không bị nhảy giật khung hình */}
         <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-orange-500 transition-colors line-clamp-2 leading-snug">
           {item.title || item.Title}
         </h3>
         
-        {/* ĐÃ SỬA CHÍNH TẠI ĐÂY: Dùng mt-auto để luôn đẩy khối thời gian/rating này xuống dưới đáy */}
+        {/* Dùng mt-auto để luôn đẩy khối thời gian/rating xuống dưới đáy card */}
         <div className="mt-auto">
           {/* Hàng 1: Thời gian & Nhãn Độ khó */}
           <div className="flex items-center gap-3 mb-4">
@@ -79,7 +79,7 @@ export default function RecipeCard({ item }) {
 
           <hr className="border-gray-100 mb-3" />
 
-          {/* Hàng 2: Sao Đánh giá (Review) thực sự */}
+          {/* Hàng 2: Sao Đánh giá (Review) */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               {reviewCount > 0 ? (
