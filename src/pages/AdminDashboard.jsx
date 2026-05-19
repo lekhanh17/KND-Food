@@ -10,6 +10,7 @@ import {
   faUtensils,
   faCheck,
   faTimes,
+  faTags,
 } from "@fortawesome/free-solid-svg-icons";
 
 // KHIÊN BẢO VỆ ẢNH TÍCH HỢP SẴN
@@ -52,9 +53,7 @@ const CustomRoleDropdown = ({ currentRole, onRoleChange, disabled }) => {
   };
 
   return (
-    // ĐÃ SỬA: Giảm w-24 xuống w-20 trên mobile cho gọn
     <div className="relative inline-block text-left w-20 sm:w-28">
-      {/* Nút bấm hiển thị Role hiện tại */}
       <button
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
@@ -78,10 +77,8 @@ const CustomRoleDropdown = ({ currentRole, onRoleChange, disabled }) => {
         </svg>
       </button>
 
-      {/* Khung Dropdown xổ xuống */}
       {isOpen && !disabled && (
         <>
-          {/* Lớp phủ tàng hình để click ra ngoài thì tự đóng menu */}
           <div
             className="fixed inset-0 z-40"
             onClick={() => setIsOpen(false)}
@@ -117,16 +114,20 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("users");
 
+  const [categories, setCategories] = useState([]);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+
   const navigate = useNavigate();
   const currentUser = JSON.parse(localStorage.getItem("loggedInUser"));
 
   useEffect(() => {
     fetchUsers();
     fetchPendingRecipes();
+    fetchCategories(); 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // --- API LẤY NGƯỜI DÙNG ---
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -153,7 +154,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // --- API LẤY BÀI CHỜ DUYỆT ---
   const fetchPendingRecipes = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -172,7 +172,92 @@ export default function AdminDashboard() {
     }
   };
 
-  // --- API DUYỆT BÀI ---
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/categories`);
+      if (res.ok) {
+        const data = await res.json();
+        setCategories(data);
+      }
+    } catch (error) {
+      console.error("Lỗi lấy danh mục", error);
+    }
+  };
+
+  const handleAddCategory = async () => {
+    if (!newCategoryName.trim()) {
+      toast.warning("Vui lòng nhập tên danh mục!", whiteToastConfig);
+      return;
+    }
+    setIsAddingCategory(true);
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/categories`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ CategoryName: newCategoryName }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Đã thêm danh mục mới!", whiteToastConfig);
+        setNewCategoryName(""); 
+        fetchCategories(); 
+      } else {
+        toast.error(data.message || "Lỗi thêm danh mục!", whiteToastConfig);
+      }
+    } catch (error) {
+      console.error("Lỗi chi tiết khi thêm danh mục:", error);
+      toast.error("Lỗi kết nối mạng!", whiteToastConfig);
+    } finally {
+      setIsAddingCategory(false);
+    }
+  };
+
+  // ==========================================
+  // ĐÃ THÊM: HÀM XỬ LÝ XÓA DANH MỤC
+  // ==========================================
+  const handleDeleteCategory = async (id, name) => {
+    const { isConfirmed } = await Swal.fire({
+      title: "Xác nhận xóa?",
+      text: `Bạn có chắc chắn muốn xóa danh mục "${name}" không?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#9ca3af",
+      confirmButtonText: "Vâng, xóa nó!",
+      cancelButtonText: "Hủy",
+      customClass: { popup: "rounded-3xl shadow-2xl border border-gray-100" },
+    });
+
+    if (!isConfirmed) return;
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/categories/${id}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+      
+      if (res.ok) {
+        toast.success("Đã xóa danh mục thành công!", whiteToastConfig);
+        fetchCategories(); 
+      } else {
+        Swal.fire({
+          title: "Không thể xóa!",
+          text: data.message,
+          icon: "error",
+          confirmButtonColor: "#f97316",
+          customClass: { popup: "rounded-3xl shadow-2xl border border-gray-100" },
+        });
+      }
+    } catch (error) {
+      console.error("Lỗi khi xóa danh mục:", error);
+      toast.error("Lỗi kết nối mạng!", whiteToastConfig);
+    }
+  };
+
   const handleApproveRecipe = async (id) => {
     try {
       const token = localStorage.getItem("token");
@@ -196,11 +281,7 @@ export default function AdminDashboard() {
     }
   };
 
-  // ==========================================
-  // TỪ CHỐI LÀ XÓA BAY MÀU (NHƯNG VẪN GỬI LÝ DO)
-  // ==========================================
   const handleRejectRecipe = async (id) => {
-    // Hiển thị bảng nhập lý do
     const { value: reason, isConfirmed } = await Swal.fire({
       title: "Từ chối & Xóa bài?",
       text: "Nhập lý do để thông báo cho tác giả (bài viết sẽ bị xóa vĩnh viễn):",
@@ -248,7 +329,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // --- CHUYỂN VAI TRÒ ---
   const handleRoleChange = async (userId, newRole) => {
     try {
       const token = localStorage.getItem("token");
@@ -278,7 +358,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // --- XÓA USER ---
   const handleDeleteUser = async (id) => {
     const isConfirm = window.confirm(
       "Xóa người dùng này? Hành động này không thể hoàn tác!",
@@ -311,7 +390,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50 pt-20 pb-14 text-gray-900">
       <div className="container mx-auto px-2 sm:px-4 lg:px-10">
-        {/* Header Section - tối ưu font Mobile */}
+        {/* Header Section */}
         <div className="bg-white rounded-[1.5rem] sm:rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden mb-4 sm:mb-8">
           <div className="bg-gradient-to-r from-red-600 to-orange-500 px-5 py-8 sm:px-10 sm:py-12 flex items-center text-white">
             <div className="flex-1">
@@ -333,17 +412,17 @@ export default function AdminDashboard() {
           </div>
 
           {/* TAB CHUYỂN ĐỔI */}
-          <div className="flex border-b border-gray-100">
+          <div className="flex border-b border-gray-100 overflow-x-auto hide-scrollbar">
             <button
               onClick={() => setActiveTab("users")}
-              className={`flex-1 py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-[10px] sm:text-sm font-black uppercase tracking-widest transition-all ${activeTab === "users" ? "text-orange-600 border-b-4 border-orange-500 bg-orange-50/50" : "text-gray-400 hover:bg-gray-50"}`}
+              className={`flex-1 min-w-[120px] py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-[10px] sm:text-sm font-black uppercase tracking-widest transition-all ${activeTab === "users" ? "text-orange-600 border-b-4 border-orange-500 bg-orange-50/50" : "text-gray-400 hover:bg-gray-50"}`}
             >
               <FontAwesomeIcon icon={faUsers} />
               <span className="text-center">Thành viên ({users.length})</span>
             </button>
             <button
               onClick={() => setActiveTab("recipes")}
-              className={`flex-1 py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-[10px] sm:text-sm font-black uppercase tracking-widest transition-all ${activeTab === "recipes" ? "text-orange-600 border-b-4 border-orange-500 bg-orange-50/50" : "text-gray-400 hover:bg-gray-50"}`}
+              className={`flex-1 min-w-[120px] py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-[10px] sm:text-sm font-black uppercase tracking-widest transition-all ${activeTab === "recipes" ? "text-orange-600 border-b-4 border-orange-500 bg-orange-50/50" : "text-gray-400 hover:bg-gray-50"}`}
             >
               <FontAwesomeIcon icon={faUtensils} />
               <span className="text-center">
@@ -352,6 +431,14 @@ export default function AdminDashboard() {
               {pendingRecipes.length > 0 && (
                 <span className="sm:ml-2 w-1.5 h-1.5 bg-red-500 inline-block rounded-full animate-ping"></span>
               )}
+            </button>
+            
+            <button
+              onClick={() => setActiveTab("categories")}
+              className={`flex-1 min-w-[120px] py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-[10px] sm:text-sm font-black uppercase tracking-widest transition-all ${activeTab === "categories" ? "text-orange-600 border-b-4 border-orange-500 bg-orange-50/50" : "text-gray-400 hover:bg-gray-50"}`}
+            >
+              <FontAwesomeIcon icon={faTags} />
+              <span className="text-center">Danh mục ({categories.length})</span>
             </button>
           </div>
         </div>
@@ -363,22 +450,18 @@ export default function AdminDashboard() {
               <h2 className="text-lg sm:text-2xl font-black text-gray-800 uppercase tracking-tighter mb-4 sm:mb-8 px-2">
                 Danh sách thành viên
               </h2>
-              {/* pb-40 để menu Role hiện thoải mái không bị bảng nuốt mất */}
               <div className="overflow-x-auto pb-40 -mx-2 sm:mx-0 px-2 sm:px-0">
                 {loading ? (
                   <div className="py-20 text-center font-bold text-gray-400">
                     Đang tải...
                   </div>
                 ) : (
-                  // Xóa min-w-[500px] để bảng tự co giãn 100% màn hình
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-b border-gray-100">
-                        {/* Ép padding lại px-1 trên mobile để tiết kiệm diện tích */}
                         <th className="py-4 px-1 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase">
                           Người dùng
                         </th>
-                        {/* Ẩn riêng cột Email ở màn hình điện thoại (sm:table-cell) */}
                         <th className="hidden sm:table-cell py-4 px-1 sm:px-4 text-[10px] sm:text-xs font-black text-gray-400 uppercase">
                           Email
                         </th>
@@ -400,12 +483,10 @@ export default function AdminDashboard() {
                             <div className="font-bold text-gray-800 text-[11px] sm:text-sm">
                               {u.FullName}
                             </div>
-                            {/* Hiện email ngay dưới Tên khi dùng Mobile */}
                             <div className="sm:hidden text-gray-400 text-[9px] truncate max-w-[120px] mt-0.5 font-medium">
                               {u.Email}
                             </div>
                           </td>
-                          {/* Cột Email gốc bị ẩn khi dùng Mobile */}
                           <td className="hidden sm:table-cell py-4 px-1 sm:px-4 text-gray-600 text-[10px] sm:text-sm truncate max-w-[120px] sm:max-w-none align-middle">
                             {u.Email}
                           </td>
@@ -454,17 +535,14 @@ export default function AdminDashboard() {
                       key={recipe.RecipeID}
                       className="border border-gray-100 rounded-3xl p-4 shadow-sm hover:shadow-md transition bg-white flex flex-col"
                     >
-                      {/* Bọc Link vào ảnh để xem chi tiết ở Tab mới */}
                       <Link to={`/recipe/${recipe.RecipeID}`} target="_blank" className="block">
                         <img
-                          /* ÁP DỤNG KHIÊN BẢO VỆ */
                           src={getImageUrl(recipe.ImageURL)}
                           alt={recipe.Title}
                           className="w-full h-32 sm:h-40 object-cover rounded-2xl mb-4 cursor-pointer hover:opacity-80 transition"
                         />
                       </Link>
 
-                      {/* Bọc Link vào Tiêu đề để xem chi tiết ở Tab mới */}
                       <h3 className="font-black text-base sm:text-lg text-gray-800 line-clamp-1">
                         <Link to={`/recipe/${recipe.RecipeID}`} target="_blank" className="hover:text-orange-500 transition-colors">
                           {recipe.Title}
@@ -499,6 +577,81 @@ export default function AdminDashboard() {
               </div>
             </>
           )}
+
+          {activeTab === "categories" && (
+            <div className="animate-in fade-in duration-300">
+              <h2 className="text-lg sm:text-2xl font-black text-gray-800 uppercase tracking-tighter mb-4 sm:mb-8 px-2">
+                Quản lý danh mục
+              </h2>
+
+              <div className="flex flex-col sm:flex-row items-center gap-4 mb-8 bg-orange-50/50 p-4 rounded-2xl border border-orange-100">
+                <input
+                  type="text"
+                  placeholder="Nhập tên danh mục (vd: Món chay...)"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleAddCategory()}
+                  className="flex-1 w-full px-5 py-3 rounded-xl border border-gray-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all text-sm sm:text-base font-medium"
+                />
+                <button
+                  onClick={handleAddCategory}
+                  disabled={isAddingCategory}
+                  className="w-full sm:w-auto px-6 py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition-all shadow-md shadow-orange-500/30 flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isAddingCategory ? (
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-5 h-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                  )}
+                  Thêm danh mục
+                </button>
+              </div>
+
+              <div className="overflow-x-auto rounded-2xl border border-gray-100">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-100 text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-widest">
+                      <th className="px-4 sm:px-6 py-4">ID</th>
+                      <th className="px-4 sm:px-6 py-4">Tên danh mục</th>
+                      <th className="px-4 sm:px-6 py-4 text-right">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {categories.map((cat, index) => (
+                      <tr key={cat.CategoryID || index} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="px-4 sm:px-6 py-4 font-semibold text-gray-500 text-sm">
+                          #{cat.CategoryID}
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 font-bold text-gray-900 text-sm sm:text-base">
+                          {cat.CategoryName}
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 text-right">
+                          {/* Gắn thẳng hàm handleDeleteCategory vào nút Xóa */}
+                          <button 
+                            onClick={() => handleDeleteCategory(cat.CategoryID, cat.CategoryName)}
+                            className="text-red-300 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors"
+                            title="Xóa danh mục"
+                          >
+                            <FontAwesomeIcon icon={faTrash} className="text-[10px] sm:text-sm" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {categories.length === 0 && (
+                      <tr>
+                        <td colSpan="3" className="px-6 py-10 text-center text-gray-400 font-medium">
+                          Chưa có danh mục nào.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
     </div>
