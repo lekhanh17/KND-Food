@@ -13,7 +13,7 @@ import {
   faTags,
 } from "@fortawesome/free-solid-svg-icons";
 
-// KHIÊN BẢO VỆ ẢNH TÍCH HỢP SẴN
+// KHIÊN BẢO VỆ ẢNH TÍCH HỢP
 const getImageUrl = (url) => {
   if (!url) return "https://via.placeholder.com/300"; // Ảnh mặc định nếu trống
 
@@ -26,7 +26,7 @@ const getImageUrl = (url) => {
 };
 
 // ==========================================
-// CẤU HÌNH ÉP TOAST SANG MÀU TRẮNG (DÙNG ! ĐỂ ĐÈ APP.JSX)
+// CẤU HÌNH TOAST MÀU TRẮNG (DÙNG ! ĐỂ ĐÈ APP.JSX)
 // ==========================================
 const whiteToastConfig = {
   position: "top-center",
@@ -124,7 +124,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchUsers();
     fetchPendingRecipes();
-    fetchCategories(); 
+    fetchCategories();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -191,19 +191,22 @@ export default function AdminDashboard() {
     }
     setIsAddingCategory(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/categories`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/categories`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ CategoryName: newCategoryName }),
         },
-        body: JSON.stringify({ CategoryName: newCategoryName }),
-      });
+      );
 
       const data = await res.json();
       if (res.ok) {
         toast.success("Đã thêm danh mục mới!", whiteToastConfig);
-        setNewCategoryName(""); 
-        fetchCategories(); 
+        setNewCategoryName("");
+        fetchCategories();
       } else {
         toast.error(data.message || "Lỗi thêm danh mục!", whiteToastConfig);
       }
@@ -216,7 +219,7 @@ export default function AdminDashboard() {
   };
 
   // ==========================================
-  // ĐÃ THÊM: HÀM XỬ LÝ XÓA DANH MỤC
+  // HÀM XỬ LÝ XÓA DANH MỤC
   // ==========================================
   const handleDeleteCategory = async (id, name) => {
     const { isConfirmed } = await Swal.fire({
@@ -226,7 +229,7 @@ export default function AdminDashboard() {
       showCancelButton: true,
       confirmButtonColor: "#ef4444",
       cancelButtonColor: "#9ca3af",
-      confirmButtonText: "Vâng, xóa nó!",
+      confirmButtonText: "Chắc chắn!",
       cancelButtonText: "Hủy",
       customClass: { popup: "rounded-3xl shadow-2xl border border-gray-100" },
     });
@@ -234,22 +237,27 @@ export default function AdminDashboard() {
     if (!isConfirmed) return;
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/categories/${id}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/categories/${id}`,
+        {
+          method: "DELETE",
+        },
+      );
 
       const data = await res.json();
-      
+
       if (res.ok) {
         toast.success("Đã xóa danh mục thành công!", whiteToastConfig);
-        fetchCategories(); 
+        fetchCategories();
       } else {
         Swal.fire({
           title: "Không thể xóa!",
           text: data.message,
           icon: "error",
           confirmButtonColor: "#f97316",
-          customClass: { popup: "rounded-3xl shadow-2xl border border-gray-100" },
+          customClass: {
+            popup: "rounded-3xl shadow-2xl border border-gray-100",
+          },
         });
       }
     } catch (error) {
@@ -286,7 +294,7 @@ export default function AdminDashboard() {
       title: "Từ chối & Xóa bài?",
       text: "Nhập lý do để thông báo cho tác giả (bài viết sẽ bị xóa vĩnh viễn):",
       input: "textarea",
-      inputPlaceholder: "Ví dụ: Ảnh mờ, nội dung sơ sài...",
+      inputPlaceholder: "VD: Ảnh mờ, nội dung sơ sài...",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#ef4444",
@@ -309,17 +317,20 @@ export default function AdminDashboard() {
         `${import.meta.env.VITE_API_URL}/api/admin/reject-recipe/${id}`,
         {
           method: "DELETE",
-          headers: { 
+          headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}` 
+            Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ reason: reason.trim() }) 
+          body: JSON.stringify({ reason: reason.trim() }),
         },
       );
 
       if (response.ok) {
         setPendingRecipes(pendingRecipes.filter((r) => r.RecipeID !== id));
-        toast.success("Đã xóa bài đăng và gửi lý do cho tác giả!", whiteToastConfig);
+        toast.success(
+          "Đã xóa bài đăng và gửi lý do cho tác giả!",
+          whiteToastConfig,
+        );
       } else {
         toast.error("Có lỗi xảy ra khi thực hiện!", whiteToastConfig);
       }
@@ -359,9 +370,7 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteUser = async (id) => {
-    const isConfirm = window.confirm(
-      "Xóa người dùng này? Hành động này không thể hoàn tác!",
-    );
+    const isConfirm = window.confirm("Xóa người dùng này?");
     if (!isConfirm) return;
 
     try {
@@ -432,13 +441,15 @@ export default function AdminDashboard() {
                 <span className="sm:ml-2 w-1.5 h-1.5 bg-red-500 inline-block rounded-full animate-ping"></span>
               )}
             </button>
-            
+
             <button
               onClick={() => setActiveTab("categories")}
               className={`flex-1 min-w-[120px] py-4 sm:py-5 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-[10px] sm:text-sm font-black uppercase tracking-widest transition-all ${activeTab === "categories" ? "text-orange-600 border-b-4 border-orange-500 bg-orange-50/50" : "text-gray-400 hover:bg-gray-50"}`}
             >
               <FontAwesomeIcon icon={faTags} />
-              <span className="text-center">Danh mục ({categories.length})</span>
+              <span className="text-center">
+                Danh mục ({categories.length})
+              </span>
             </button>
           </div>
         </div>
@@ -506,7 +517,10 @@ export default function AdminDashboard() {
                                 className="text-red-300 hover:text-red-600 transition-colors p-2"
                                 title="Xóa"
                               >
-                                <FontAwesomeIcon icon={faTrash} className="text-[10px] sm:text-sm" />
+                                <FontAwesomeIcon
+                                  icon={faTrash}
+                                  className="text-[10px] sm:text-sm"
+                                />
                               </button>
                             )}
                           </td>
@@ -535,7 +549,11 @@ export default function AdminDashboard() {
                       key={recipe.RecipeID}
                       className="border border-gray-100 rounded-3xl p-4 shadow-sm hover:shadow-md transition bg-white flex flex-col"
                     >
-                      <Link to={`/recipe/${recipe.RecipeID}`} target="_blank" className="block">
+                      <Link
+                        to={`/recipe/${recipe.RecipeID}`}
+                        target="_blank"
+                        className="block"
+                      >
                         <img
                           src={getImageUrl(recipe.ImageURL)}
                           alt={recipe.Title}
@@ -544,7 +562,11 @@ export default function AdminDashboard() {
                       </Link>
 
                       <h3 className="font-black text-base sm:text-lg text-gray-800 line-clamp-1">
-                        <Link to={`/recipe/${recipe.RecipeID}`} target="_blank" className="hover:text-orange-500 transition-colors">
+                        <Link
+                          to={`/recipe/${recipe.RecipeID}`}
+                          target="_blank"
+                          className="hover:text-orange-500 transition-colors"
+                        >
                           {recipe.Title}
                         </Link>
                       </h3>
@@ -587,7 +609,7 @@ export default function AdminDashboard() {
               <div className="flex flex-col sm:flex-row items-center gap-4 mb-8 bg-orange-50/50 p-4 rounded-2xl border border-orange-100">
                 <input
                   type="text"
-                  placeholder="Nhập tên danh mục (vd: Món chay...)"
+                  placeholder="Nhập tên danh mục mới..."
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleAddCategory()}
@@ -601,8 +623,19 @@ export default function AdminDashboard() {
                   {isAddingCategory ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={3}
+                      stroke="currentColor"
+                      className="w-5 h-5"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 4.5v15m7.5-7.5h-15"
+                      />
                     </svg>
                   )}
                   Thêm danh mục
@@ -620,7 +653,10 @@ export default function AdminDashboard() {
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {categories.map((cat, index) => (
-                      <tr key={cat.CategoryID || index} className="hover:bg-gray-50/50 transition-colors">
+                      <tr
+                        key={cat.CategoryID || index}
+                        className="hover:bg-gray-50/50 transition-colors"
+                      >
                         <td className="px-4 sm:px-6 py-4 font-semibold text-gray-500 text-sm">
                           #{cat.CategoryID}
                         </td>
@@ -628,20 +664,31 @@ export default function AdminDashboard() {
                           {cat.CategoryName}
                         </td>
                         <td className="px-4 sm:px-6 py-4 text-right">
-                          {/* Gắn thẳng hàm handleDeleteCategory vào nút Xóa */}
-                          <button 
-                            onClick={() => handleDeleteCategory(cat.CategoryID, cat.CategoryName)}
+                          {/* Gắn hàm handleDeleteCategory vào nút Xóa */}
+                          <button
+                            onClick={() =>
+                              handleDeleteCategory(
+                                cat.CategoryID,
+                                cat.CategoryName,
+                              )
+                            }
                             className="text-red-300 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors"
                             title="Xóa danh mục"
                           >
-                            <FontAwesomeIcon icon={faTrash} className="text-[10px] sm:text-sm" />
+                            <FontAwesomeIcon
+                              icon={faTrash}
+                              className="text-[10px] sm:text-sm"
+                            />
                           </button>
                         </td>
                       </tr>
                     ))}
                     {categories.length === 0 && (
                       <tr>
-                        <td colSpan="3" className="px-6 py-10 text-center text-gray-400 font-medium">
+                        <td
+                          colSpan="3"
+                          className="px-6 py-10 text-center text-gray-400 font-medium"
+                        >
                           Chưa có danh mục nào.
                         </td>
                       </tr>
@@ -651,7 +698,6 @@ export default function AdminDashboard() {
               </div>
             </div>
           )}
-
         </div>
       </div>
     </div>
