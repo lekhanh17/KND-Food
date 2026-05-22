@@ -55,7 +55,7 @@ export default function ResetPassword() {
         setStatus("success");
         setMessage("Đổi mật khẩu thành công! Đang chuyển hướng...");
 
-        // Đợi 2 giây cho người dùng đọc chữ Thành công rồi mới đá về trang Login
+        // Đợi 2s cho người dùng đọc chữ Thành công rồi trả về LoginPage
         setTimeout(() => {
           navigate("/login");
         }, 2000);

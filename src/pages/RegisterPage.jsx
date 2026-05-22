@@ -1,7 +1,6 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
 import { toast } from "react-toastify";
-// ĐÃ THÊM: Import icon con mắt từ FontAwesome
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
@@ -10,7 +9,7 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [username, setUsername] = useState("");
 
-  // ĐÃ THÊM: State quản lý ẩn/hiện mật khẩu
+  // State quản lý ẩn/hiện mật khẩu
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -18,7 +17,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setError("");
 
-    // Cấu hình giao diện Toast (Chỉ dùng cho lúc đăng ký thành công)
+    // Cấu hình giao diện Toast (Chỉ dùng lúc đăng ký thành công)
     const toastConfig = {
       position: "top-center",
       autoClose: 1500,
@@ -28,14 +27,14 @@ export default function RegisterPage() {
         "rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 mt-4",
     };
 
-    // ĐÃ SỬA: Lấy dữ liệu theo thuộc tính "name" thay vì index
-    // Lý do: Thêm nút bấm (con mắt) vào form sẽ làm lệch index e.target[x]
+    // Lấy dữ liệu theo thuộc tính "name" thay vì index
+    // Lý do: Thêm icon Ẩn/Hiện pass vào form sẽ làm lệch index e.target[x]
     const fullName = e.target.fullName.value;
     const email = e.target.email.value;
     const password = e.target.password.value;
     const confirmPassword = e.target.confirmPassword.value;
 
-    // 🛑 CHẶN MẬT KHẨU NGẮN
+    // CHẶN MẬT KHẨU NGẮN
     if (password.length < 8) {
       setError("Mật khẩu phải có ít nhất 8 ký tự!");
       return;
@@ -53,7 +52,7 @@ export default function RegisterPage() {
       return;
     }
 
-    // 3. Gọi API để lưu vào Database thật (SQL Server)
+    // 3. Gọi API để lưu vào Database (SQL Server)
     try {
       const userData = {
         FullName: fullName,
@@ -70,13 +69,13 @@ export default function RegisterPage() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(userData),
-        }
+        },
       );
 
       const data = await response.json();
 
       if (response.ok) {
-        // 4. Thành công -> Vẫn giữ lại toast xanh để báo hiệu chuyển trang
+        // 4. Thành công
         toast.success("Đăng ký thành công! Đang chuyển hướng...", toastConfig);
 
         setTimeout(() => {
@@ -106,7 +105,7 @@ export default function RegisterPage() {
             </label>
             <input
               type="text"
-              name="fullName" // Thêm name để lấy dữ liệu chuẩn xác
+              name="fullName" // Thêm name để lấy dữ liệu chuẩn
               required
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white transition-all"
               placeholder="Nhập tên của bạn"
@@ -122,17 +121,20 @@ export default function RegisterPage() {
               name="username"
               placeholder="Nhập ID người dùng"
               required
-              maxLength={16} // <-- Muốn giới hạn bao nhiêu ký tự thì sửa số này
+              maxLength={16} // <-- Giới hạn bao nhiêu ký tự thì sửa số này
               value={username}
               onChange={(e) => {
-                // Chuyển thành chữ thường và CHỈ giữ lại a-z, 0-9
-                const val = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, "");
+                // Chuyển thành chữ thường và chỉ giữ lại a-z, 0-9
+                const val = e.target.value
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]/g, "");
                 setUsername(val);
               }}
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white transition-all font-medium"
             />
             <p className="text-[11px] text-gray-400 mt-1.5 font-medium">
-              ID viết liền, không dấu, chỉ gồm chữ thường và số (tối đa 16 ký tự).
+              ID viết liền, không dấu, chỉ gồm chữ thường và số (tối đa 16 ký
+              tự).
             </p>
           </div>
 
@@ -149,7 +151,7 @@ export default function RegisterPage() {
             />
           </div>
 
-          {/* Ô MẬT KHẨU CÓ CON MẮT */}
+          {/* MẬT KHẨU */}
           <div>
             <label className="block text-gray-700 mb-1 font-medium text-sm">
               Mật khẩu
@@ -160,7 +162,7 @@ export default function RegisterPage() {
                 name="password"
                 required
                 minLength={8}
-                // Thêm pr-12 (padding-right) để chữ gõ ra không bị đè lên icon con mắt
+                // Thêm pr-12 (padding-right) để chữ gõ ra không bị đè lên icon
                 className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white transition-all"
                 placeholder="••••••••"
               />
@@ -173,11 +175,11 @@ export default function RegisterPage() {
               </button>
             </div>
             <p className="text-[11px] text-gray-400 mt-1.5 font-medium">
-              Mật khẩu phải có ít nhất 8 ký tự.
+              Mật khẩu phải có ít nhất 8 ký tự!
             </p>
           </div>
 
-          {/* Ô NHẬP LẠI MẬT KHẨU CÓ CON MẮT */}
+          {/* NHẬP LẠI MẬT KHẨU */}
           <div>
             <label className="block text-gray-700 mb-1 font-medium text-sm">
               Nhập lại mật khẩu
@@ -196,7 +198,9 @@ export default function RegisterPage() {
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-orange-500 focus:outline-none transition-colors"
               >
-                <FontAwesomeIcon icon={showConfirmPassword ? faEye : faEyeSlash} />
+                <FontAwesomeIcon
+                  icon={showConfirmPassword ? faEye : faEyeSlash}
+                />
               </button>
             </div>
           </div>

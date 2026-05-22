@@ -59,9 +59,9 @@ export default function LoginPage() {
           const userRole = data.user.Role.toUpperCase();
 
           if (userRole === "ADMIN" || userRole === "STAFF") {
-            navigate("/"); 
+            navigate("/");
           } else {
-            navigate("/"); 
+            navigate("/");
           }
         }, 2000);
       } else {
@@ -78,21 +78,24 @@ export default function LoginPage() {
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50 p-4">
       <div className="relative bg-white p-8 rounded-3xl shadow-xl max-w-md w-full border border-gray-100 min-h-[450px] flex flex-col justify-center">
-        
         <Link
           to="/"
           className="absolute top-6 left-6 w-9 h-9 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:bg-orange-50 hover:text-orange-500 transition-all hover:-translate-x-1"
           title="Về trang chủ"
         >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            strokeWidth={2.5} 
-            stroke="currentColor" 
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2.5}
+            stroke="currentColor"
             className="w-4 h-4"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 19.5L8.25 12l7.5-7.5"
+            />
           </svg>
         </Link>
 
@@ -114,8 +117,12 @@ export default function LoginPage() {
           </div>
         ) : (
           <>
-            {/* ĐÃ SỬA: Thêm autoComplete="off" vào form để cấm tự động điền */}
-            <form className="space-y-4 animate-fade-in" onSubmit={handleLogin} autoComplete="off">
+            {/* Thêm autoComplete="off" vào form để cấm tự động điền */}
+            <form
+              className="space-y-4 animate-fade-in"
+              onSubmit={handleLogin}
+              autoComplete="off"
+            >
               <div>
                 <label className="block text-gray-700 mb-1 font-medium text-sm">
                   Email hoặc ID người dùng
@@ -124,7 +131,7 @@ export default function LoginPage() {
                   type="text"
                   name="loginId"
                   required
-                  autoComplete="off" // Cấm gợi ý email cũ
+                  autoComplete="off" // Ko gợi ý email cũ
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white transition-all"
                   placeholder="Nhập email hoặc ID..."
                 />
@@ -140,7 +147,7 @@ export default function LoginPage() {
                     name="password"
                     required
                     minLength={8}
-                    autoComplete="new-password" // ĐÃ SỬA: Tuyệt chiêu lừa trình duyệt đây là mật khẩu mới để nó không thả tooltip gợi ý
+                    autoComplete="new-password" // Bắt trình duyệt không thả tooltip gợi ý mật khẩu
                     className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white transition-all"
                     placeholder="••••••••"
                   />
