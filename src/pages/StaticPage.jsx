@@ -16,7 +16,7 @@ export default function StaticPage({ title, pdfUrl }) {
         
         {pdfUrl ? (
           // ==========================================
-          // HIỂN THỊ KHUNG ĐỌC PDF
+          // HIỂN THỊ KHUNG PDF
           // ==========================================
           <iframe
             src={`${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1`}
