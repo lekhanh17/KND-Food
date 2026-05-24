@@ -179,10 +179,10 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          {/* NHẬP LẠI MẬT KHẨU */}
+          {/* XÁC NHẬN MẬT KHẨU */}
           <div>
             <label className="block text-gray-700 mb-1 font-medium text-sm">
-              Nhập lại mật khẩu
+              Xác nhận mật khẩu
             </label>
             <div className="relative">
               <input
