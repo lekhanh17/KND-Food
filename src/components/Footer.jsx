@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
-import qrCodeImage from "../assets/qr_web_knd_food.jpg"; 
+import qrCodeImage from "../assets/qr_web_knd_food.jpg";
 
 // ==============================================
 // CẤU HÌNH SWEETALERT DẠNG TOAST (HIỆN Ở GÓC, TỰ TẮT)
@@ -14,7 +14,7 @@ const Toast = Swal.mixin({
   didOpen: (toast) => {
     toast.onmouseenter = Swal.stopTimer;
     toast.onmouseleave = Swal.resumeTimer;
-  }
+  },
 });
 
 export default function Footer() {
@@ -25,10 +25,10 @@ export default function Footer() {
 
   // Hàm xử lý nút chuyển ngôn ngữ
   const handleLanguageChange = (lang) => {
-    if (lang === 'EN') {
-      Toast.fire({ 
-        icon: "info", 
-        title: "Tính năng Tiếng Anh đang được phát triển!" 
+    if (lang === "EN") {
+      Toast.fire({
+        icon: "info",
+        title: "Tính năng Tiếng Anh đang được phát triển!",
       });
     }
   };
@@ -36,14 +36,11 @@ export default function Footer() {
   return (
     <footer className="bg-gray-50 border-t border-gray-100 pt-16 pb-8 mt-auto font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
         {/* NỬA TRÊN: THÔNG TIN LIÊN HỆ & CHÍNH SÁCH */}
         {/* ĐÃ SỬA: Đổi từ md:grid-cols-3 thành md:grid-cols-4 để thêm cột QR Code */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-10">
-          
           {/* CỘT 1: Logo & Thông tin liên hệ */}
           <div className="space-y-6">
-            
             <div>
               <h4 className="text-gray-900 font-bold text-sm mb-2 uppercase tracking-wider">
                 Tổng đài hỗ trợ
@@ -52,8 +49,8 @@ export default function Footer() {
                 Thứ 2 - Chủ Nhật (8:00 - 23:00)
               </p>
               {/* ĐÃ SỬA: Thêm href="tel:..." để bấm gọi được */}
-              <a 
-                href="tel:19000019" 
+              <a
+                href="tel:19000019"
                 className="text-[#f97316] font-black text-2xl tracking-wide block hover:underline"
               >
                 1900 0019
@@ -66,8 +63,8 @@ export default function Footer() {
                   Email:
                 </span>
                 {/* Thêm href="mailto:..." để bấm gửi mail được */}
-                <a 
-                  href="mailto:lekhanhlux29@gmail.com" 
+                <a
+                  href="mailto:lekhanhlux29@gmail.com"
                   className="text-sm text-gray-500 block hover:text-[#f97316] transition-colors"
                 >
                   lekhanhlux29@gmail.com
@@ -78,13 +75,14 @@ export default function Footer() {
                   Địa chỉ:
                 </span>
                 {/* Thêm link Google Maps để bấm vào xem bản đồ */}
-                <a 
-                  href="https://www.google.com/maps/search/?api=1&query=Tầng+17,+Tòa+nhà+LandMark+81+Skyview,+720A+Điện+Biên+Phủ,+Phường+Thạnh+Mỹ+Tây,+Hồ+Chí+Minh" 
-                  target="_blank" 
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=Tầng+17,+Tòa+nhà+LandMark+81+Skyview,+720A+Điện+Biên+Phủ,+Phường+Thạnh+Mỹ+Tây,+Hồ+Chí+Minh"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-gray-500 leading-relaxed block max-w-xs hover:text-[#f97316] transition-colors"
                 >
-                  Tầng 17, Tòa nhà LandMark 81 Skyview, 720A Điện Biên Phủ, Phường Thạnh Mỹ Tây, Hồ Chí Minh
+                  Tầng 17, Tòa nhà LandMark 81 Skyview, 720A Điện Biên Phủ,
+                  Phường Thạnh Mỹ Tây, Hồ Chí Minh
                 </a>
               </div>
             </div>
@@ -196,24 +194,22 @@ export default function Footer() {
               Vào bếp cùng KND FOOD
             </h4>
             <div className="bg-white p-2 inline-block rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-              <img 
-                src={qrCodeImage} 
-                alt="KND Food QR Code" 
+              <img
+                src={qrCodeImage}
+                alt="KND Food QR Code"
                 className="w-28 h-28 object-contain"
               />
             </div>
             <p className="text-sm text-gray-500 mt-3 font-medium leading-relaxed">
-              Quét mã để mở web trên điện thoại!
+              Quét mã để mở web!
             </p>
           </div>
-
         </div>
 
         <hr className="border-gray-200 my-8" />
 
         {/* NỬA DƯỚI: BẢN QUYỀN, NGÔN NGỮ & MẠNG XÃ HỘI */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          
           {/* Bản quyền */}
           <p className="text-gray-400 text-sm font-medium order-3 md:order-1 text-center md:text-left">
             © {new Date().getFullYear()} KND Food. All rights reserved.
@@ -221,7 +217,6 @@ export default function Footer() {
 
           {/* Group: Ngôn ngữ + Mạng xã hội */}
           <div className="flex flex-wrap justify-center items-center gap-6 md:gap-8 order-1 md:order-2">
-            
             {/* Phần Ngôn ngữ */}
             <div className="flex items-center gap-3">
               <span className="text-sm font-bold text-gray-700 uppercase tracking-wider hidden sm:block">
@@ -229,14 +224,14 @@ export default function Footer() {
               </span>
               <div className="flex items-center gap-3">
                 {/* Thêm sự kiện báo lỗi khi click */}
-                <button 
-                  onClick={() => handleLanguageChange('VN')}
+                <button
+                  onClick={() => handleLanguageChange("VN")}
                   className="text-sm font-black text-[#f97316] hover:scale-110 transition-transform"
                 >
                   VN
                 </button>
-                <button 
-                  onClick={() => handleLanguageChange('EN')}
+                <button
+                  onClick={() => handleLanguageChange("EN")}
                   className="text-sm font-bold text-gray-400 hover:text-[#f97316] hover:scale-110 transition-all"
                 >
                   EN
@@ -308,7 +303,6 @@ export default function Footer() {
                 </a>
               </div>
             </div>
-            
           </div>
         </div>
       </div>

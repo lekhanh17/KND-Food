@@ -239,7 +239,12 @@ export default function RecipeDetail() {
   // =====================================================================
   // THUẬT TOÁN ĐIỀU CHỈNH NGUYÊN LIỆU PHI TUYẾN TÍNH
   // =====================================================================
-  const calculateQuantity = (ingredientName, quantity, unit, originalServings) => {
+  const calculateQuantity = (
+    ingredientName,
+    quantity,
+    unit,
+    originalServings,
+  ) => {
     if (!originalServings || !quantity) return quantity;
 
     const qualitativeUnits = [
@@ -282,20 +287,35 @@ export default function RecipeDetail() {
 
     // Danh sách từ khóa nhận diện gia vị tự động
     const spiceKeywords = [
-      "muối", "đường", "bột ngọt", "hạt nêm", "nước mắm", "mắm nêm",
-      "tiêu", "ớt", "sả", "hành", "tỏi", "dầu ăn", "dầu hào", "thơm thái nhỏ", "màu", "nước lọc"
+      "muối",
+      "đường",
+      "bột ngọt",
+      "hạt nêm",
+      "nước mắm",
+      "mắm nêm",
+      "tiêu",
+      "ớt",
+      "sả",
+      "hành",
+      "tỏi",
+      "dầu ăn",
+      "dầu hào",
+      "thơm thái nhỏ",
+      "màu",
+      "nước lọc",
     ];
 
-    const isSpice = ingredientName && spiceKeywords.some((keyword) =>
-      ingredientName.toLowerCase().includes(keyword)
-    );
+    const isSpice =
+      ingredientName &&
+      spiceKeywords.some((keyword) =>
+        ingredientName.toLowerCase().includes(keyword),
+      );
 
+    // Áp dụng hàm số mũ với hệ số hãm d = 0.75
     let finalRatio = ratio;
-    // Thuật toán giảm xóc: Nếu là gia vị và tăng số người, chỉ tăng 60% tỷ lệ
     if (isSpice && ratio > 1) {
-      finalRatio = 1 + (ratio - 1) * 0.6;
+      finalRatio = Math.pow(ratio, 0.75); // Lũy thừa mũ d giúp tạo đường cong hãm gia vị
     }
-
     const calculated = num * finalRatio;
     // --- KẾT THÚC LOGIC AI ---
 
@@ -490,7 +510,9 @@ export default function RecipeDetail() {
               </p>
               <p className="text-base md:text-lg font-black text-gray-900">
                 {recipe.PrepTime}{" "}
-                <span className="text-sm md:text-base font-bold text-gray-700">Phút</span>
+                <span className="text-sm md:text-base font-bold text-gray-700">
+                  Phút
+                </span>
               </p>
             </div>
             <div className="bg-gray-50 rounded-2xl p-3 md:p-4 flex flex-col justify-center items-center text-center">
@@ -499,7 +521,9 @@ export default function RecipeDetail() {
               </p>
               <p className="text-base md:text-lg font-black text-gray-900">
                 {recipe.CookTime}{" "}
-                <span className="text-sm md:text-base font-bold text-gray-700">Phút</span>
+                <span className="text-sm md:text-base font-bold text-gray-700">
+                  Phút
+                </span>
               </p>
             </div>
 
@@ -697,9 +721,24 @@ export default function RecipeDetail() {
                         rating: item.AverageRating || 0,
                         reviews: item.ReviewCount || 0,
                         image: item.ImageURL,
-                        views: item.Views || item.ViewCount || item.viewCount || item.LuotXem || 0,
-                        ViewCount: item.Views || item.ViewCount || item.viewCount || item.LuotXem || 0,
-                        Views: item.Views || item.ViewCount || item.viewCount || item.LuotXem || 0,
+                        views:
+                          item.Views ||
+                          item.ViewCount ||
+                          item.viewCount ||
+                          item.LuotXem ||
+                          0,
+                        ViewCount:
+                          item.Views ||
+                          item.ViewCount ||
+                          item.viewCount ||
+                          item.LuotXem ||
+                          0,
+                        Views:
+                          item.Views ||
+                          item.ViewCount ||
+                          item.viewCount ||
+                          item.LuotXem ||
+                          0,
                       };
                       return (
                         <div

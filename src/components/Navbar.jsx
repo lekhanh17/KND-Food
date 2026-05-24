@@ -324,7 +324,7 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-100 shadow-sm transition-all duration-300">
-      {/* ĐÃ SỬA: Giảm padding px-4 xuống px-2 trên mobile, giảm h-20 xuống h-16 trên mobile để vừa vặn hơn */}
+      {/* Giảm padding px-4 xuống px-2 trên mobile, giảm h-20 xuống h-16 trên mobile để vừa vặn hơn */}
       <div className="container mx-auto px-2 sm:px-4 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-1 sm:gap-8">
         
         {/* LOGO */}
