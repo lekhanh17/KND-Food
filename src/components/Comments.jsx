@@ -7,7 +7,7 @@ import {
   faStar,
   faCamera,
   faTimes,
-  faReply, // ĐÃ THÊM: Icon trả lời
+  faReply,
 } from "@fortawesome/free-solid-svg-icons";
 import Swal from "sweetalert2";
 
@@ -97,7 +97,7 @@ function normalizeComment(comment) {
     authorAvatar: comment.Avatar || comment.authorAvatar || "",
     content: comment.Content || comment.content || "",
     rating: comment.Rating || comment.rating || null,
-    parentId: comment.ParentID || comment.parentId || null, // ĐÃ THÊM: Nhận diện bình luận cha
+    parentId: comment.ParentID || comment.parentId || null,
     images: imagesArray,
     createdAt:
       comment.CreatedAt || comment.createdAt || new Date().toISOString(),
@@ -120,7 +120,6 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [commentsError, setCommentsError] = useState("");
 
-  // ĐÃ THÊM: State quản lý việc mở khung Trả lời
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyText, setReplyText] = useState("");
 
@@ -137,7 +136,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
       const normalizedComments = Array.isArray(data)
         ? data.map(normalizeComment)
         : [];
-      // Sắp xếp: Mới nhất lên đầu (Dành cho bình luận gốc)
+      
       normalizedComments.sort(
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
@@ -158,22 +157,25 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recipeId]);
 
-  // ĐÃ SỬA: Bộ đếm chỉ đếm các bình luận gốc (không tính các câu trả lời con)
+  // ĐÃ SỬA TỐI ƯU: Hiển thị đầy đủ cả Đánh giá, Bình luận gốc và Phản hồi
   const totalCommentsLabel = useMemo(() => {
     const mainComments = comments.filter((c) => !c.parentId);
-    if (mainComments.length === 0) return "Chưa có đánh giá nào";
+    const replyComments = comments.filter((c) => c.parentId);
+
+    if (comments.length === 0) return "Chưa có tương tác nào";
 
     const ratedCount = mainComments.filter((c) => c.rating > 0).length;
     const discussionCount = mainComments.length - ratedCount;
+    const replyCount = replyComments.length;
 
     let parts = [];
     if (ratedCount > 0) parts.push(`${ratedCount} đánh giá`);
     if (discussionCount > 0) parts.push(`${discussionCount} bình luận`);
+    if (replyCount > 0) parts.push(`${replyCount} phản hồi`);
 
-    return parts.join(" • "); 
+    return parts.join(" • ");
   }, [comments]);
 
-  // Kiểm tra xem user này đã từng CHẤM SAO chưa
   const hasReviewed = useMemo(() => {
     if (!loggedInUser) return false;
     return comments.some(
@@ -289,7 +291,6 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
     }
   };
 
-  // ĐÃ THÊM: Hàm xử lý GỬI TRẢ LỜI (REPLY)
   const handleSubmitReply = async (parentId) => {
     const trimmedReply = replyText.trim();
     if (!loggedInUser) {
@@ -307,7 +308,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
       const formData = new FormData();
       formData.append("RecipeID", recipeId);
       formData.append("Content", trimmedReply);
-      formData.append("ParentID", parentId); // Bắn ID của bình luận cha lên Backend
+      formData.append("ParentID", parentId); 
 
       const response = await fetch(`${API_BASE_URL}/comments`, {
         method: "POST",
@@ -318,9 +319,9 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
       const data = await parseApiResponse(response);
       if (!response.ok) throw new Error(data.message || "Lỗi gửi trả lời.");
 
-      setComments((prev) => [...prev, normalizeComment(data)]); // Thêm reply vào danh sách
+      setComments((prev) => [...prev, normalizeComment(data)]); 
       setReplyText("");
-      setReplyingTo(null); // Đóng khung reply
+      setReplyingTo(null); 
       toast.success("Đã gửi câu trả lời!", toastConfig);
     } catch (error) {
       toast.error(error.message, toastConfig);
@@ -359,7 +360,6 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
           );
 
           if (response.ok) {
-            // ĐÃ SỬA: Xóa luôn cả comment cha và các comment con của nó khỏi giao diện
             setComments((prev) => prev.filter((c) => c.id !== commentId && c.parentId !== commentId));
           } else {
             const data = await response.json();
@@ -373,7 +373,6 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
     });
   };
 
-  // ĐÃ THÊM: Phân loại bình luận gốc
   const mainComments = comments.filter((c) => !c.parentId);
 
   return (
@@ -554,16 +553,13 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
             </button>
           </div>
         ) : mainComments.length > 0 ? (
-          // ĐÃ SỬA: Lặp qua danh sách bình luận gốc
           mainComments.map((comment) => {
-            // ĐÃ THÊM: Lọc ra các câu trả lời thuộc về comment gốc này (Sắp xếp tăng dần theo thời gian)
             const replies = comments
               .filter((c) => c.parentId === comment.id)
               .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
             return (
               <div key={comment.id} className="relative">
-                {/* BÌNH LUẬN GỐC */}
                 <article className="rounded-3xl border border-gray-100 bg-gray-50/80 p-5 transition hover:border-orange-100 hover:bg-orange-50/40">
                   <div className="flex items-start gap-4">
                     <div className="w-11 h-11 rounded-2xl bg-white border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center text-sm font-black text-orange-500">
@@ -637,7 +633,6 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                         </div>
                       )}
 
-                      {/* ĐÃ THÊM: NÚT BẤM TRẢ LỜI MỞ FORM */}
                       <div className="mt-2 flex items-center gap-4">
                         <button
                           onClick={() => {
@@ -653,7 +648,6 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                   </div>
                 </article>
 
-                {/* DANH SÁCH CÁC CÂU TRẢ LỜI (Đã sửa UI: Dùng viền dọc xuyên suốt, hiện đại và không bị gãy) */}
                 {replies.length > 0 && (
                   <div className="mt-4 ml-5 md:ml-7 pl-4 md:pl-6 border-l-[3px] border-gray-100 space-y-4">
                     {replies.map((reply) => (
@@ -670,7 +664,6 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                             <div className="flex items-center justify-between gap-1 mb-1">
                               <h3 className="text-sm font-bold text-gray-900 truncate">
                                 {reply.authorName}
-                                {/* Hiển thị mác "Tác giả" nếu đúng là người đăng công thức */}
                                 {reply.userId === recipeAuthorId && (
                                   <span className="ml-2 px-1.5 py-0.5 bg-orange-100 text-orange-600 text-[10px] rounded-md uppercase tracking-wide">
                                     Tác giả
@@ -698,7 +691,6 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                   </div>
                 )}
 
-                {/* ĐÃ THÊM: KHUNG NHẬP TRẢ LỜI NẰM NGAY DƯỚI BÌNH LUẬN GỐC */}
                 {replyingTo === comment.id && (
                   <div className="mt-3 ml-12 md:ml-16 bg-white rounded-3xl p-4 border border-orange-200 shadow-lg shadow-orange-100/50 animate-in slide-in-from-top-2 duration-200">
                     <div className="flex gap-3">
@@ -744,7 +736,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
           })
         ) : (
           <div className="p-10 text-center text-gray-400 text-sm font-semibold">
-            Chưa có đánh giá nào.
+            Chưa có tương tác nào.
           </div>
         )}
       </div>
