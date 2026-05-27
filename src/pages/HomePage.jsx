@@ -106,7 +106,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* ĐÃ SỬA: Chạy flex-nowrap trên mobile (trượt) và md:flex-wrap trên PC (rớt dòng) */}
+        {/* Chạy flex-nowrap trên mobile (trượt) và md:flex-wrap trên PC (rớt dòng) */}
         <div className="flex gap-3 overflow-x-auto flex-nowrap md:flex-wrap pb-4 md:pb-0 w-full snap-x [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {isLoading ? (
             <div className="w-full flex py-4 justify-center">
