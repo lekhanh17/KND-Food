@@ -23,21 +23,11 @@ export default function Footer() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Hàm xử lý nút chuyển ngôn ngữ
-  const handleLanguageChange = (lang) => {
-    if (lang === "EN") {
-      Toast.fire({
-        icon: "info",
-        title: "Tính năng Tiếng Anh đang được phát triển!",
-      });
-    }
-  };
-
   return (
     <footer className="bg-gray-50 border-t border-gray-100 pt-16 pb-8 mt-auto font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* NỬA TRÊN: THÔNG TIN LIÊN HỆ & CHÍNH SÁCH */}
-        {/* ĐÃ SỬA: Đổi từ md:grid-cols-3 thành md:grid-cols-4 để thêm cột QR Code */}
+        {/* THÔNG TIN LIÊN HỆ & CHÍNH SÁCH */}
+        {/* Đổi từ md:grid-cols-3 thành md:grid-cols-4 để thêm QR Code */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-10">
           {/* CỘT 1: Logo & Thông tin liên hệ */}
           <div className="space-y-6">
@@ -48,12 +38,11 @@ export default function Footer() {
               <p className="flex items-center gap-2 text-sm text-gray-500 mb-1">
                 Thứ 2 - Chủ Nhật (8:00 - 23:00)
               </p>
-              {/* ĐÃ SỬA: Thêm href="tel:..." để bấm gọi được */}
               <a
-                href="tel:19000019"
+                href="tel:0364245923"
                 className="text-[#f97316] font-black text-2xl tracking-wide block hover:underline"
               >
-                1900 0019
+                0364 245 923
               </a>
             </div>
 
@@ -62,7 +51,6 @@ export default function Footer() {
                 <span className="font-bold text-gray-700 text-sm block mb-1">
                   Email:
                 </span>
-                {/* Thêm href="mailto:..." để bấm gửi mail được */}
                 <a
                   href="mailto:lekhanhlux29@gmail.com"
                   className="text-sm text-gray-500 block hover:text-[#f97316] transition-colors"
@@ -76,7 +64,7 @@ export default function Footer() {
                 </span>
                 {/* Thêm link Google Maps để bấm vào xem bản đồ */}
                 <a
-                  href="https://www.google.com/maps/search/?api=1&query=Tầng+17,+Tòa+nhà+LandMark+81+Skyview,+720A+Điện+Biên+Phủ,+Phường+Thạnh+Mỹ+Tây,+Hồ+Chí+Minh"
+                  href="https://www.google.com/maps/place/Landmark+81+skyview/@10.7949002,106.7219331,17z/data=!4m10!1m2!2m1!1zVOG6p25nIDE3LCBUw7JhIG5ow6AgTGFuZE1hcmsgODEgU2t5dmlldywgNzIwQSDEkGnhu4duIEJpw6puIFBo4bunLCBQaMaw4budbmcgVGjhuqFuaCBN4bu5IFTDonksIEjhu5MgQ2jDrSBNaW5o!3m6!1s0x317527c2f8f30911:0x36ac5073f8c91acd!8m2!3d10.7951119!4d106.722096!15sCm9U4bqnbmcgMTcsIFTDsmEgbmjDoCBMYW5kTWFyayA4MSBTa3l2aWV3LCA3MjBBIMSQaeG7h24gQmnDqm4gUGjhu6csIFBoxrDhu51uZyBUaOG6oW5oIE3hu7kgVMOieSwgSOG7kyBDaMOtIE1pbmhabSJrdOG6p25nIDE3IHTDsmEgbmjDoCBsYW5kbWFyayA4MSBza3l2aWV3IDcyMGEgxJFp4buHbiBiacOqbiBwaOG7pyBwaMaw4budbmcgdGjhuqFuaCBt4bu5IHTDonkgaOG7kyBjaMOtIG1pbmiSARJ0b3VyaXN0X2F0dHJhY3Rpb26aASNDaFpEU1VoTk1HOW5TMFZKUTBGblNVTllOR0ZmY0U1M0VBReABAPoBBAg8EDE!16s%2Fm%2F012hcpml?entry=ttu&g_ep=EgoyMDI2MDUyNi4wIKXMDSoASAFQAw%3D%3D"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-gray-500 leading-relaxed block max-w-xs hover:text-[#f97316] transition-colors"
@@ -201,48 +189,22 @@ export default function Footer() {
               />
             </div>
             <p className="text-sm text-gray-500 mt-3 font-medium leading-relaxed">
-              Quét mã để mở web!
+              Quét mã để mở website!
             </p>
           </div>
         </div>
 
         <hr className="border-gray-200 my-8" />
 
-        {/* NỬA DƯỚI: BẢN QUYỀN, NGÔN NGỮ & MẠNG XÃ HỘI */}
+        {/* MẠNG XÃ HỘI */}
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           {/* Bản quyền */}
-          <p className="text-gray-400 text-sm font-medium order-3 md:order-1 text-center md:text-left">
-            © {new Date().getFullYear()} KND Food. All rights reserved.
+          <p className="text-gray-400 text-sm font-medium order-3 md:order-1 uppercase text-center md:text-left">
+            © {new Date().getFullYear()} KND Food.
           </p>
 
-          {/* Group: Ngôn ngữ + Mạng xã hội */}
+          {/* Group Mạng xã hội */}
           <div className="flex flex-wrap justify-center items-center gap-6 md:gap-8 order-1 md:order-2">
-            {/* Phần Ngôn ngữ */}
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-bold text-gray-700 uppercase tracking-wider hidden sm:block">
-                Ngôn ngữ:
-              </span>
-              <div className="flex items-center gap-3">
-                {/* Thêm sự kiện báo lỗi khi click */}
-                <button
-                  onClick={() => handleLanguageChange("VN")}
-                  className="text-sm font-black text-[#f97316] hover:scale-110 transition-transform"
-                >
-                  VN
-                </button>
-                <button
-                  onClick={() => handleLanguageChange("EN")}
-                  className="text-sm font-bold text-gray-400 hover:text-[#f97316] hover:scale-110 transition-all"
-                >
-                  EN
-                </button>
-              </div>
-            </div>
-
-            {/* Dấu gạch chia cách (Chỉ hiện trên màn hình lớn) */}
-            <div className="hidden md:block w-px h-6 bg-gray-300"></div>
-
-            {/* Phần Mạng xã hội */}
             <div className="flex items-center gap-4">
               <span className="text-sm font-bold text-gray-700 uppercase tracking-wider hidden sm:block">
                 Theo dõi chúng tôi:
