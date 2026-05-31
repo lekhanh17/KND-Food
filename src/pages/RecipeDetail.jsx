@@ -288,6 +288,7 @@ export default function RecipeDetail() {
     // Danh sách từ khóa nhận diện gia vị tự động
     const spiceKeywords = [
       "muối",
+      "bột canh",
       "đường",
       "bột ngọt",
       "hạt nêm",
