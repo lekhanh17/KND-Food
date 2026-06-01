@@ -99,7 +99,12 @@ def recommend(req: RecommendRequest):
     print(f"\n[AI DEBUG HYBRID] Đang tính điểm cho món ID: {req.target_recipe_id}")
     for r_id, score in sorted_scores.head(5).items():
         recipe_name = df_recipes[df_recipes['RecipeID'] == r_id]['Title'].values[0]
-        print(f" -> Món: '{recipe_name}' | Tổng điểm Hybrid: {score:.4f}")
+        
+        # Trích xuất điểm riêng lẻ từ các DataFrame để hiển thị chi tiết
+        content_score = content_sim_df.loc[req.target_recipe_id, r_id]
+        collab_score = collab_sim_df.loc[req.target_recipe_id, r_id]
+        
+        print(f" -> Món: '{recipe_name}' | Điểm TF-IDF: {content_score:.4f} | Điểm Hành vi: {collab_score:.4f} | TỔNG HYBRID: {score:.4f}")
     # ==========================================
 
     # ==========================================
