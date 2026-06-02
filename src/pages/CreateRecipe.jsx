@@ -7,7 +7,7 @@ export default function CreateRecipe() {
   const navigate = useNavigate();
 
   // ==========================================
-  // BẪY BẢO VỆ: KIỂM TRA ĐĂNG NHẬP NGAY LÚC LOAD TRANG
+  // KIỂM TRA ĐĂNG NHẬP NGAY LÚC LOAD TRANG
   // ==========================================
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -179,7 +179,7 @@ export default function CreateRecipe() {
       customClass: { popup: "rounded-3xl shadow-2xl border border-gray-100" },
     }).then((result) => {
       if (result.isConfirmed) {
-        navigate(-1); // Quay lại trang trước đó nếu người dùng chọn "Đồng ý"
+        navigate(-1); // Quay lại trang trước đó nếu người dùng chọn Đồng ý
       }
     });
   };
@@ -200,7 +200,7 @@ export default function CreateRecipe() {
     }
 
     // ==========================================
-    // Cảnh báo bắt buộc nhập Tên, Ảnh và Các thông số
+    // Cảnh báo bắt buộc nhập các trường dữ liệu
     // ==========================================
     if (!title.trim()) {
       return showWarning("Vui lòng nhập tên món ăn!");
@@ -242,12 +242,12 @@ export default function CreateRecipe() {
     formData.append("Servings", servings);
     formData.append("mainImage", imageFile);
 
-    // XỬ LÝ QUYỀN ADMIN Ở ĐÂY:
-    // Kiểm tra xem user đang đăng nhập có phải Admin không (dựa vào Role hoặc RoleID)
+    // XỬ LÝ QUYỀN ADMIN
+    // Kiểm tra xem user đang đăng nhập có phải Admin ko? (dựa vào Role hoặc RoleID)
     const isAdmin =
       user.Role === "Admin" || user.RoleID === 1 || user.isAdmin === true;
 
-    // Nếu là Admin thì Status = 1 (Hiện luôn), nếu không thì Status = 0 (Chờ duyệt)
+    // Nếu là Admin thì Status = 1 (Hiện ngay) ngược lại thì Status = 0 (Chờ duyệt)
     formData.append("Status", isAdmin ? 1 : 0);
 
     if (videoInputType === "upload" && videoFile) {

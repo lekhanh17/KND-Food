@@ -13,20 +13,26 @@ import {
   faTags,
 } from "@fortawesome/free-solid-svg-icons";
 
-// KHIÊN BẢO VỆ ẢNH TÍCH HỢP
 const getImageUrl = (url) => {
-  if (!url) return "https://via.placeholder.com/300"; // Ảnh mặc định nếu trống
+  if (!url) return "/default-avatar.png"; 
 
-  if (url.startsWith("http")) {
+  // 1. Nếu là link Cloudinary tuyệt đối thì trả về luôn, không cần xử lý chuỗi
+  if (url.startsWith("http://res.cloudinary.com") || url.startsWith("https://res.cloudinary.com")) {
+    return url;
+  }
+
+  // 2. Nếu dính link localhost cũ, đổi sang URL API động
+  if (url.startsWith("http://localhost:5000")) {
     return url.replace("http://localhost:5000", import.meta.env.VITE_API_URL);
   }
 
+  // 3. Nếu là đường dẫn tương đối (uploads/...), nối domain Backend vào đầu
   const cleanUrl = url.startsWith("/") ? url : `/${url}`;
   return `${import.meta.env.VITE_API_URL}${cleanUrl}`;
 };
 
 // ==========================================
-// CẤU HÌNH TOAST MÀU TRẮNG (DÙNG ! ĐỂ ĐÈ APP.JSX)
+// CẤU HÌNH TOAST
 // ==========================================
 const whiteToastConfig = {
   position: "top-center",

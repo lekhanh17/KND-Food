@@ -56,7 +56,6 @@ export default function HomePage() {
           rating: recipe.AverageRating || 0,
           reviews: recipe.ReviewCount || 0,
           image: recipe.ImageURL || defaultRecipeImg,
-          // Truyền ViewCount vào cho RecipeCard
           ViewCount: recipe.ViewCount || 0,
         }));
 
@@ -73,7 +72,6 @@ export default function HomePage() {
           rating: recipe.AverageRating || 0,
           reviews: recipe.ReviewCount || 0,
           image: recipe.ImageURL || defaultRecipeImg,
-          // Truyền ViewCount vào cho RecipeCard
           ViewCount: recipe.ViewCount || 0,
         }));
 
@@ -106,7 +104,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* Chạy flex-nowrap trên mobile (trượt) và md:flex-wrap trên PC (rớt dòng) */}
+        {/* Chạy flex-nowrap trượt trên mobile và md:flex-wrap xuống dòng trên PC */}
         <div className="flex gap-3 overflow-x-auto flex-nowrap md:flex-wrap pb-4 md:pb-0 w-full snap-x [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {isLoading ? (
             <div className="w-full flex py-4 justify-center">
@@ -126,7 +124,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. MÓN ĂN NỔI BẬT (Trending) */}
+      {/* 2. MÓN ĂN NỔI BẬT */}
       <section className="container mx-auto px-6 py-12 border-t border-gray-50 mt-4">
         <div className="flex justify-between items-end mb-10">
           <div>

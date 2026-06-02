@@ -7,9 +7,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart } from "@fortawesome/free-solid-svg-icons";
 import RecipeCard from "../components/RecipeCard";
 
-// KHIÊN BẢO VỆ ẢNH TÍCH HỢP SẴN
 const getImageUrl = (url) => {
-  if (!url) return "/default-food.png"; // Ảnh mặc định nếu trống
+  if (!url) return "/default-food.png";
 
   if (url.startsWith("http")) {
     return url.replace("http://localhost:5000", import.meta.env.VITE_API_URL);
@@ -100,7 +99,7 @@ export default function RecipeDetail() {
   }, [id]);
 
   // ==========================================
-  // GỬI API TĂNG LƯỢT XEM CHẠY NGẦM
+  // GỬI API TĂNG LƯỢT XEM
   // ==========================================
   useEffect(() => {
     if (!id) return;
@@ -114,7 +113,7 @@ export default function RecipeDetail() {
       }
     };
 
-    // Người dùng click vào là gửi API luôn
+    // Người dùng click vào là gửi API
     increaseViewCount();
   }, [id]);
 
@@ -282,10 +281,10 @@ export default function RecipeDetail() {
 
     if (isNaN(num)) return quantity;
 
-    // --- BẮT ĐẦU LOGIC AI TÍNH TOÁN GIẢM XÓC GIA VỊ ---
+    // --- LOGIC AI TÍNH TOÁN HỆ SỐ HÃM GIA VỊ ---
     const ratio = currentServings / originalServings;
 
-    // Danh sách từ khóa nhận diện gia vị tự động
+    // Danh sách từ khóa gia vị
     const spiceKeywords = [
       "muối",
       "bột canh",
@@ -477,7 +476,7 @@ export default function RecipeDetail() {
               <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden shrink-0 flex items-center justify-center border-2 border-transparent group-hover:border-orange-400 transition-colors">
                 {recipe.Avatar ? (
                   <img
-                    /* ẢNH AVATAR TÁC GIẢ */
+                    /* AVATAR TÁC GIẢ */
                     src={getImageUrl(recipe.Avatar)}
                     alt="Avatar"
                     className="w-full h-full object-cover"
@@ -502,7 +501,7 @@ export default function RecipeDetail() {
           <hr className="border-gray-100 mb-8" />
 
           {/* ========================================== */}
-          {/* BỐ CỤC 3 HỘP ĐỂ RESPONSIVE TRÊN MOBILE */}
+          {/* BỐ CỤC RESPONSIVE TRÊN MOBILE */}
           {/* ========================================== */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-10">
             <div className="bg-gray-50 rounded-2xl p-3 md:p-4 flex flex-col justify-center items-center text-center">
@@ -667,10 +666,9 @@ export default function RecipeDetail() {
           </div>
         </div>
 
-        {/* Khối ma thuật AI Gợi ý */}
+        {/* Khối AI Gợi ý */}
         {!loading && recipe && (
           <div className="mt-16 mb-10 relative overflow-hidden bg-gradient-to-br from-[#f8f5ff] via-white to-[#fff0f5] rounded-[2.5rem] p-6 md:p-10 border border-purple-100 shadow-[0_8px_30px_rgb(168,85,247,0.06)] group">
-            {/* Hiệu ứng ánh sáng mờ (Glow) tàng hình phía sau */}
             <div className="absolute top-0 right-0 w-72 h-72 bg-purple-300/30 rounded-full mix-blend-multiply filter blur-[60px] opacity-70 group-hover:animate-pulse transition-all duration-700"></div>
             <div
               className="absolute -bottom-10 -left-10 w-72 h-72 bg-pink-300/30 rounded-full mix-blend-multiply filter blur-[60px] opacity-70 group-hover:animate-pulse transition-all duration-700"

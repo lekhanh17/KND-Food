@@ -27,14 +27,13 @@ export default function RegisterPage() {
         "rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 mt-4",
     };
 
-    // Lấy dữ liệu theo thuộc tính "name" thay vì index
-    // Lý do: Thêm icon Ẩn/Hiện pass vào form sẽ làm lệch index e.target[x]
+    // Lấy dữ liệu theo thuộc tính "name" thay vì index vì thêm icon ẩn/hiện pass vào form sẽ làm lệch index e.target[x]
     const fullName = e.target.fullName.value;
     const email = e.target.email.value;
     const password = e.target.password.value;
     const confirmPassword = e.target.confirmPassword.value;
 
-    // CHẶN MẬT KHẨU NGẮN
+    // CHẶN PASS NGẮN
     if (password.length < 8) {
       setError("Mật khẩu phải có ít nhất 8 ký tự!");
       return;
@@ -52,7 +51,7 @@ export default function RegisterPage() {
       return;
     }
 
-    // 3. Gọi API để lưu vào Database (SQL Server)
+    // 3. Gọi API để lưu vào Db
     try {
       const userData = {
         FullName: fullName,
@@ -82,7 +81,7 @@ export default function RegisterPage() {
           navigate("/login");
         }, 2000);
       } else {
-        // Lỗi từ backend (VD: Email hoặc Username đã tồn tại) -> Chỉ hiện chữ đỏ
+        // Lỗi từ backend (VD: Email hoặc Username đã tồn tại)
         setError(data.message);
       }
     } catch (err) {
@@ -121,7 +120,7 @@ export default function RegisterPage() {
               name="username"
               placeholder="Nhập ID người dùng"
               required
-              maxLength={16} // <-- Giới hạn bao nhiêu ký tự thì sửa số này
+              maxLength={16} // Giới hạn 16 ký tự
               value={username}
               onChange={(e) => {
                 // Chuyển thành chữ thường và chỉ giữ lại a-z, 0-9
@@ -158,7 +157,7 @@ export default function RegisterPage() {
             </label>
             <div className="relative">
               <input
-                type={showPassword ? "text" : "password"} // Đổi type dựa theo state
+                type={showPassword ? "text" : "password"}
                 name="password"
                 required
                 minLength={8}

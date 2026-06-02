@@ -5,7 +5,6 @@ import RecipeCard from "../components/RecipeCard";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye } from "@fortawesome/free-solid-svg-icons";
 
-// KHIÊN BẢO VỆ ẢNH TÍCH HỢP SẴN
 const getImageUrl = (url) => {
   if (url.startsWith("http")) {
     return url.replace("http://localhost:5000", import.meta.env.VITE_API_URL);
@@ -15,9 +14,9 @@ const getImageUrl = (url) => {
   return `${import.meta.env.VITE_API_URL}${cleanUrl}`;
 };
 
-// ==============================================
-// CẤU HÌNH TOAST CHUNG CHO TRANG USER
-// ==============================================
+// ============================
+// CẤU HÌNH TOAST
+// ============================
 const whiteToastConfig = {
   position: "top-center",
   autoClose: 2000,
@@ -549,7 +548,7 @@ export default function UserPage() {
             <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center shadow-sm">
               {profileUser.Avatar ? (
                 <img
-                  /* Ảnh Avatar chính của Profile */
+                  /* Ảnh Avatar của Profile */
                   src={getImageUrl(profileUser.Avatar)}
                   alt="Avatar"
                   className="w-full h-full object-cover"
@@ -725,7 +724,7 @@ export default function UserPage() {
           ))}
         </div>
 
-        {/* --- KHU VỰC NỘI DUNG TABS --- */}
+        {/* --- KHU VỰC NỘI DUNG --- */}
         <div className="py-8">
           {activeTab === "Bài đăng của tôi" ? (
             isLoadingRecipes ? (
@@ -733,7 +732,7 @@ export default function UserPage() {
                 <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mb-4"></div>
               </div>
             ) : myRecipes.length > 0 ? (
-              // Đổi thành grid-cols-2 trên mobile (2 card/hàng), và lg:grid-cols-3 trên PC (3 card/hàng), ép gọn gap
+              // Đổi thành grid-cols-2 trên mobile (2 card 1 hàng), và lg:grid-cols-3 trên PC (3 card 1 hàng)
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {displayMyRecipes.map((recipe) => {
                   const difficultyUI = getDifficultyUI(recipe.Difficulty);
@@ -791,7 +790,7 @@ export default function UserPage() {
                           {difficultyUI.label}
                         </div>
 
-                        {/* Lớp phủ sương & Icon Lượt xem cho thẻ tuỳ chỉnh */}
+                        {/* Lớp phủ & icon Lượt xem */}
                         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none"></div>
                         <div className="absolute bottom-2 left-2 sm:bottom-3 sm:left-3 flex items-center gap-1.5 text-white text-[10px] sm:text-xs font-bold z-10 drop-shadow-md">
                           <FontAwesomeIcon

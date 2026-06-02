@@ -20,8 +20,7 @@ export default function ForgotPassword() {
     setErrorMessage("");
 
     try {
-      // GỌI API THẬT ĐẾN BACKEND NODE.JS
-      // *Lưu ý: Nếu Node.js của bạn chạy cổng khác (ví dụ 3000), nhớ sửa lại số 5000 ở link dưới nhé
+      // GỌI API ĐẾN BACKEND NODE.JS
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/forgot-password`,
         {
@@ -36,10 +35,10 @@ export default function ForgotPassword() {
       const data = await response.json();
 
       if (response.ok) {
-        // Gọi API thành công -> Hiện bảng xanh lá
+        // Gọi API thành công
         setStatus("success");
       } else {
-        // API báo lỗi (Sai email, lỗi server...) -> Hiện chữ đỏ
+        // API báo lỗi (Sai email, lỗi server...)
         setErrorMessage(data.message || "Có lỗi xảy ra từ máy chủ.");
         setStatus("error");
       }

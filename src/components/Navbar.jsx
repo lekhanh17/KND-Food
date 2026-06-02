@@ -19,9 +19,8 @@ import {
   faSearch,
 } from "@fortawesome/free-solid-svg-icons";
 
-// KHIÊN BẢO VỆ ẢNH TÍCH HỢP SẴN
 const getImageUrl = (url) => {
-  if (!url) return "/default-avatar.png"; // Ảnh mặc định nếu trống
+  if (!url) return "/default-avatar.png";
 
   if (url.startsWith("http")) {
     return url.replace("http://localhost:5000", import.meta.env.VITE_API_URL);
@@ -37,10 +36,10 @@ export default function Navbar() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   
-  // State quản lý đóng/mở thanh tìm kiếm trên điện thoại
+  // State đóng/mở thanh tìm kiếm trên đt
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
-  // Đặt tab mặc định là 'interact' (Tương tác) thay vì 'all'
+  // Đặt tab mặc định là 'interact' (Tương tác)
   const [activeNotifTab, setActiveNotifTab] = useState("interact");
 
   const [categories, setCategories] = useState([]);
@@ -59,7 +58,7 @@ export default function Navbar() {
     return notifications.filter((n) => !n.IsRead).length;
   }, [notifications]);
 
-  // SỬA LỖI TÀNG HÌNH: Thêm "System" vào tab admin để khớp với Database
+  // Thêm "System" vào tab admin để khớp với db
   const filteredNotifications = useMemo(() => {
     if (activeNotifTab === "follow")
       return notifications.filter((n) => n.Type && n.Type.toLowerCase() === "follow");
@@ -173,7 +172,7 @@ export default function Navbar() {
       fetchNotifications();
     }
 
-    // NGHE LỆNH CẬP NHẬT TỨC THỜI
+    // CẬP NHẬT
     window.addEventListener("refresh-notifications", fetchNotifications);
 
     const interval = setInterval(() => {
@@ -208,7 +207,7 @@ export default function Navbar() {
   const getNotifyIcon = (type) => {
     switch (type) {
       case "Approve":
-      case "System": // Thêm System vào đây để nó có icon luôn nếu cần
+      case "System":
         return (
           <FontAwesomeIcon
             icon={faCheckCircle}
@@ -252,13 +251,11 @@ export default function Navbar() {
   const timeAgo = (dateString) => {
     const now = new Date();
 
-    // Ép chuỗi ngày về giờ chuẩn (Cắt bỏ chữ Z ở cuối nếu có để trình duyệt không hiểu lầm là giờ UTC rồi tự cộng thêm)
+    // Ép chuỗi ngày về giờ chuẩn
     let cleanDateString = dateString;
     if (typeof dateString === "string" && dateString.endsWith("Z")) {
       cleanDateString = dateString.slice(0, -1);
     }
-
-    // Do Backend đã lưu chuẩn giờ VN, ta không cần bù giờ (+ 5 tiếng) nữa!
     let past = new Date(cleanDateString);
 
     if (past > now) {
@@ -337,7 +334,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* THANH TÌM KIẾM (Chỉ hiện trên màn hình lớn) */}
+        {/* THANH TÌM KIẾM (Chỉ hiện trên màn hình size lớn) */}
         <div className="flex-1 max-w-2xl relative z-50 hidden md:block">
           <SearchBar />
         </div>
@@ -380,7 +377,7 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* NÚT SEARCH DÀNH RIÊNG CHO MOBILE (Thu nhỏ w-8 h-8 trên mobile) */}
+          {/* NÚT SEARCH DÀNH RIÊNG CHO MOBILE */}
           <button
             onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
             className="md:hidden flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 text-gray-500 bg-gray-50 rounded-xl sm:rounded-2xl hover:bg-orange-50 hover:text-orange-500 transition-all duration-300 border border-gray-100 shadow-sm active:scale-95"
@@ -404,7 +401,7 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* NÚT CHIA SẺ (Thu nhỏ w-8 h-8 trên mobile) */}
+          {/* NÚT CHIA SẺ */}
           <Link
             to="/create-recipe"
             className="flex items-center justify-center w-8 h-8 sm:w-auto sm:px-5 sm:py-2.5 text-orange-600 bg-orange-50 rounded-xl sm:rounded-2xl hover:bg-orange-600 hover:text-white transition-all duration-300 whitespace-nowrap font-black text-xs uppercase tracking-wider border border-orange-100 shadow-sm active:scale-95"
@@ -533,7 +530,7 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            // Gom 2 nút Đăng nhập / Đăng ký thành Icon Dropdown giống y hệt Avatar khi Login
+            // Icon tài khoản khi chưa đăng nhập
             <div className="flex items-center border-l border-gray-100 pl-1.5 sm:pl-4">
               <div className="relative py-2" ref={userMenuRef}>
                 <button
@@ -577,7 +574,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* THANH TÌM KIẾM DẠNG TRƯỢT DÀNH CHO MOBILE */}
+      {/* THANH TÌM KIẾM DẠNG TRƯỢT CHO MOBILE */}
       {isMobileSearchOpen && (
         <div className="md:hidden w-full px-4 pb-4 animate-in fade-in slide-in-from-top-2 border-t border-gray-100 pt-3">
           <SearchBar />

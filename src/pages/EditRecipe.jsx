@@ -10,7 +10,7 @@ export default function EditRecipe() {
 
   const [categories, setCategories] = useState([]);
 
-  // MỚI THÊM: State và Ref để quản lý Custom Dropdown
+  // State và Ref để quản lý Custom Dropdown
   const [openDropdown, setOpenDropdown] = useState(null); // 'category', 'difficulty', or null
   const dropdownRef = useRef(null);
 
@@ -31,7 +31,7 @@ export default function EditRecipe() {
     steps: [],
   });
 
-  // MỚI THÊM: Xử lý click ra ngoài để đóng dropdown
+  // Xử lý click ra ngoài để đóng dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -44,7 +44,7 @@ export default function EditRecipe() {
 
   const showError = (text, callback) => {
     Swal.fire({
-      title: "Lỗi! ❌",
+      title: "Lỗi!",
       text: text,
       icon: "error",
       confirmButtonText: "Đóng",
@@ -57,7 +57,7 @@ export default function EditRecipe() {
 
   const showWarning = (text) => {
     Swal.fire({
-      title: "Khoan đã! ⚠️",
+      title: "Khoan!",
       text: text,
       icon: "warning",
       confirmButtonText: "Đã hiểu",
@@ -122,7 +122,7 @@ export default function EditRecipe() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // MỚI THÊM: Hàm chọn item cho Custom Dropdown
+  // Hàm chọn item cho Custom Dropdown
   const handleCustomSelect = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     setOpenDropdown(null);
@@ -293,12 +293,12 @@ export default function EditRecipe() {
               ></textarea>
             </div>
 
-            {/* CUSTOM DROPDOWNS KHU VỰC NÀY */}
+            {/* CUSTOM DROPDOWNS */}
             <div
               className="grid grid-cols-1 md:grid-cols-2 gap-4"
               ref={dropdownRef}
             >
-              {/* CUSTOM SELECT DANH MỤC */}
+              {/* CUSTOM CHỌN DANH MỤC */}
               <div className="relative">
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   Danh mục
@@ -353,7 +353,7 @@ export default function EditRecipe() {
                 )}
               </div>
 
-              {/* CUSTOM SELECT ĐỘ KHÓ */}
+              {/* CUSTOM CHỌN ĐỘ KHÓ */}
               <div className="relative">
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   Độ khó (1-5)
@@ -523,7 +523,7 @@ export default function EditRecipe() {
             </div>
           </div>
 
-          {/* CÁC BƯỚC LÀM */}
+          {/* CÁC BƯỚC THỰC HIỆN */}
           <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-gray-100">
             <div className="flex justify-between items-center mb-6 border-b pb-4">
               <h2 className="text-xl font-bold text-gray-900">
@@ -582,7 +582,7 @@ export default function EditRecipe() {
             </div>
           </div>
 
-          {/* SUBMIT BUTTON */}
+          {/* NÚT XÁC NHẬN */}
           <div className="flex justify-end pt-4">
             <button
               type="submit"

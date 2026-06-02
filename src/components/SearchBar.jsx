@@ -10,8 +10,6 @@ export default function SearchBar() {
   // Link ảnh mặc định phòng khi bị lỗi
   const DEFAULT_RECIPE_IMG = "https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg"; 
   const DEFAULT_USER_IMG = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-
-  // KHIÊN BẢO VỆ ẢNH TÍCH HỢP SẴN (Đã nâng cấp)
   const getImageUrl = (url, fallbackImg) => {
     if (!url) return fallbackImg;
 
@@ -152,10 +150,10 @@ export default function SearchBar() {
                       src={getImageUrl(user.Avatar || user.ProfilePicture, DEFAULT_USER_IMG)}
                       onError={(e) => { e.target.src = DEFAULT_USER_IMG; }}
                       alt={user.Username}
-                      /* ĐÃ SỬA: Tăng kích thước avatar lên w-10 h-10 cho cân đối với 2 dòng text */
+                      /* Tăng kích thước avatar lên w-10 h-10 cho cân đối với 2 dòng text */
                       className="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0"
                     />
-                    {/* ĐÃ SỬA: Bọc 2 dòng text vào div flex-col để chia hàng */}
+                    {/* Bọc 2 dòng text vào div flex-col để chia hàng */}
                     <div className="flex flex-col overflow-hidden">
                       <span className="text-sm font-bold text-gray-800 truncate">
                         {user.FullName || user.Username}

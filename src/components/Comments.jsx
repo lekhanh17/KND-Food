@@ -22,9 +22,8 @@ const toastConfig = {
     "rounded-2xl shadow-xl border border-gray-100 text-sm font-bold text-gray-800 mt-4",
 };
 
-// KHIÊN BẢO VỆ ẢNH
 const getImageUrl = (url) => {
-  if (!url) return "/default-avatar.png"; // Ảnh mặc định
+  if (!url) return "/default-avatar.png";
 
   if (url.startsWith("http")) {
     return url.replace("http://localhost:5000", import.meta.env.VITE_API_URL);
@@ -75,7 +74,11 @@ async function parseApiResponse(response) {
 function normalizeComment(comment) {
   let imagesArray = [];
   const rawImageURL =
-    comment.ImageURL || comment.ImageUrl || comment.imageURL || comment.image || null;
+    comment.ImageURL ||
+    comment.ImageUrl ||
+    comment.imageURL ||
+    comment.image ||
+    null;
   if (rawImageURL) {
     imagesArray = rawImageURL.split(",").filter((img) => img.trim() !== "");
   }
@@ -136,7 +139,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
       const normalizedComments = Array.isArray(data)
         ? data.map(normalizeComment)
         : [];
-      
+
       normalizedComments.sort(
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
@@ -157,7 +160,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recipeId]);
 
-  // ĐÃ SỬA TỐI ƯU: Hiển thị đầy đủ cả Đánh giá, Bình luận gốc và Phản hồi
+  // Hiển thị các Đánh giá, Bình luận gốc và Phản hồi
   const totalCommentsLabel = useMemo(() => {
     const mainComments = comments.filter((c) => !c.parentId);
     const replyComments = comments.filter((c) => c.parentId);
@@ -308,7 +311,7 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
       const formData = new FormData();
       formData.append("RecipeID", recipeId);
       formData.append("Content", trimmedReply);
-      formData.append("ParentID", parentId); 
+      formData.append("ParentID", parentId);
 
       const response = await fetch(`${API_BASE_URL}/comments`, {
         method: "POST",
@@ -319,9 +322,9 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
       const data = await parseApiResponse(response);
       if (!response.ok) throw new Error(data.message || "Lỗi gửi trả lời.");
 
-      setComments((prev) => [...prev, normalizeComment(data)]); 
+      setComments((prev) => [...prev, normalizeComment(data)]);
       setReplyText("");
-      setReplyingTo(null); 
+      setReplyingTo(null);
       toast.success("Đã gửi câu trả lời!", toastConfig);
     } catch (error) {
       toast.error(error.message, toastConfig);
@@ -360,10 +363,14 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
           );
 
           if (response.ok) {
-            setComments((prev) => prev.filter((c) => c.id !== commentId && c.parentId !== commentId));
+            setComments((prev) =>
+              prev.filter(
+                (c) => c.id !== commentId && c.parentId !== commentId,
+              ),
+            );
           } else {
             const data = await response.json();
-            toast.error(`❌ ${data.message}`, toastConfig);
+            toast.error(` ${data.message}`, toastConfig);
           }
         } catch (error) {
           console.error("Lỗi xóa bình luận:", error);
@@ -556,7 +563,11 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
           mainComments.map((comment) => {
             const replies = comments
               .filter((c) => c.parentId === comment.id)
-              .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+              .sort(
+                (a, b) =>
+                  new Date(a.createdAt).getTime() -
+                  new Date(b.createdAt).getTime(),
+              );
 
             return (
               <div key={comment.id} className="relative">
@@ -636,7 +647,9 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                       <div className="mt-2 flex items-center gap-4">
                         <button
                           onClick={() => {
-                            setReplyingTo(replyingTo === comment.id ? null : comment.id);
+                            setReplyingTo(
+                              replyingTo === comment.id ? null : comment.id,
+                            );
                             setReplyText("");
                           }}
                           className="text-xs font-bold text-gray-500 hover:text-orange-500 transition-colors flex items-center gap-1.5"
@@ -651,11 +664,18 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                 {replies.length > 0 && (
                   <div className="mt-4 ml-5 md:ml-7 pl-4 md:pl-6 border-l-[3px] border-gray-100 space-y-4">
                     {replies.map((reply) => (
-                      <article key={reply.id} className="rounded-3xl border border-gray-100 bg-white p-4 shadow-sm relative transition hover:border-orange-100 hover:shadow-md">
+                      <article
+                        key={reply.id}
+                        className="rounded-3xl border border-gray-100 bg-white p-4 shadow-sm relative transition hover:border-orange-100 hover:shadow-md"
+                      >
                         <div className="flex items-start gap-3">
                           <div className="w-8 h-8 rounded-xl bg-gray-100 border border-gray-200 overflow-hidden shrink-0 flex items-center justify-center text-xs font-black text-orange-500">
                             {reply.authorAvatar ? (
-                              <img src={getImageUrl(reply.authorAvatar)} alt="Avt" className="w-full h-full object-cover" />
+                              <img
+                                src={getImageUrl(reply.authorAvatar)}
+                                alt="Avt"
+                                className="w-full h-full object-cover"
+                              />
                             ) : (
                               reply.authorName?.charAt(0) || "U"
                             )}
@@ -674,11 +694,21 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                                 <span className="text-[10px] font-semibold text-gray-400">
                                   {formatCommentTime(reply.createdAt)}
                                 </span>
-                                {loggedInUser && (loggedInUser.UserID === reply.userId || loggedInUser.UserID === recipeAuthorId) && (
-                                  <button onClick={() => handleDeleteComment(reply.id)} className="text-gray-300 hover:text-red-500 transition-colors">
-                                    <FontAwesomeIcon icon={faTrash} className="text-xs" />
-                                  </button>
-                                )}
+                                {loggedInUser &&
+                                  (loggedInUser.UserID === reply.userId ||
+                                    loggedInUser.UserID === recipeAuthorId) && (
+                                    <button
+                                      onClick={() =>
+                                        handleDeleteComment(reply.id)
+                                      }
+                                      className="text-gray-300 hover:text-red-500 transition-colors"
+                                    >
+                                      <FontAwesomeIcon
+                                        icon={faTrash}
+                                        className="text-xs"
+                                      />
+                                    </button>
+                                  )}
                               </div>
                             </div>
                             <p className="text-[13px] leading-relaxed text-gray-600 whitespace-pre-wrap break-all">
@@ -696,7 +726,11 @@ export default function Comments({ recipeId, loggedInUser, recipeAuthorId }) {
                     <div className="flex gap-3">
                       <div className="w-8 h-8 rounded-xl bg-orange-500 text-white shrink-0 flex items-center justify-center font-black">
                         {loggedInUser?.Avatar ? (
-                          <img src={getImageUrl(loggedInUser.Avatar)} alt="Avt" className="w-full h-full object-cover rounded-xl" />
+                          <img
+                            src={getImageUrl(loggedInUser.Avatar)}
+                            alt="Avt"
+                            className="w-full h-full object-cover rounded-xl"
+                          />
                         ) : (
                           loggedInUser?.FullName?.charAt(0) || "?"
                         )}

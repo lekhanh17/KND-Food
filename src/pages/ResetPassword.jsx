@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
 export default function ResetPassword() {
-  // Lấy token và email từ trên thanh URL xuống
+  // Lấy token và email từ URL
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const email = searchParams.get("email");
@@ -32,7 +32,7 @@ export default function ResetPassword() {
     setMessage("");
 
     try {
-      // GỌI API THẬT ĐỂ ĐỔI MẬT KHẨU
+      // GỌI API ĐỂ ĐỔI MẬT KHẨU
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/reset-password`,
         {

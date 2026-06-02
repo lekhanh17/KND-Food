@@ -117,7 +117,7 @@ export default function LoginPage() {
           </div>
         ) : (
           <>
-            {/* Thêm autoComplete="off" vào form để cấm tự động điền */}
+            {/* Thêm autoComplete="off" vào form để ko điền tự động */}
             <form
               className="space-y-4 animate-fade-in"
               onSubmit={handleLogin}
@@ -147,7 +147,7 @@ export default function LoginPage() {
                     name="password"
                     required
                     minLength={8}
-                    autoComplete="new-password" // Bắt trình duyệt không thả tooltip gợi ý mật khẩu
+                    autoComplete="new-password" // Trình duyệt ko hiện tooltip nhập mk
                     className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 bg-white transition-all"
                     placeholder="••••••••"
                   />

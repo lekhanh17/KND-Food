@@ -27,7 +27,6 @@ export default function Footer() {
     <footer className="bg-gray-50 border-t border-gray-100 pt-16 pb-8 mt-auto font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* THÔNG TIN LIÊN HỆ & CHÍNH SÁCH */}
-        {/* Đổi từ md:grid-cols-3 thành md:grid-cols-4 để thêm QR Code */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-10">
           {/* CỘT 1: Logo & Thông tin liên hệ */}
           <div className="space-y-6">
@@ -62,7 +61,7 @@ export default function Footer() {
                 <span className="font-bold text-gray-700 text-sm block mb-1">
                   Địa chỉ:
                 </span>
-                {/* Thêm link Google Maps để bấm vào xem bản đồ */}
+                {/* Thêm link gg maps*/}
                 <a
                   href="https://www.google.com/maps/place/Landmark+81+skyview/@10.7949002,106.7219331,17z/data=!4m10!1m2!2m1!1zVOG6p25nIDE3LCBUw7JhIG5ow6AgTGFuZE1hcmsgODEgU2t5dmlldywgNzIwQSDEkGnhu4duIEJpw6puIFBo4bunLCBQaMaw4budbmcgVGjhuqFuaCBN4bu5IFTDonksIEjhu5MgQ2jDrSBNaW5o!3m6!1s0x317527c2f8f30911:0x36ac5073f8c91acd!8m2!3d10.7951119!4d106.722096!15sCm9U4bqnbmcgMTcsIFTDsmEgbmjDoCBMYW5kTWFyayA4MSBTa3l2aWV3LCA3MjBBIMSQaeG7h24gQmnDqm4gUGjhu6csIFBoxrDhu51uZyBUaOG6oW5oIE3hu7kgVMOieSwgSOG7kyBDaMOtIE1pbmhabSJrdOG6p25nIDE3IHTDsmEgbmjDoCBsYW5kbWFyayA4MSBza3l2aWV3IDcyMGEgxJFp4buHbiBiacOqbiBwaOG7pyBwaMaw4budbmcgdGjhuqFuaCBt4bu5IHTDonkgaOG7kyBjaMOtIG1pbmiSARJ0b3VyaXN0X2F0dHJhY3Rpb26aASNDaFpEU1VoTk1HOW5TMFZKUTBGblNVTllOR0ZmY0U1M0VBReABAPoBBAg8EDE!16s%2Fm%2F012hcpml?entry=ttu&g_ep=EgoyMDI2MDUyNi4wIKXMDSoASAFQAw%3D%3D"
                   target="_blank"
@@ -131,7 +130,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* CỘT 3: Link Về công ty */}
+          {/* CỘT 3: Link Về chúng tôi */}
           <div>
             <h4 className="text-gray-900 font-bold text-sm mb-4 uppercase tracking-wider">
               Về Chúng Tôi

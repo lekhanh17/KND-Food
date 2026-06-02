@@ -101,7 +101,6 @@ export default function AllRecipes() {
           rating: recipe.AverageRating || 0,
           reviews: recipe.ReviewCount || 0,
           image: recipe.ImageURL || defaultRecipeImg,
-          // Truyền ViewCount vào để thẻ RecipeCard lấy được dữ liệu lượt xem
           ViewCount: recipe.ViewCount || 0,
         }));
 
@@ -165,7 +164,7 @@ export default function AllRecipes() {
     });
 
   // ==========================================
-  // LOGIC TÍNH TOÁN CẮT MẢNG CHO PHÂN TRANG
+  // LOGIC PHÂN TRANG
   // ==========================================
   const indexOfLastRecipe = currentPage * recipesPerPage;
   const indexOfFirstRecipe = indexOfLastRecipe - recipesPerPage;
@@ -208,7 +207,7 @@ export default function AllRecipes() {
             <p className="text-gray-500 mt-2 font-medium">{pageSubtitle}</p>
           </div>
 
-          {/* GIAO DIỆN TOOLBAR (BỘ LỌC ĐỘ KHÓ + CUSTOM DROPDOWN SẮP XẾP) */}
+          {/* GIAO DIỆN TOOLBAR (BỘ LỌC ĐỘ KHÓ + DROPDOWN SẮP XẾP) */}
           <div className="flex flex-col sm:flex-row items-center gap-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 w-full xl:w-auto">
             
             {/* 1. THANH TRƯỢT LỌC ĐỘ KHÓ */}
@@ -331,7 +330,7 @@ export default function AllRecipes() {
               ))}
             </div>
 
-            {/* GIAO DIỆN ĐIỀU HƯỚNG PHÂN TRANG (PAGINATION) */}
+            {/* GIAO DIỆN ĐIỀU HƯỚNG PHÂN TRANG */}
             {totalPages > 1 && (
               <div className="mt-14 flex items-center justify-center gap-2">
                 <button

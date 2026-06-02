@@ -21,9 +21,6 @@ import AllRecipes from './pages/AllRecipes';
 import AdminRoute from "./components/AdminRoute"; 
 import AdminDashboard from "./pages/AdminDashboard"; 
 
-// ==============================================
-// ĐÃ THÊM: IMPORT COMPONENT SCROLL TO TOP VÀ STATIC PAGE
-// ==============================================
 import ScrollToTop from "./components/ScrollToTop";
 import StaticPage from "./pages/StaticPage";
 
@@ -111,18 +108,13 @@ function AppContent() {
   const shouldHideLayout = hideLayoutPaths.includes(location.pathname);
 
   return (
-    // ĐÃ SỬA: Gỡ bỏ overflow-x-hidden ở đây để cho phép trang lướt dọc tự do
     <div className="min-h-screen bg-white flex flex-col">
-      
-      {/* ==============================================
-          KÍCH HOẠT SCROLL TO TOP
-          ============================================== */}
       <ScrollToTop />
 
       {!shouldHideLayout && <Navbar />}
       {!shouldHideLayout && <NotificationBanner />}
 
-      {/* Thêm flex-grow để nội dung chính tự đẩy Footer xuống */}
+      {/* Thêm flex-grow để tự đẩy Footer xuống */}
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<HomePage />} />
@@ -165,7 +157,7 @@ function AppContent() {
         </Routes>
       </main>
 
-      {/* Hiển thị Footer nếu không nằm trong danh sách cấm */}
+      {/* Hiển thị Footer nếu không nằm trong các trang cấm */}
       {!shouldHideLayout && <Footer />}
 
     </div>
